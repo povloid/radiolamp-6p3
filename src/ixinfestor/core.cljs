@@ -1,0 +1,466 @@
+(ns ixinfestor.core
+  (:require-macros [cljs.core.async.macros :refer [go ]])
+
+  (:require [cljs.core.async :as async :refer [>! <! put! chan alts!]]
+
+            [goog.events :as events]
+            [goog.dom.classes :as classes]
+
+            [hipo.core :as hipo]
+
+            [ajax.core :refer [GET POST]]
+            [dommy.core :as dommy :refer-macros [sel sel1]]))
+
+(enable-console-print!)
+
+
+;; (defn convert-to-array [js-col]
+;;   (-> (clj->js [])
+;;       (.-slice)
+;;       (.call js-col)
+;;       (js->clj)))
+
+;;**************************************************************************************************
+;;* BEGIN ID functions
+;;* tag: <id>
+;;*
+;;* description: формирование идентификаторов
+;;*
+;;**************************************************************************************************
+
+;; ! Код пока дублируется !
+
+(defn- keyword-replace-char [kw c as-c]
+  (->> kw name vec
+       (map #(if (= % c) as-c %))
+       (reduce str)
+       keyword))
+
+(defn xml-id [kw & parent]
+  (if (empty? parent) (keyword-replace-char kw \- \_)
+      (-> parent
+          first
+          name
+          (str "--" (name kw))
+          (keyword-replace-char \- \_))))
+
+;; ! Код пока дублируется !
+
+(defn by-id
+  "Short-hand for document.getElementById(id)"
+  [id]
+  (.getElementById js/document (name id)))
+
+;; END ID functions
+;;..................................................................................................
+
+(defn events->chan
+  "Given a target DOM element and event type return a channel of
+  observed events. Can supply the channel to receive events as third
+  optional argument."
+  ([el event-type] (events->chan el event-type (chan)))
+  ([el event-type c]
+   (events/listen el event-type
+                  (fn [e] (put! c e)))
+   c))
+
+(declare modal-cr-and-show-on-id)
+
+(defn error-handler [{:keys [status status-text] :as erow}]
+  (.log js/console (str "Error: " erow))
+
+  (when (by-id :modal-error)
+    (modal-cr-and-show-on-id
+     :modal-error
+     {:title  [:div {:class "alert alert-danger" :role "alert"}
+               [:span {:class "glyphicon glyphicon-exclamation-sign" :aria-hidden "true"}]
+               (str " Ошибка " status " : " status-text)]
+      :body   [:div {:class "row"}
+               [:div {:id "modal-error-body" :class "col-sm-12"} ]]
+      :footer [:button {:class "btn btn-default" :data-dismiss "modal", :type "button"} "Закрыть"]
+      })
+
+    (dommy/set-html!
+     (by-id :modal-error-body)
+     (-> erow :parse-error :original-text))
+
+    ;;  (js/alert (str "Ошибка операции" status))
+    ))
+
+(defn display-message-on-time [time message]
+  (let [el [:div {:id "top-message" :class "alert alert-success" :style "position:absolute;top:10px;left:10px" :role "alert"}
+            message]]
+    (->> el hipo/create (dommy/append! (by-id :main-navbar)))
+    ;;(.appendChild (.-body js/document) (hipo/create el))
+    (js/setTimeout (fn []
+                     (when-let [e (by-id :top-message)]
+                       (dommy/remove! e)))
+                   time)))
+
+
+
+(defn m-not=vals [old new k default]
+  (or (not= (k old) (k new)) (= (k new) default)))
+
+(defn parse-int [str-val default-val]
+  (if (nil? str-val) default-val (js/parseInt str-val)))
+
+
+(defn drop-long-string [string limit]
+  (if (<= count limit) string
+      (str (subs string 0 (- limit 4)) "...")))
+
+(defn keyword-i [k i]
+  (let [z (keyword (str (name k) i))]
+    ;;(.log js/console (str z))
+    z))
+
+
+;;**************************************************************************************************
+;;* BEGIN page state
+;;* tag: <page state>
+;;*
+;;* description: состояние страници
+;;*
+;;**************************************************************************************************
+
+(defn ix-set [params]
+  (GET "/ix/set"
+       {:params params
+        :error-handler error-handler}))
+
+
+(defn page-state-cr []
+  (let [page-state (atom {})]
+    (add-watch page-state :ix-set
+               (fn [_ _ old new]
+                 (when (not= old new)
+                   (ix-set @page-state))))
+    page-state))
+
+
+(defn make-init-page [page-state params m f]
+  (when (and js/document (.-getElementById js/document))
+    (let [params-clj (js->clj params :keywordize-keys true)]
+      (.log js/console (str "params-clj >>> " params-clj))
+
+      ;;(.log js/console (str "init-map   >>> " init-map))
+
+      (->> m
+           seq
+           (reduce (fn [params-clj [k f]] (update-in params-clj [k] f))  params-clj)
+           (swap! page-state merge)
+           println)
+
+      (f params-clj))))
+
+
+(defn add-watch-ix-set [page-state]
+  (add-watch page-state :ix-set
+             (fn [_ _ old new] (when (not= old new) (ix-set @page-state)))))
+
+(defn add-watch-on-update-for
+  ([page-state watch-key value-path do-fn]
+   (add-watch-on-update-for page-state watch-key value-path nil do-fn))
+  ([page-state watch-key value-path window-onload-fn do-fn]
+   ;;   (swap! page-state assoc-in value-path init-value)
+   (when window-onload-fn
+     (set! (.-onload js/window) window-onload-fn))
+   (add-watch page-state watch-key
+              (fn [_ _ old new]
+                (when (not= old new)
+                  (let [old-value (get-in old value-path)
+                        new-value (get-in new value-path)]
+                    (when (not= old new)
+                      (do-fn new-value))))))))
+
+;; END page state
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN Navigation and menu
+;;* tag: <nav menu>
+;;*
+;;* description: Навигация и элементы меню
+;;*
+;;**************************************************************************************************
+
+(defn navbar [body]
+  [:ul {:class "nav navbar-nav navbar-right"} body])
+
+(defn nav-menu-item
+  ([title attrs] (nav-menu-item title attrs nil))
+  ([title glyphicon-name attrs]
+   [:li
+    [:a (merge {:href "#"} attrs)
+     (when glyphicon-name
+       [:span {:class (str "glyphicon " glyphicon-name) :aria-hidden "true"}])
+     " " title]]))
+
+(defn nav-menu
+  ([title attrs nav-menu-items] (nav-menu title nil attrs nav-menu-items))
+  ([title glyphicon-name attrs nav-menu-items]
+   [:li {:class "dropdown"}
+    [:a {:class "dropdown-toggle" :aria-expanded "false", :role "button", :data-toggle "dropdown", :href "#"}
+     (when glyphicon-name
+       [:span {:class (str "glyphicon " glyphicon-name) :aria-hidden "true"}])
+     " " title
+     [:span {:class "caret"}]]
+    [:ul {:class "dropdown-menu" :role "menu"}
+     nav-menu-items
+     ]]))
+
+;; END Navigation and menu
+;;..................................................................................................
+
+
+;;**************************************************************************************************
+;;* BEGIN component pagenator
+;;* tag: <component pagenator>
+;;*
+;;* description: Переключатель страничного контента
+;;*
+;;**************************************************************************************************
+
+
+(defn t-table-paginator-update-value-from-map [id {:keys [page page-size]}]
+  (let [id (xml-id id)
+        input-id   (xml-id :page-num id)
+        select-id  (xml-id :btn-goto-next-page id)]
+    (when page (dommy/set-value! (by-id input-id) page))
+    (when page (dommy/set-value! (by-id select-id) page-size)) ))
+
+(defn t-table-paginator [id class event-chan init-params]
+  (let [id (xml-id id)
+        input-id (xml-id :page-num id)]
+
+    [:div {:id (name id) :role "group" :style "width: 300px" :class (str "input-group " class)}
+     [:div {:class "input-group-btn"}
+
+      [:button {:id (name (xml-id :btn-goto-first-page id))
+                :class "btn btn-default"
+                :on-click (fn []
+                            (dommy/set-value! (by-id input-id) 1)
+                            (put! event-chan [id :page 1]))}
+       [:span {:class "glyphicon glyphicon-fast-backward" :aria-hidden "true"}]]
+
+      [:button {:id (name (xml-id :btn-goto-previus-page id))
+                :class "btn btn-default"
+                :on-click (fn []
+                            (let [input (by-id input-id)
+                                  v (dec (js/parseInt (dommy/value input)))]
+                              (when (< 0 v)
+                                (dommy/set-value! input v)
+                                (put! event-chan [id :page v]))))}
+       [:span {:class "glyphicon glyphicon-step-backward" :aria-hidden "true"}]]
+
+      ]
+
+     [:input {:id (name input-id)  ;;:style "width: 120px"
+              :class "form-control"
+              :style "border: 1px solid"
+              :type "number" :min "1"
+              :value (or (:page init-params) 1)
+              :placeholder "Страница"
+              :on-change #(this-as this (put! event-chan [id :page (dommy/value this)]))
+              }]
+
+     ;;[:div.btn-group
+     ;; [:span {:class "glyphicon glyphicon-th-list" :style "padding: 8px;" :aria-hidden "true"}] " "]
+
+     ;;     [:div.btn-group
+     [:div {:class "input-group-btn"}
+
+      [:select {:id (name (xml-id :select-page-size id))
+                :style "float: left; width: 80px"
+                :class "btn btn-default dropdown-toggle form-control"
+                :on-change #(this-as this (put! event-chan [id :page-size (js/parseInt (dommy/value this))]))}
+       (let [selected-i (or (:page-size init-params) nil)]
+         (map (fn [i] [:option (if (= i selected-i) {:value i :selected true} {:value i}) i])
+              [5 10 15 20 50 100 1000]))]
+
+      [:button {:id (name (xml-id :btn-goto-next-page id))
+                :class "btn btn-default"
+                :on-click (fn []
+                            (let [input (by-id input-id)
+                                  v (inc (js/parseInt (dommy/value input)))]
+                              (when (< 0 v)
+                                (dommy/set-value! input v)
+                                (put! event-chan [id :page v]))))}
+       [:span {:class "glyphicon glyphicon-step-forward" :aria-hidden "true"} ]]
+      ]]))
+
+
+
+;; END component pagenator
+;;..................................................................................................
+
+;; -------------------------------------------------------
+
+(defn clear-and-set [e body]
+  (dommy/clear! e)
+  (dommy/append! e (hipo/create body))
+  e)
+
+(defn clear-and-set-on-tag-by-id [id body]
+  (clear-and-set (by-id id) body))
+
+;;**************************************************************************************************
+;;* BEGIN Tabs components
+;;* tag: <html components tabs>
+;;*
+;;* description: табуляторы
+;;*
+;;**************************************************************************************************
+
+(defn tab-entry [tab-label-id slave-ids]
+  [tab-label-id slave-ids])
+
+(defn make-tabs [page-state tab-value-path swith-tab-map]
+  (add-watch-on-update-for
+   page-state (->> tab-value-path
+                   (reduce #(str %1 "-" (name %2)) "tab-element")
+                   keyword)
+   tab-value-path
+
+   (fn []
+     (doseq [[i [l _]] (seq swith-tab-map)]
+       (dommy/listen! (sel1 l) :click #(swap! page-state assoc-in tab-value-path i))))
+
+   (fn [tab-index]
+     ;; deactivate/hide all
+     (doseq [[l es] (vals swith-tab-map)]
+       (do (dommy/remove-class! (sel1 l) :active)
+           (doseq [e es]
+             (dommy/hide! (sel1 e)))))
+
+     (let [[l es] (swith-tab-map tab-index)]
+       (when-let [l (sel1 l)]
+         (dommy/add-class! l :active)
+         (doseq [e es]
+           (dommy/show! (sel1 e)))))
+     )))
+
+;; END tabs components
+;;..................................................................................................
+
+
+
+
+;;**************************************************************************************************
+;;* BEGIN Modal dialogs
+;;* tag: <modal dialog>
+;;*
+;;* description: Модальные диалоги
+;;*
+;;**************************************************************************************************
+
+(defn modal-title [modal text]
+  (dommy/set-text! (sel1 modal :.modal-title) text))
+
+(defn modal-header [modal body]
+  (clear-and-set (sel1 modal :.modal-header) body))
+
+(defn modal-body [modal body]
+  (clear-and-set (sel1 modal :.modal-body) body))
+
+(defn modal-footer [modal body]
+  (clear-and-set (sel1 modal :.modal-footer) body))
+
+(defn modal-footer-div [modal body]
+  (clear-and-set (-> modal (sel1 :.modal-footer) (sel1 :div)) body))
+
+(defn modal-show [id]
+  (println "Show modal on id = " id)
+  (-> id name js/jQuery .modal))
+
+
+;; ----------------------------------------------------------------
+
+(defn modal-cr-and-show-on-id [id {:keys [label header title body footer]}]
+  (let [modal-id (xml-id :modal-dialog id)]
+    (clear-and-set-on-tag-by-id id
+                                [:div {:id (name modal-id) :aria-hidden "true", :aria-labelledby (or label "Modal Label..."),
+                                       :class "modal"
+                                       :role "dialog", :tabindex "-1"}
+                                 [:div {:class "modal-dialog"}
+                                  [:div {:class "modal-content"}
+                                   [:div {:class "modal-header"}
+                                    (or header [:h4.modal-title (or title "Modal title...")])]
+                                   [:div {:class "modal-body"} (or body nil)]
+                                   [:div {:class "modal-footer"}
+                                    [:div  {:class "navbar-left"} ]
+                                    (or footer [:button {:class "btn btn-default" :type "button" :data-dismiss "modal"} "Закрыть"])
+                                    ]]]])
+    (modal-show (str \# (name modal-id)))))
+
+;; END Modal dialogs
+;;..................................................................................................
+
+
+;;**************************************************************************************************
+;;* BEGIN Inputs validation
+;;* tag: <input validation>
+;;*
+;;* description: Валидация элементов ввода
+;;*
+;;**************************************************************************************************
+
+(defn input-validate-and-assoc [a k input-id validators]
+  (let [input (by-id input-id)
+        value (dommy/value input)
+        parent (dommy/parent input)
+        error-e-id (xml-id "-p-error" input-id)]
+
+    (try
+      (when-let [error-e (by-id error-e-id)]
+        (dommy/remove! error-e))
+
+      (doseq [validator validators]
+        (validator input value))
+
+      (dommy/remove-class! parent :has-error)
+
+      (assoc a k value)
+
+      (catch js/Error e
+        (.log js/console (str "Ошибка валидации на: " input-id " валидатор выдал сообщение " e))
+        (dommy/add-class! parent :has-error)
+        (dommy/append! parent
+                       (hipo/create [:p {:id (name error-e-id) :class "text-danger"} (str e)]))
+
+        (assoc-in a [:error k] value)))))
+
+(defn input-all-valid-or-nil [{e :error :as results}]
+  (if (empty? e) results nil))
+
+
+(defn validate-for-not-empty [_ value]
+  (.log js/console (str "validate?: " value))
+  (if (or (nil? value) (empty? value))
+    (throw (js/Error. "пустое значение"))
+    value))
+
+(defn validate-equal-vals [message input-id-2 input-1 value-1]
+  (let [input-2 (by-id input-id-2)
+        value-2 (dommy/value input-2)]
+    (if (= value-1 value-2)
+      value-1
+      (throw (js/Error. message)))))
+
+
+;; END Inputs validation
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN Form engine
+;;* tag: <form tngine>
+;;*
+;;* description: Функционал работы с формами
+;;*
+;;**************************************************************************************************
+
+
+
+;; END Form engine
+;;..................................................................................................
