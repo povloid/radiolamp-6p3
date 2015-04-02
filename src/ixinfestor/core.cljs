@@ -272,7 +272,7 @@
      [:div {:class "input-group-btn"}
 
       [:select {:id (name (xml-id :select-page-size id))
-                :style "float: left; width: 80px"
+                :style "float: left; width: 80px; border: 1px solid;"
                 :class "btn btn-default dropdown-toggle form-control"
                 :on-change #(this-as this (put! event-chan [id :page-size (js/parseInt (dommy/value this))]))}
        (let [selected-i (or (:page-size init-params) nil)]
