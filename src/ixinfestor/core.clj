@@ -306,3 +306,87 @@
 ;; END Common utils
 ;;..................................................................................................
 
+
+
+;;**************************************************************************************************
+;;* BEGIN files entity
+;;* tag: <files entity>
+;;*
+;;* description: Хранение файлов
+;;*
+;;**************************************************************************************************
+
+(def files-root-directory "files_root_directory")
+
+(defn save-file [tempfile dir filename]
+  (let [dir-filename (str dir filename)
+        full-path (str files-root-directory dir-filename)]
+    (clojure.java.io/make-parents full-path)
+    (with-open [in (clojure.java.io/input-stream tempfile)
+                out (clojure.java.io/output-stream full-path)]
+      (try
+        (do
+          (clojure.java.io/copy in out)
+          (.close in)
+          (.close out))
+        (catch Exception ex
+          (do
+            (.close in)
+            (.close out)
+            (throw ex) )))
+      dir-filename)))
+
+
+(defentity files
+  (pk :id))
+
+(defn files-save
+  "Сохранение files"
+  [file-row]
+  (com-save-for-id files file-row))
+
+(defn file-upload [file-row tempfile]
+  (transaction
+   (let [{id :id :as new-row} (-> file-row
+                                  (assoc :path "?TMP?")
+                                  files-save)
+         path (save-file tempfile
+                         (str (tf/unparse (tf/formatter-local "/yyyy/MM/dd/") (tl/local-now)) id "/")
+                         (file-row :filename))]
+     (-> new-row
+         (assoc :path path)
+         files-save))))
+
+(defn file-pred-images* [query* & [not?]]
+  (where query*
+         {:content_type [(if not? not-in in) ["image/gif"
+                                              "image/jpeg"
+                                              "image/pjpeg"
+                                              "image/png"
+                                              "image/svg+xml"
+                                              "image/tiff"]]}))
+
+
+;;связи для файлов
+
+(defentity files_rel
+  (belongs-to files))
+
+(defn file-upload-rel-on [entity files-rel-field {id :id :as entity-row} file-row tempfile]
+  (transaction
+   (let [file-row (file-upload file-row tempfile)]
+     (insert files_rel (values {:files_id (:id file-row) files-rel-field id})))))
+
+(defn files_rel-delete [files-rel-field {file-id :id} {rel-id :id}]
+  (delete files_rel (where (and (= :files_id file-id)
+                                (= files-rel-field rel-id)))))
+
+(defn files_rel-select-files-by-* [row files-rel-field]
+  ((com-defn-get-rows-by-rel* files :id :id files_rel :files_id files-rel-field) row))
+
+
+;; END files entity
+;;..................................................................................................
+
+
+
