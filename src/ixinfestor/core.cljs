@@ -9,7 +9,9 @@
             [hipo.core :as hipo]
 
             [ajax.core :refer [GET POST]]
-            [dommy.core :as dommy :refer-macros [sel sel1]]))
+            [dommy.core :as dommy :refer-macros [sel sel1]]
+            
+            [goog.i18n.DateTimeFormat :as dtf]))
 
 (enable-console-print!)
 
@@ -19,6 +21,60 @@
 ;;       (.-slice)
 ;;       (.call js-col)
 ;;       (js->clj)))
+
+;;**************************************************************************************************
+;;* BEGIN date and time functions
+;;* tag: <date and time functions>
+;;*
+;;* description: Работа с датами и временем
+;;* примеры
+;; 1 форматирование
+;;(.format (goog.i18n.DateTimeFormat. (.-LONG_DATE goog.i18n.DateTimeFormat.Format)) (js/Date.))
+;; 2 получение из стороки и форматирование
+;;(.format (goog.i18n.DateTimeFormat. (.-LONG_DATE goog.i18n.DateTimeFormat.Format))
+;;  (new js/Date (.parse js/Date (get-in row [:webdoc-row :udate]))))
+;;**************************************************************************************************
+
+(def date-formats
+  (let [f goog.i18n.DateTimeFormat.Format]
+    {:FULL_DATE (.-FULL_DATE f)
+     :FULL_DATETIME (.-FULL_DATETIME f)
+     :FULL_TIME (.-FULL_TIME f)
+     :LONG_DATE (.-LONG_DATE f)
+     :LONG_DATETIME (.-LONG_DATETIME f)
+     :LONG_TIME (.-LONG_TIME f)
+     :MEDIUM_DATE (.-MEDIUM_DATE f)
+     :MEDIUM_DATETIME (.-MEDIUM_DATETIME f)
+     :MEDIUM_TIME (.-MEDIUM_TIME f)
+     :SHORT_DATE (.-SHORT_DATE f)
+     :SHORT_DATETIME (.-SHORT_DATETIME f)
+     :SHORT_TIME (.-SHORT_TIME f)
+     }))
+
+
+(defn str-to-date [date-string]
+  (new js/Date (.parse js/Date date-string)))
+
+(defn format-date
+  "Format a date using either the built-in goog.i18n.DateTimeFormat.Format enum
+  or a formatting string like \"dd MMMM yyyy\"
+  examples:
+  > (format-date-generic :LONG_DATE (js/Date.))
+  > \"July 14, 2012\"
+  > (format-date-generic \"dd MMMM yyyy\" (js/Date.))
+  > \"14 July 2012\"
+  > (format-date-generic \"MMMM\" (js/Date.))
+  > \"July\"
+  "
+  [date-format date]
+  (.format (goog.i18n.DateTimeFormat. (or (date-formats date-format) date-format))  date))
+
+(defn str-to-date-and-format [date-format alt-string s]  
+  (if (nil? s) alt-string
+      (format-date date-format (str-to-date s))))
+      
+;; END date and time functions
+;;..................................................................................................
 
 ;;**************************************************************************************************
 ;;* BEGIN ID functions

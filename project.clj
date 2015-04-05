@@ -3,13 +3,19 @@
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.6.0"]]
+  :dependencies [[org.clojure/clojure "1.6.0"]
+                 [compojure "1.3.1"]
+                 [hiccup "1.0.5"]
+                 [clj-time "0.6.0"]
+                 [korma "0.3.3"]
+                 ]
   :profiles
   {:dev
-   {:dependencies [[org.clojure/clojurescript "0.0-3126"]
-                   [prismatic/dommy "1.0.0"]
-                   [cljs-ajax "0.3.10"]
-                   [hipo "0.3.0"]
+   {:dependencies [
+                   [org.clojure/clojurescript "0.0-3126"]                   
+                   [prismatic/dommy "1.0.0"]                   
+                   [cljs-ajax "0.3.10"]                   
+                   [hipo "0.3.0"]                   
                    ]
     :plugins [[lein-cljsbuild "1.0.5"]
               [com.cemerick/clojurescript.test "0.3.3"]]}}

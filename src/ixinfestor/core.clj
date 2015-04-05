@@ -186,6 +186,14 @@
   (if-empty?-row-or-nil?-val-then-row-else-do
    field #(tco/to-time-zone (tc/from-sql-time %) (tco/default-time-zone)) row))
 
+(defn prepare-date-to-sql-date [field row]
+  (if-empty?-row-or-nil?-val-then-row-else-do
+   field #(->> % .getTime (new java.sql.Date)) row))
+
+(defn transform-sql-date-to-date [field row]
+  (if-empty?-row-or-nil?-val-then-row-else-do
+   field #(->> % .getTime (new java.util.Date)) row))
+
 ;; ---------------------------------------
 
 (defn check-row [is-error-fn? message row]
