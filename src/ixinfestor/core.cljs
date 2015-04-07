@@ -10,7 +10,7 @@
 
             [ajax.core :refer [GET POST]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
-            
+
             [goog.i18n.DateTimeFormat :as dtf]))
 
 (enable-console-print!)
@@ -69,10 +69,10 @@
   [date-format date]
   (.format (goog.i18n.DateTimeFormat. (or (date-formats date-format) date-format))  date))
 
-(defn str-to-date-and-format [date-format alt-string s]  
+(defn str-to-date-and-format [date-format alt-string s]
   (if (nil? s) alt-string
       (format-date date-format (str-to-date s))))
-      
+
 ;; END date and time functions
 ;;..................................................................................................
 
@@ -290,63 +290,60 @@
   (let [id (xml-id id)
         input-id (xml-id :page-num id)]
 
-    [:div {:id (name id) :role "group" :style "width: 300px" :class (str "input-group " class)}
-     [:div {:class "input-group-btn"}
+    [:div {:id (name id) :style "display:table;width:auto"}
+     [:div {:style "display:table-row;width:auto;clear:both;"}
+      [:div {:style "float:left;display:table-column;width:75%"}
+       [:div {:class "input-group"}
 
-      [:button {:id (name (xml-id :btn-goto-first-page id))
-                :class "btn btn-default"
-                :on-click (fn []
-                            (dommy/set-value! (by-id input-id) 1)
-                            (put! event-chan [id :page 1]))}
-       [:span {:class "glyphicon glyphicon-fast-backward" :aria-hidden "true"}]]
+        [:span {:class "input-group-btn"}
+         [:button {:id (name (xml-id :btn-goto-first-page id))
+                   :class "btn btn-default"
+                   :on-click (fn []
+                               (dommy/set-value! (by-id input-id) 1)
+                               (put! event-chan [id :page 1]))}
+          [:span {:class "glyphicon glyphicon-fast-backward" :aria-hidden "true"}]]
+         [:button {:id (name (xml-id :btn-goto-previus-page id))
+                   :class "btn btn-default"
+                   :on-click (fn []
+                               (let [input (by-id input-id)
+                                     v (dec (js/parseInt (dommy/value input)))]
+                                 (when (< 0 v)
+                                   (dommy/set-value! input v)
+                                   (put! event-chan [id :page v]))))}
+          [:span {:class "glyphicon glyphicon-step-backward" :aria-hidden "true"}]] ]
+        
+        [:input {:id (name input-id)
+                 :class "form-control"
+                 :style "text-align: center"
+                 :type "number" :min "1"
+                 :value (or (:page init-params) 1)
+                 :placeholder "Страница"
+                 :on-change #(this-as this (put! event-chan [id :page (dommy/value this)]))
+                 }]
 
-      [:button {:id (name (xml-id :btn-goto-previus-page id))
-                :class "btn btn-default"
-                :on-click (fn []
-                            (let [input (by-id input-id)
-                                  v (dec (js/parseInt (dommy/value input)))]
-                              (when (< 0 v)
-                                (dommy/set-value! input v)
-                                (put! event-chan [id :page v]))))}
-       [:span {:class "glyphicon glyphicon-step-backward" :aria-hidden "true"}]]
+        [:span {:class "input-group-btn"}
 
-      ]
-
-     [:input {:id (name input-id)  ;;:style "width: 120px"
-              :class "form-control"
-              :style "border: 1px solid"
-              :type "number" :min "1"
-              :value (or (:page init-params) 1)
-              :placeholder "Страница"
-              :on-change #(this-as this (put! event-chan [id :page (dommy/value this)]))
-              }]
-
-     ;;[:div.btn-group
-     ;; [:span {:class "glyphicon glyphicon-th-list" :style "padding: 8px;" :aria-hidden "true"}] " "]
-
-     ;;     [:div.btn-group
-     [:div {:class "input-group-btn"}
-
-      [:select {:id (name (xml-id :select-page-size id))
-                :style "float: left; width: 80px; border: 1px solid;"
-                :class "btn btn-default dropdown-toggle form-control"
-                :on-change #(this-as this (put! event-chan [id :page-size (js/parseInt (dommy/value this))]))}
-       (let [selected-i (or (:page-size init-params) nil)]
-         (map (fn [i] [:option (if (= i selected-i) {:value i :selected true} {:value i}) i])
-              [5 10 15 20 50 100 1000]))]
-
-      [:button {:id (name (xml-id :btn-goto-next-page id))
-                :class "btn btn-default"
-                :on-click (fn []
-                            (let [input (by-id input-id)
-                                  v (inc (js/parseInt (dommy/value input)))]
-                              (when (< 0 v)
-                                (dommy/set-value! input v)
-                                (put! event-chan [id :page v]))))}
-       [:span {:class "glyphicon glyphicon-step-forward" :aria-hidden "true"} ]]
+         [:button {:id (name (xml-id :btn-goto-next-page id))
+                   :class "btn btn-default"
+                   :on-click (fn []
+                               (let [input (by-id input-id)
+                                     v (inc (js/parseInt (dommy/value input)))]
+                                 (when (< 0 v)
+                                   (dommy/set-value! input v)
+                                   (put! event-chan [id :page v]))))}
+          [:span {:class "glyphicon glyphicon-step-forward" :aria-hidden "true"} ]]
+         ]]]
+      [:div {:style "float:left;display:table-column;width: 20%; margin-left: 4px"}
+       [:select {:id (name (xml-id :select-page-size id))
+                 ;;:style "float: left; width: 80px; border: 1px solid;"
+                 :style "display: table-cell;"
+                 :class "btn btn-default dropdown-toggle form-control"
+                 :on-change #(this-as this (put! event-chan [id :page-size (js/parseInt (dommy/value this))]))}
+        (let [selected-i (or (:page-size init-params) nil)]
+          (map (fn [i] [:option (if (= i selected-i) {:value i :selected true} {:value i}) i])
+               [5 10 15 20 50 100 1000]))
+        ]]
       ]]))
-
-
 
 ;; END component pagenator
 ;;..................................................................................................
