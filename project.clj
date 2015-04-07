@@ -12,7 +12,7 @@
   :profiles
   {:dev
    {:dependencies [
-                   [org.clojure/clojurescript "0.0-3126"]                   
+                   [org.clojure/clojurescript "0.0-3169"]                   
                    [prismatic/dommy "1.0.0"]                   
                    [cljs-ajax "0.3.10"]                   
                    [hipo "0.3.0"]                   
