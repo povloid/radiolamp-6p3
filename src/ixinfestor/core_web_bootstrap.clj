@@ -27,8 +27,6 @@
            [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
            [:title (:title page-params "Page Title")]
 
-           (:header-additions page-params nil)
-
            "<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->"
            "<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->"
            "<!--[if lt IE 9]>"
@@ -43,6 +41,8 @@
            ;;(include-css "/bootstrap/css/bootstrap-theme.min.css")
 
            (include-js "/bootstrap/js/bootstrap.min.js")
+
+           (:header-additions page-params nil)
            ]
           [:body
            body
@@ -103,9 +103,8 @@
 (defn navbar-header [href title]
   [:div.navbar-header
    [:button.navbar-toggle
-    {:data-target ".navbar-collapse",
-     :data-toggle "collapse",
-     :type        "button"}
+    {:type "button" :class "navbar-toggle collapsed" :data-toggle "collapse"
+     :data-target "#navbar" :aria-expanded "false" :aria-controls "navbar"}
     [:span.sr-only "Toggle navigation"]
     [:span.icon-bar]
     [:span.icon-bar]
