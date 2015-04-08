@@ -162,9 +162,9 @@
   (if (nil? str-val) default-val (js/parseInt str-val)))
 
 
-(defn drop-long-string [string limit]
-  (if (<= count limit) string
-      (str (subs string 0 (- limit 4)) "...")))
+(defn drop-long-string [str limit]
+  (if (<= (count str) limit) str
+      (str (subs str 0 (- limit 4)) "...")))
 
 (defn keyword-i [k i]
   (let [z (keyword (str (name k) i))]
@@ -290,60 +290,62 @@
   (let [id (xml-id id)
         input-id (xml-id :page-num id)]
 
-    [:div {:id (name id) :style "display:table;width:auto"}
-     [:div {:style "display:table-row;width:auto;clear:both;"}
-      [:div {:style "float:left;display:table-column;width:75%"}
-       [:div {:class "input-group"}
+    [:div {:id (name id) :style "display:inline-block;width:290px"}
+     [:div {:style "display:table;width:auto"}
+      [:div {:style "display:table-row;width:auto;clear:both;"}
+       [:div {:style "float:left;display:table-column;width:75%"}
+        [:div {:class "input-group"}
 
-        [:span {:class "input-group-btn"}
-         [:button {:id (name (xml-id :btn-goto-first-page id))
-                   :class "btn btn-default"
-                   :on-click (fn []
-                               (dommy/set-value! (by-id input-id) 1)
-                               (put! event-chan [id :page 1]))}
-          [:span {:class "glyphicon glyphicon-fast-backward" :aria-hidden "true"}]]
-         [:button {:id (name (xml-id :btn-goto-previus-page id))
-                   :class "btn btn-default"
-                   :on-click (fn []
-                               (let [input (by-id input-id)
-                                     v (dec (js/parseInt (dommy/value input)))]
-                                 (when (< 0 v)
-                                   (dommy/set-value! input v)
-                                   (put! event-chan [id :page v]))))}
-          [:span {:class "glyphicon glyphicon-step-backward" :aria-hidden "true"}]] ]
-        
-        [:input {:id (name input-id)
-                 :class "form-control"
-                 :style "text-align: center"
-                 :type "number" :min "1"
-                 :value (or (:page init-params) 1)
-                 :placeholder "Страница"
-                 :on-change #(this-as this (put! event-chan [id :page (dommy/value this)]))
-                 }]
+         [:span {:class "input-group-btn"}
+          [:button {:id (name (xml-id :btn-goto-first-page id))
+                    :class "btn btn-default"
+                    :on-click (fn []
+                                (dommy/set-value! (by-id input-id) 1)
+                                (put! event-chan [id :page 1]))}
+           [:span {:class "glyphicon glyphicon-fast-backward" :aria-hidden "true"}]]
+          [:button {:id (name (xml-id :btn-goto-previus-page id))
+                    :class "btn btn-default"
+                    :on-click (fn []
+                                (let [input (by-id input-id)
+                                      v (dec (js/parseInt (dommy/value input)))]
+                                  (when (< 0 v)
+                                    (dommy/set-value! input v)
+                                    (put! event-chan [id :page v]))))}
+           [:span {:class "glyphicon glyphicon-step-backward" :aria-hidden "true"}]] ]
 
-        [:span {:class "input-group-btn"}
+         [:input {:id (name input-id)
+                  :class "form-control"
+                  :style "text-align: center"
+                  :type "number" :min "1"
+                  :value (or (:page init-params) 1)
+                  :placeholder "Страница"
+                  :on-change #(this-as this (put! event-chan [id :page (dommy/value this)]))
+                  }]
 
-         [:button {:id (name (xml-id :btn-goto-next-page id))
-                   :class "btn btn-default"
-                   :on-click (fn []
-                               (let [input (by-id input-id)
-                                     v (inc (js/parseInt (dommy/value input)))]
-                                 (when (< 0 v)
-                                   (dommy/set-value! input v)
-                                   (put! event-chan [id :page v]))))}
-          [:span {:class "glyphicon glyphicon-step-forward" :aria-hidden "true"} ]]
-         ]]]
-      [:div {:style "float:left;display:table-column;width: 20%; margin-left: 4px"}
-       [:select {:id (name (xml-id :select-page-size id))
-                 ;;:style "float: left; width: 80px; border: 1px solid;"
-                 :style "display: table-cell;"
-                 :class "btn btn-default dropdown-toggle form-control"
-                 :on-change #(this-as this (put! event-chan [id :page-size (js/parseInt (dommy/value this))]))}
-        (let [selected-i (or (:page-size init-params) nil)]
-          (map (fn [i] [:option (if (= i selected-i) {:value i :selected true} {:value i}) i])
-               [5 10 15 20 50 100 1000]))
-        ]]
-      ]]))
+         [:span {:class "input-group-btn"}
+
+          [:button {:id (name (xml-id :btn-goto-next-page id))
+                    :class "btn btn-default"
+                    :on-click (fn []
+                                (let [input (by-id input-id)
+                                      v (inc (js/parseInt (dommy/value input)))]
+                                  (when (< 0 v)
+                                    (dommy/set-value! input v)
+                                    (put! event-chan [id :page v]))))}
+           [:span {:class "glyphicon glyphicon-step-forward" :aria-hidden "true"} ]]
+          ]]]
+       [:div {:style "float:left;display:table-column;width: 20%; margin-left: 4px"}
+        [:select {:id (name (xml-id :select-page-size id))
+                  ;;:style "float: left; width: 80px; border: 1px solid;"
+                  :style "display: table-cell;"
+                  :class "btn btn-default dropdown-toggle form-control"
+                  :on-change #(this-as this (put! event-chan [id :page-size (js/parseInt (dommy/value this))]))}
+         (let [selected-i (or (:page-size init-params) nil)]
+           (map (fn [i] [:option (if (= i selected-i) {:value i :selected true} {:value i}) i])
+                [5 10 15 20 50 100 1000]))
+         ]]
+       ]]]))
+
 
 ;; END component pagenator
 ;;..................................................................................................
