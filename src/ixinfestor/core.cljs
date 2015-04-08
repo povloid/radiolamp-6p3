@@ -427,13 +427,15 @@
 
 (defn modal-show [id]
   (println "Show modal on id = " id)
-  (-> id name js/jQuery .modal))
+  (-> id name js/jQuery (.modal "show")))
 
 
 ;; ----------------------------------------------------------------
 
+(def modal-dialog-id-suffix :modal-dialog)
+
 (defn modal-cr-and-show-on-id [id {:keys [label header title body footer]}]
-  (let [modal-id (xml-id :modal-dialog id)]
+  (let [modal-id (xml-id modal-dialog-id-suffix id)]
     (clear-and-set-on-tag-by-id id
                                 [:div {:id (name modal-id) :aria-hidden "true", :aria-labelledby (or label "Modal Label..."),
                                        :class "modal"
@@ -448,6 +450,12 @@
                                     (or footer [:button {:class "btn btn-default" :type "button" :data-dismiss "modal"} "Закрыть"])
                                     ]]]])
     (modal-show (str \# (name modal-id)))))
+
+(defn modal-hide-on-id [id]
+  (-> (xml-id modal-dialog-id-suffix id)
+      name
+      ((partial str \#))
+      js/jQuery (.modal "hide")))
 
 ;; END Modal dialogs
 ;;..................................................................................................
