@@ -397,9 +397,10 @@
      (do ~@body)
      (catch Exception ex#
        (do
+         (clojure.stacktrace/print-stack-trace ex#)          
          (-> ex#
              .getMessage
-             ix/print-debug->>>
+             (ix/print-debug->>> "error-response-json")
              ring.util.response/response
              (ring.util.response/status 500)
              (ring.util.response/content-type "text/javascript ; charset=utf-8"))))))

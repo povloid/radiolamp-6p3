@@ -445,8 +445,8 @@
                                    [:div {:class "modal-header"}
                                     (or header [:h4.modal-title (or title "Modal title...")])]
                                    [:div {:class "modal-body"} (or body nil)]
-                                   [:div {:class "modal-footer"}
-                                    [:div  {:class "navbar-left"} ]
+                                   [:div {:class "modal-footer"}                                    
+                                    [:div  {:class "navbar-left"}]
                                     (or footer [:button {:class "btn btn-default" :type "button" :data-dismiss "modal"} "Закрыть"])
                                     ]]]])
     (modal-show (str \# (name modal-id)))))

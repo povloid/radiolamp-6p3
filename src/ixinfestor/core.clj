@@ -54,6 +54,11 @@
   (delete* entity))
 
 (defn com-delete-for-id
+  "Удалить сущность"
+  [entity]
+  (delete* entity))
+
+(defn com-delete-for-id
   "Удалить сущность по id"
   [entity id]
   (delete entity (where (= :id id))))
