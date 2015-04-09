@@ -12,6 +12,101 @@
 
 
 ;;**************************************************************************************************
+;;* BEGIN Translit
+;;* tag: <translit>
+;;*
+;;* description: Транслитерация для веба
+;;*
+;;**************************************************************************************************
+
+(def translit-table-ru-en
+  (apply array-map [
+                    \a "a"
+                    \b "b"
+                    \c "c"
+                    \d "d"
+                    \e "e"
+                    \f "f"
+                    \g "g"
+                    \h "h"
+                    \i "i"
+                    \j "j"
+                    \k "k"
+                    \l "l"
+                    \m "m"
+                    \n "n"
+                    \o "o"
+                    \p "p"
+                    \q "q"
+                    \r "r"
+                    \s "s"
+                    \t "t"
+                    \u "u"
+                    \v "v"
+                    \w "w"
+                    \x "x"
+                    \y "y"
+                    \z "z"
+
+                    \1  "1"
+                    \2  "2"
+                    \3  "3"
+                    \4  "4"
+                    \5  "5"
+                    \6  "6"
+                    \7  "7"
+                    \8  "8"
+                    \9  "9"
+                    \0  "0"
+
+                    \а  "a"
+                    \б  "b"
+                    \в  "v"
+                    \г  "g"
+                    \д  "d"
+                    \е  "e"
+                    \ё  "e"
+                    \ж  "zh"
+                    \з  "z"
+                    \и  "i"
+                    \й  "j"
+                    \к  "k"
+                    \л  "l"
+                    \м  "m"
+                    \н  "n"
+                    \о  "o"
+                    \п  "p"
+                    \р  "r"
+                    \с  "s"
+                    \т  "t"
+                    \у  "u"
+                    \ф  "f"
+                    \х  "kh"
+                    \ц  "c"
+                    \ч  "ch"
+                    \ш  "sh"
+                    \щ  "shh"
+                    \ъ  ""
+                    \ы  "y"
+                    \ь  ""
+                    \э  "e"
+                    \ю  "yu"
+                    \я  "ya"
+                    \space "-"
+                    ]))
+
+(defn make-translit [table s]
+  (reduce #(str % (or (table %2) "")) ""  (clojure.string/lower-case s)))
+
+(defn make-translit-ru-en [s]
+  (make-translit translit-table-ru-en s))
+
+;; END Translit
+;;..................................................................................................
+
+
+
+;;**************************************************************************************************
 ;;* BEGIN SQL TOOLS
 ;;* tag: <sql tools>
 ;;*
@@ -191,9 +286,19 @@
   (if-empty?-row-or-nil?-val-then-row-else-do
    field #(tco/to-time-zone (tc/from-sql-time %) (tco/default-time-zone)) row))
 
-(defn prepare-date-to-sql-date [field row]
+
+(defn prepare-date-to-sql-type [mk-java-sql-fn field row]
   (if-empty?-row-or-nil?-val-then-row-else-do
-   field #(->> % .getTime (new java.sql.Date)) row))
+   field #(-> % .getTime mk-java-sql-fn) row))
+
+(defn prepare-date-to-sql-date [field row]
+  (prepare-date-to-sql-type #(new java.sql.Date %) field row))
+
+(defn prepare-date-to-sql-time [field row]
+  (prepare-date-to-sql-type #(new java.sql.Time %) field row))
+
+(defn prepare-date-to-sql-timestamp [field row]
+  (prepare-date-to-sql-type #(new java.sql.Timestamp %) field row))
 
 (defn transform-sql-date-to-date [field row]
   (if-empty?-row-or-nil?-val-then-row-else-do
@@ -388,7 +493,8 @@
 (defn file-upload-rel-on [entity files-rel-field {id :id :as entity-row} file-row tempfile]
   (transaction
    (let [file-row (file-upload file-row tempfile)]
-     (insert files_rel (values {:files_id (:id file-row) files-rel-field id})))))
+     [file-row (insert files_rel (values {:files_id (:id file-row) files-rel-field id}))]
+     )))
 
 (defn files_rel-delete [files-rel-field {file-id :id} {rel-id :id}]
   (delete files_rel (where (and (= :files_id file-id)
