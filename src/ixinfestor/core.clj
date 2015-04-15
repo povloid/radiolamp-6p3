@@ -1,5 +1,5 @@
 (ns ixinfestor.core
-  
+
   (:use korma.db)
   (:use korma.core)
   (:use clojure.pprint)
@@ -433,12 +433,14 @@
 ;;* description: Хранение файлов
 ;;*
 ;;**************************************************************************************************
+(def files-root-directory (promise))
 
-(def files-root-directory "files_root_directory")
 
 (defn save-file [tempfile dir filename]
-  (let [dir-filename (str dir filename)
-        full-path (str files-root-directory dir-filename)]
+  (let [dir-filename (str dir "/" filename)
+        full-path (str (if (realized? files-root-directory) @files-root-directory
+                           (throw (Exception. "Значение пути  files-root-directory еще не задано")))
+                       "/" dir-filename)]
     (clojure.java.io/make-parents full-path)
     (with-open [in (clojure.java.io/input-stream tempfile)
                 out (clojure.java.io/output-stream full-path)]
@@ -469,7 +471,7 @@
                                   (assoc :path "?TMP?")
                                   files-save)
          path (save-file tempfile
-                         (str (tf/unparse (tf/formatter-local "/yyyy/MM/dd/") (tl/local-now)) id "/")
+                         (str (tf/unparse (tf/formatter-local "yyyy/MM/dd/") (tl/local-now)) id)
                          (file-row :filename))]
      (-> new-row
          (assoc :path path)
@@ -506,6 +508,3 @@
 
 ;; END files entity
 ;;..................................................................................................
-
-
-
