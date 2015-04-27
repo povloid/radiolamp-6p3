@@ -20,8 +20,7 @@
 ;;**************************************************************************************************
 
 (def translit-table-ru-en
-  (apply array-map [
-                    \a "a"
+  (apply array-map [\a "a"
                     \b "b"
                     \c "c"
                     \d "d"
@@ -102,6 +101,67 @@
   (make-translit translit-table-ru-en s))
 
 ;; END Translit
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN html to text 
+;;* tag: <html to text tools>
+;;*
+;;* description: 
+;;*
+;;**************************************************************************************************
+
+
+(def html-cleaner-props (doto (new org.htmlcleaner.CleanerProperties)
+                          (.setTranslateSpecialEntities true)
+                          (.setTransSpecialEntitiesToNCR true)
+                          (.setTransResCharsToNCR true)
+                          (.setOmitDeprecatedTags true)
+                          (.setOmitComments true)))
+
+
+(defn html-clean-tags [s]
+  (when s
+    (-> (org.htmlcleaner.HtmlCleaner. html-cleaner-props)
+        (.clean s)
+        .getText
+        str
+        (clojure.string/replace #"&nbsp;" " ")
+        (clojure.string/replace #"&pound;" "£")
+        (clojure.string/replace #"&euro;" "€")
+        (clojure.string/replace #"&para;" "¶")
+        (clojure.string/replace #"&sect;" "§")
+        (clojure.string/replace #"&copy;" "©")
+        (clojure.string/replace #"&reg;" "®")
+        (clojure.string/replace #"&trade;" "™")
+        (clojure.string/replace #"&deg;" "°")
+        (clojure.string/replace #"&plusmn;" "±")
+        (clojure.string/replace #"&times;" "×")
+        (clojure.string/replace #"&divide;" "÷")
+        (clojure.string/replace #"&fnof;" "ƒ")
+        (clojure.string/replace #"&quot;" "\"")
+        (clojure.string/replace #"&amp;" "&")
+        (clojure.string/replace #"&lt;" "<")
+        (clojure.string/replace #"&gt;" ">")
+        (clojure.string/replace #"&hellip;" "…")
+        (clojure.string/replace #"&prime;" "′")
+        (clojure.string/replace #"&Prime;" "″")
+        (clojure.string/replace #"&ndash;" "–")
+        (clojure.string/replace #"&mdash;" "—")
+        (clojure.string/replace #"&lsquo;" "‘")
+        (clojure.string/replace #"&rsquo;" "’")
+        (clojure.string/replace #"&sbquo;" "‚")
+        (clojure.string/replace #"&ldquo;" "“")
+        (clojure.string/replace #"&rdquo;" "”")
+        (clojure.string/replace #"&bdquo;" "„")
+        (clojure.string/replace #"&laquo;" "«")
+        (clojure.string/replace #"&raquo;" "»")
+
+
+        )))
+
+
+;; END html to text tools
 ;;..................................................................................................
 
 
@@ -425,6 +485,99 @@
 ;;..................................................................................................
 
 
+;;**************************************************************************************************
+;;* BEGIN entity webuser
+;;* tag: <entity webuser>
+;;*
+;;* description: пользователь системы
+;;*
+;;**************************************************************************************************
+
+(defentity webuser
+  (pk :id))
+
+
+(defn webuser-save
+  "Сохранить пользователя"
+  [webuser-row]
+  ;; SAVE
+  (com-save-for-id webuser webuser-row))
+
+(def webuser-select* (select* webuser))
+
+(defn webuser-find-by-username [username]
+  (-> (select* webuser)
+      (where (= :username username))
+      exec
+      first))
+
+;; END entity webuser
+;;..................................................................................................
+
+
+;;**************************************************************************************************
+;;* BEGIN entity webrole
+;;* tag: <entity webrole>
+;;*
+;;* description:роли пользователей системы
+;;*
+;;**************************************************************************************************
+
+(defentity webrole
+  (pk :id)
+  (prepare (fn [row] (->> row (prepare-as-string :keyname))))
+  (transform (fn [row] (->> row (transform-as-keyword :keyname)))))
+
+(defn webrole-init [keyname title description]
+  (com-save-for-field webrole :keyname
+                         {:keyname (name keyname)
+                          :title title
+                          :description description}))
+
+
+;; В принципе можно закэшировать !!!
+(defn webrole-list [] (select webrole))
+
+
+
+;; END entity webrole
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN entity webuserwebrole
+;;* tag: <entity webuserwebrole>
+;;*
+;;* description: связь пользователей и ролей
+;;*
+;;**************************************************************************************************
+
+(defentity webuserwebrole
+  (pk :id))
+
+(defn webuserwebrole-add-rel [webuser-row webrole-row]
+  ((com-defn-add-rel-many-to-many :id :id webuserwebrole :webuser_id :webrole_id) webuser-row webrole-row))
+
+                                        ;TODO: Надо написать тесты
+(defn webuserwebrole-add-rels [{id :id :as webuser-row} webrole-rows]
+  (transaction
+   (delete webuserwebrole (where (= :webuser_id id)))
+   (doall (map (partial webuserwebrole-add-rel webuser-row) webrole-rows))))
+
+                                        ;TODO: Надо написать тесты
+(defn webuserwebrole-add-rels-for-keynames [webuser-row webrole-rows-keynames]
+  (->> webrole-rows-keynames
+       (map #(first (select webrole (where (= :keyname (name %))))))
+       (webuserwebrole-add-rels webuser-row)
+       transaction))
+
+(defn webuserwebrole-webuser-has-a-role? [webuser-row webrole-keyname]
+  ((com-defn-has-a-rel? webrole :id :keyname webuserwebrole :webuser_id :webrole_id) webuser-row webrole-keyname))
+
+(defn webuserwebrole-own-get-rels-set [webuser-row]
+  ((com-defn-get-rels-set webrole :id :keyname webuserwebrole :webuser_id :webrole_id) webuser-row))
+
+;; END entity webuserwebrole
+;;..................................................................................................
 
 ;;**************************************************************************************************
 ;;* BEGIN files entity
@@ -508,3 +661,224 @@
 
 ;; END files entity
 ;;..................................................................................................
+
+
+
+
+;;**************************************************************************************************
+;;* BEGIN tag entity
+;;* tag: <tag entity>
+;;*
+;;* description: Товарные теги
+;;*
+;;**************************************************************************************************
+
+(defentity tag
+  (pk :id)
+  (prepare (fn [row] (->> row (prepare-as-string :constname))))
+  (transform (fn [row] (->> row (transform-as-keyword :constname)))))
+
+(defn tag-const? [{id :id}]
+  (-> (select* tag)
+      (where (and (= :id id) (= :const true)))
+      exec
+      empty?
+      not))
+
+(defn tag-save-const [tag-row]
+  (-> tag-row
+      (assoc :const true)
+      (update-in [:constname] name)
+      ((partial com-save-for-field tag :constname))))
+
+;; TODO: написать тесты
+(defn tag-save
+  "Сохранение tag"
+  [tag-row]
+  (transaction
+   (if (tag-const? tag-row) (throw (Exception. "Константная запись не может быть изменена!"))
+       (com-save-for-id tag (update-in tag-row [:constname] #(when % (name %)))))))
+
+(defn tag-delete [{id :id :as tag-row}]
+  (transaction
+   (if (tag-const? tag-row) (throw (Exception. "Константная запись не может быть удалена!"))
+       (com-delete-for-id tag id))))
+
+;; TODO: написать тесты
+(defn tag-get-tree-path [row]
+  (transaction
+   (let [row (com-find tag (:id row))]
+     (if (nil? row) []
+         (loop [i 0, {p-id :parent_id}, row a [row]]
+           (cond (> i 10) (throw (Exception. "возможно обнаружена зацикленность графа либо глубина превышает 10"))
+                 (nil? p-id) a
+                 :else (let [next-row (com-find tag p-id)]
+                         (recur (inc i) next-row (conj a next-row)))))))))
+
+;; TODO: написать тесты
+(defn tag-get-tree-childs [{id :id}]
+  (select tag (where (= :parent_id id)) (order :tagname :ASC)))
+
+;; TODO: написать тесты
+(defn tag-set-parent [row {id :id :as parent-row}]
+  (transaction
+   (doseq [{i-id :id} (tag-get-tree-path parent-row)
+           :when (= id i-id)]
+     (do
+       ;;(println i-id)
+       (throw (Exception. "Попытка оторвать и замкнуть ветвь дерева"))))
+   (-> row (assoc :parent_id id) tag-save)))
+
+;; TODO: написать тесты
+(defn tag-get-tree-path-and-childs [row]
+  (transaction
+   [(tag-get-tree-path row) (tag-get-tree-childs row)]))
+
+
+(def tag-list* (select* tag))
+
+;; TODO: написать тесты
+(defn tag-tree-as-flat-groups []
+  (sort-tree-as-flat-groups :id :parent_id (select tag)))
+
+;; TODO: написать тесты
+(defn tag-tree-as-flat-groups-with-patches [store-on-key]
+  (sort-tree-as-flat-groups-with-patches :id :parent_id store-on-key (select tag)))
+
+;; TODO: написать тесты
+(defn tag-tree-as-flat []
+  (sort-tree-as-flat :id :parent_id (select tag)))
+
+;; END ctag entity
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN entity webdoc
+;;* tag: <entity webdoc>
+;;*
+;;* description: Документы
+;;*
+;;**************************************************************************************************
+
+(defentity webdoc
+  (pk :id)
+  (prepare (fn [{:keys [id keyname web_description] :as row}]
+             (-> (if id row (assoc row :cdate (new java.util.Date)))
+                 ((partial prepare-date-to-sql-timestamp :cdate))
+                 (assoc :udate (new java.util.Date))
+                 ((partial prepare-date-to-sql-timestamp :udate))
+                 (assoc :ttitle (make-translit-ru-en (str keyname)))
+                 (assoc :plan_text (html-clean-tags web_description))
+                 ((partial prepare-date-to-sql-date :showbdate))
+                 ((partial prepare-date-to-sql-date :showedate))
+                 )))
+
+  (transform (fn [row]
+               (-> row
+                   ((partial transform-sql-date-to-date :cdate))
+                   ((partial transform-sql-date-to-date :udate))
+                   ((partial transform-sql-date-to-date :showbdate))
+                   ((partial transform-sql-date-to-date :showedate))
+                   )))
+  )
+
+
+
+(defn webdoc-save
+  "Сохранение webdoc"
+  [webdoc-row]
+  (com-save-for-id webdoc webdoc-row))
+
+(def webdoc-select* (select* webdoc))
+
+                                        ;TODO: написать тесты
+(defn webdoc-search [query]
+  (-> webdoc-select*
+      (com-pred-full-text-search* :fts query)
+      exec))
+
+;; END entity webdoc
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN entity webdoctag
+;;* tag: <entity webdoctag>
+;;*
+;;* description: связь с тегами
+;;*
+;;**************************************************************************************************
+
+(defentity webdoctag
+  (belongs-to webdoc)
+  (belongs-to tag))
+
+;; TODO: написать тесты
+(defn webdoctag-add-tag [webdoc-row tag-row]
+  ((com-defn-add-rel-many-to-many :id :id webdoctag :webdoc_id :tag_id) webdoc-row tag-row))
+
+(defn webdoctag-update-tags [{webdoc-id :id :as webdoc-row} tags-rows]
+  (transaction
+   (delete webdoctag (where (= :webdoc_id webdoc-id)))
+   (->> tags-rows
+        (map (fn [tag-row]
+               (webdoctag-add-tag webdoc-row tag-row)))
+        doall)))
+
+;; TODO: написать тесты
+(defn webdoctag-webdoc-has-a-tag? [webdoc-row tag-tagname]
+  ((com-defn-has-a-rel? tag :id :tagname webdoctag :webdoc_id :tag_id) webdoc-row tag-tagname))
+
+;; TODO: написать тесты
+(defn webdoctag-webdoc-get-tags-set [webdoc-row & [field-for-set]]
+  ((com-defn-get-rels-set tag :id (or field-for-set :tagname)
+                             webdoctag :webdoc_id :tag_id) webdoc-row))
+
+;; TODO: написать тесты
+(defn webdoctag-select-webdocs-by-tag* [tag-row]
+  ((com-defn-get-rows-by-rel* webdoc :id :id webdoctag :webdoc_id :tag_id) tag-row))
+
+;; TODO: написать тесты
+(defn webdoctag-select-webdocs-by-tag--nil-other* [tag-row]
+  ((com-defn-get-rows-by-rel--nil-other* webdoc :id :id webdoctag :webdoc_id :tag_id) tag-row))
+
+;; TODO: написать тесты
+(defn webdoctag-tag-tree-as-flat-groups [webdoc-row]
+  (let [webdoc-tags-ids-set (webdoctag-webdoc-get-tags-set webdoc-row :id)]
+    (map (fn [tree-as-flat]
+           (map #(assoc % :contain? (contains? webdoc-tags-ids-set (:id %)))
+                tree-as-flat))
+         (tag-tree-as-flat-groups))))
+
+;; TODO: написать тесты
+(defn webdoctag-tag-tree-as-flat-groups-with-patches [webdoc-row store-on-key]
+  (let [webdoc-tags-ids-set (webdoctag-webdoc-get-tags-set webdoc-row :id)]
+    (map (fn [tree-as-flat]
+           (map #(assoc % :contain? (contains? webdoc-tags-ids-set (:id %)))
+                tree-as-flat))
+         (tag-tree-as-flat-groups-with-patches store-on-key))))
+
+;; END entity webdoctag
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN stext entity
+;;* tag: <any web text entity>
+;;*
+;;* description: для разного статического контента на сайте
+;;*
+;;**************************************************************************************************
+
+(defentity stext
+  (pk :id)
+  (prepare (fn [row] (->> row (prepare-as-string :keyname))))
+  (transform (fn [row] (->> row (transform-as-keyword :keyname)))))
+
+(defn stext-save [row]
+  (com-save-for-id stext row))
+
+
+;; END anytext entity
+;;..................................................................................................
+
+
+

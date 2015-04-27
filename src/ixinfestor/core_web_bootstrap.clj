@@ -177,3 +177,51 @@
 
 ;; END AUTH
 ;;..................................................................................................
+
+
+(defn page-ixcms-main [request]
+  (template-main
+   {:title "CMS NewVovage - управление контентом"
+    :header-additions
+    (list
+     ;; Отключил, так как решил исползовать MARKDOWN
+     (include-js "/js/ckeditor/ckeditor.js")
+
+     ;;(include-js  "/js/toopay-bootstrap-markdown/markdown.js")
+     ;;(include-js  "/js/toopay-bootstrap-markdown/marked.min.js") ;; Этот немного лучше
+
+     ;;(include-js  "/js/toopay-bootstrap-markdown/to-markdown.js")
+     ;;(include-js  "/js/toopay-bootstrap-markdown/bootstrap-markdown.js")
+     ;;(include-css "/js/toopay-bootstrap-markdown/bootstrap-markdown.min.css")
+
+     (include-css "/css/dashboard.css")
+     (include-js "/js/main.js")
+     )}
+   (list
+
+    (navbar
+     [navbar-class-default navbar-class-static-top "navbar-fixed-top"]
+     (list
+      (container-fluid
+       {:id :navbar-container}
+       (list
+        (navbar-header
+         "#" [:div {:style "line-height: 15px;"}
+              [:div "CMS New Voyage"]
+              [:small {:id :page-caption :style "font-size: small"
+                       :class "text-primary"} ""]
+              ])
+
+        ;;[:p {:class "navbar-text"} "Signed in as Mark Otto"]
+
+        [:div {:id :navbar :class "collapse navbar-collapse"}]
+        ))
+
+      (container-fluid {:id :toolbars-container}  (list))
+      ;;nv-part
+      ))
+
+    [:div#modal-error]
+    [:div#main]
+
+    (javascript-tag (str "ixinfestor.page_main.init();")))))
