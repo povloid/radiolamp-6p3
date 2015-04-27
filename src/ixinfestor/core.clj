@@ -838,8 +838,11 @@
   ((com-defn-get-rows-by-rel* webdoc :id :id webdoctag :webdoc_id :tag_id) tag-row))
 
 ;; TODO: написать тесты
+(defn webdoctag-select-webdocs-by-tag--nil-other*-se [tag-row ent]
+  ((com-defn-get-rows-by-rel--nil-other* ent :id :id webdoctag :webdoc_id :tag_id) tag-row))
+
 (defn webdoctag-select-webdocs-by-tag--nil-other* [tag-row]
-  ((com-defn-get-rows-by-rel--nil-other* webdoc :id :id webdoctag :webdoc_id :tag_id) tag-row))
+  (webdoctag-select-webdocs-by-tag--nil-other*-se tag-row webdoc))
 
 ;; TODO: написать тесты
 (defn webdoctag-tag-tree-as-flat-groups [webdoc-row]

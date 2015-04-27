@@ -28,11 +28,11 @@
 (defn do-in-if-not-nil? [params path do-fn]
   (if (get-in params path) (do-fn params) params))
 
-(defn update-in-if-not-nil? [params path f & args]  
+(defn update-in-if-not-nil? [params path f & args]
   (update-in params path
              (fn [r]
                (if r (apply (partial f r) args)))))
-               
+
 
 (defn web-file-upload [service-upload-fn uploader-params]
   (letfn [(upload-one [{:keys [size tempfile content-type filename]}]
@@ -173,10 +173,7 @@
                 (ring.util.response/response
                  (ix/tag-tree-as-flat-groups)))
 
-
-
            ;; TAGS WORK ------------------------------------------------------
-
            (POST "/save" request
                  (-> request
                      :params
@@ -203,12 +200,25 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn routes-webdocs* []
-  (context "/tc/rb/webdocs" []
+(defn routes-webdocs* [{:keys [webdoc-entity
+                               webdoctag-select-webdocs-by-tag--nil-other*
+                               webdoc-save-fn
+                               context-path
+                               covertors-fn]
+                        :or {webdoc-entity ix/webdoc
+                             webdoctag-select-webdocs-by-tag--nil-other* ix/webdoctag-select-webdocs-by-tag--nil-other*
+                             covertors-fn (fn [webdoc-row] webdoc-row)
+                             context-path "/tc/rb/webdocs"
+                             webdoc-save-fn ix/webdoc-save}
+                        :as init-row}]
+
+  (context context-path []
 
            (GET "/bytag/:id/:page/:page-size" [id page page-size]
                 (-> {:id (if (= id "root") nil (Long/parseLong id))}
-                    (ix/webdoctag-select-webdocs-by-tag--nil-other* )
+
+                    webdoctag-select-webdocs-by-tag--nil-other* ;;; SRC
+
                     (ix/com-pred-page* (dec (Long/parseLong page)) (Long/parseLong page-size))
                     (korma.core/order :id :desc)
                     ix/com-exec
@@ -219,7 +229,7 @@
            (GET "/edit/:id" [id]
                 ;;TODO: Попробовать сделать все в рамках одной транзакции
                 (let [id (Long/parseLong id)]
-                  (-> {:webdoc-row (ix/com-find ix/webdoc id)
+                  (-> {:webdoc-row (ix/com-find webdoc-entity id)  ;;; SRC
                        :webdoctag-edit-table (ix/webdoctag-tag-tree-as-flat-groups-with-patches {:id id} :path)
                        }
                       ring.util.response/response
@@ -230,13 +240,12 @@
                   (let [new-webdoc-row (when webdoc-row
                                          (-> webdoc-row
                                              ;;; SPEC HANDLER
-                                             ix/print-debug->>>
-                                             (#(do (println ">>>>> " (:price %) (type (:price %))) %))
-                                             (update-in-if-not-nil? [:price] bigdec)
-                                             (update-in-if-not-nil? [:orderindex] parseLong)
-                                             (update-in-if-not-nil? [:showbdate] #(new java.util.Date %))
-                                             (update-in-if-not-nil? [:showedate] #(new java.util.Date %))
-                                             ix/webdoc-save
+                                             ;;(update-in-if-not-nil? [:price] bigdec)
+                                             ;;(update-in-if-not-nil? [:orderindex] parseLong)
+                                             ;;(update-in-if-not-nil? [:showbdate] #(new java.util.Date %))
+                                             ;;(update-in-if-not-nil? [:showedate] #(new java.util.Date %))
+                                             covertors-fn
+                                             webdoc-save-fn
                                              ))]
 
                     (ring.util.response/response {:result-code 0
@@ -273,7 +282,7 @@
                            (ring.util.response/response
                             (let [id (parseLong id)
                                   [{path :path} _] (web-file-upload
-                                                    (partial ix/file-upload-rel-on ix/webdoc :webdoc_id {:id id})
+                                                    (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id id})
                                                     (-> request :params :file-uploader))]
                               (ix/webdoc-save {:id id :web_title_image path})
                               "OK"))))
@@ -282,7 +291,7 @@
                      (POST "/image" request
                            (ring.util.response/response
                             (do (web-file-upload
-                                 (partial ix/file-upload-rel-on ix/webdoc :webdoc_id {:id (parseLong id)})
+                                 (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id (parseLong id)})
                                  (-> request :params :image-uploader))
                                 "OK"))))
 
@@ -291,7 +300,7 @@
                            (ring.util.response/response
                             (do
                               (web-file-upload
-                               (partial ix/file-upload-rel-on ix/webdoc :webdoc_id {:id (parseLong id)})
+                               (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id (parseLong id)})
                                (-> request :params :file-uploader))
                               "OK"))))
 

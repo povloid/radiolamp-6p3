@@ -22,6 +22,8 @@
    [clj-time.coerce :as tc]
    [clj-time.local :as tl]
 
+   [clojure.stacktrace] ;; Нужно для error-response-json
+
    ))
 
 ;;**************************************************************************************************
@@ -304,7 +306,7 @@
      (do ~@body)
      (catch Exception ex#
        (do
-         (clojure.stacktrace/print-stack-trace ex#)          
+         (clojure.stacktrace/print-stack-trace ex#)
          (-> ex#
              .getMessage
              (ix/print-debug->>> "error-response-json")
