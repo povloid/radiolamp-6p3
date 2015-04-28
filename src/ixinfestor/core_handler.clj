@@ -161,6 +161,44 @@
 ;; END Users reference book
 ;;..................................................................................................
 
+;;**************************************************************************************************
+;;* BEGIN Spec text reference book
+;;* tag: <stext ref book>
+;;*
+;;* description: Справочник управления пользователями
+;;*
+;;**************************************************************************************************
+
+(defn routes-stext* []
+  (context "/tc/rb/stext" []
+
+           (GET "/list/:page/:page-size" [page page-size]
+                (ring.util.response/response
+                 (-> ix/stext-select*
+                     (ix/com-pred-page* (dec (Long/parseLong page)) (Long/parseLong page-size))
+                     (korma.core/order :id :desc)
+                     ix/com-exec
+                     ((partial map #(dissoc % :password))))))
+
+           (GET "/find/:id" [id] (-> id
+                                     Long/parseLong
+                                     ((partial ix/com-find ix/stext))
+                                     ring.util.response/response))
+
+           (POST "/save" request
+                 (-> request
+                     :params
+                     :row
+                     ((partial ix/com-save-for-id ix/stext))
+                     ring.util.response/response
+                     cw/error-response-json))
+           
+           ))
+;; END Spec text reference book
+;;..................................................................................................
+
+
+
 (defn routes-tag* []
   (context "/tag" []
 

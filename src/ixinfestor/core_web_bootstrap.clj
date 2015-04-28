@@ -187,6 +187,17 @@
      ;; Отключил, так как решил исползовать MARKDOWN
      (include-js "/js/ckeditor/ckeditor.js")
 
+     (include-css "/js/codemirror/codemirror.css")
+     (include-js "/js/codemirror/codemirror.js")
+          
+     (include-js "/js/codemirror/selection-pointer.js")
+     (include-js "/js/codemirror/xml.js")
+     (include-js "/js/codemirror/javascript.js")
+     (include-js "/js/codemirror/css.js")
+     (include-js "/js/codemirror/vbscript.js")
+     (include-js "/js/codemirror/htmlmixed.js")
+
+
      ;;(include-js  "/js/toopay-bootstrap-markdown/markdown.js")
      ;;(include-js  "/js/toopay-bootstrap-markdown/marked.min.js") ;; Этот немного лучше
 

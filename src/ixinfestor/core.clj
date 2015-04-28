@@ -769,16 +769,12 @@
                  ((partial prepare-date-to-sql-timestamp :udate))
                  (assoc :ttitle (make-translit-ru-en (str keyname)))
                  (assoc :plan_text (html-clean-tags web_description))
-                 ((partial prepare-date-to-sql-date :showbdate))
-                 ((partial prepare-date-to-sql-date :showedate))
                  )))
 
   (transform (fn [row]
                (-> row
                    ((partial transform-sql-date-to-date :cdate))
                    ((partial transform-sql-date-to-date :udate))
-                   ((partial transform-sql-date-to-date :showbdate))
-                   ((partial transform-sql-date-to-date :showedate))
                    )))
   )
 
@@ -879,6 +875,12 @@
 (defn stext-save [row]
   (com-save-for-id stext row))
 
+(def stext-select* (select* stext))
+
+(defn stext-search [query]
+  (-> stext-select*
+      (com-pred-full-text-search* :fts query)
+      exec))
 
 ;; END anytext entity
 ;;..................................................................................................
