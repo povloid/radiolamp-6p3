@@ -104,10 +104,10 @@
 ;;..................................................................................................
 
 ;;**************************************************************************************************
-;;* BEGIN html to text 
+;;* BEGIN html to text
 ;;* tag: <html to text tools>
 ;;*
-;;* description: 
+;;* description:
 ;;*
 ;;**************************************************************************************************
 
@@ -530,9 +530,9 @@
 
 (defn webrole-init [keyname title description]
   (com-save-for-field webrole :keyname
-                         {:keyname (name keyname)
-                          :title title
-                          :description description}))
+                      {:keyname (name keyname)
+                       :title title
+                       :description description}))
 
 
 ;; В принципе можно закэшировать !!!
@@ -749,6 +749,20 @@
 (defn tag-tree-as-flat []
   (sort-tree-as-flat :id :parent_id (select tag)))
 
+
+(defn tag-select-all-sub-tree-ids [{id :id}]
+  (transaction
+   (letfn [(getch [id]
+             (let [cc (map :id
+                           (select tag
+                                   (fields :id)
+                                   (where (= :parent_id id))))]
+               (reduce into cc (map getch cc))))]
+
+     (getch id))))
+
+(defn tag-select-all-sub-tree-ids-and-with-this-id [{id :id :as tag-row}]
+  (conj (tag-select-all-sub-tree-ids tag-row) id))
 ;; END ctag entity
 ;;..................................................................................................
 
@@ -787,12 +801,6 @@
 
 (def webdoc-select* (select* webdoc))
 
-                                        ;TODO: написать тесты
-(defn webdoc-search [query]
-  (-> webdoc-select*
-      (com-pred-full-text-search* :fts query)
-      exec))
-
 ;; END entity webdoc
 ;;..................................................................................................
 
@@ -827,7 +835,8 @@
 ;; TODO: написать тесты
 (defn webdoctag-webdoc-get-tags-set [webdoc-row & [field-for-set]]
   ((com-defn-get-rels-set tag :id (or field-for-set :tagname)
-                             webdoctag :webdoc_id :tag_id) webdoc-row))
+                          webdoctag :webdoc_id :tag_id) webdoc-row))
+
 
 ;; TODO: написать тесты
 (defn webdoctag-select-webdocs-by-tag* [tag-row]
@@ -836,6 +845,8 @@
 ;; TODO: написать тесты
 (defn webdoctag-select-webdocs-by-tag--nil-other*-se [tag-row ent]
   ((com-defn-get-rows-by-rel--nil-other* ent :id :id webdoctag :webdoc_id :tag_id) tag-row))
+
+
 
 (defn webdoctag-select-webdocs-by-tag--nil-other* [tag-row]
   (webdoctag-select-webdocs-by-tag--nil-other*-se tag-row webdoc))
@@ -856,7 +867,33 @@
                 tree-as-flat))
          (tag-tree-as-flat-groups-with-patches store-on-key))))
 
+
+
+
 ;; END entity webdoctag
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN webdoc predicates
+;;* tag: <webdoc predicates>
+;;*
+;;* description: Предикаты для поиска документов
+;;*
+;;**************************************************************************************************
+
+(defn webdoc-pred-search-for-the-child-tree-tags* [query tag-row]
+  (let [tags-ids (tag-select-all-sub-tree-ids-and-with-this-id tag-row)]
+    (println tags-ids)
+    (where query
+           (in :id (subselect webdoctag
+                              (fields :webdoc_id)
+                              (where (in :tag_id tags-ids)))))))
+
+(defn webdoc-pred-search* [query s]
+  (com-pred-full-text-search* query :fts s))
+
+
+;; END webdoc predicates
 ;;..................................................................................................
 
 ;;**************************************************************************************************
@@ -884,6 +921,3 @@
 
 ;; END anytext entity
 ;;..................................................................................................
-
-
-

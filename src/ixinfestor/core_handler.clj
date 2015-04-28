@@ -192,7 +192,7 @@
                      ((partial ix/com-save-for-id ix/stext))
                      ring.util.response/response
                      cw/error-response-json))
-           
+
            ))
 ;; END Spec text reference book
 ;;..................................................................................................
@@ -239,12 +239,12 @@
 ;;**************************************************************************************************
 
 (defn routes-webdocs* [{:keys [webdoc-entity
-                               webdoctag-select-webdocs-by-tag--nil-other*
+                               webdoc-select*
                                webdoc-save-fn
                                context-path
                                covertors-fn]
                         :or {webdoc-entity ix/webdoc
-                             webdoctag-select-webdocs-by-tag--nil-other* ix/webdoctag-select-webdocs-by-tag--nil-other*
+                             webdoc-select* ix/webdoc-select*
                              covertors-fn (fn [webdoc-row] webdoc-row)
                              context-path "/tc/rb/webdocs"
                              webdoc-save-fn ix/webdoc-save}
@@ -253,13 +253,13 @@
   (context context-path []
 
            (GET "/bytag/:id/:page/:page-size" [id page page-size]
-                (-> {:id (if (= id "root") nil (Long/parseLong id))}
-
-                    webdoctag-select-webdocs-by-tag--nil-other* ;;; SRC
-
+                (-> webdoc-select* ;;; SRC
+                    (ix/webdoc-pred-search-for-the-child-tree-tags*
+                     {:id (if (= id "root") nil (Long/parseLong id))})
                     (ix/com-pred-page* (dec (Long/parseLong page)) (Long/parseLong page-size))
                     (korma.core/order :id :desc)
                     ix/com-exec
+                    korma.db/transaction
                     ring.util.response/response
                     cw/error-response-json))
 
