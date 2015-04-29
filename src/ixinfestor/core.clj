@@ -789,6 +789,7 @@
                (-> row
                    ((partial transform-sql-date-to-date :cdate))
                    ((partial transform-sql-date-to-date :udate))
+                   (dissoc :fts)
                    )))
   )
 

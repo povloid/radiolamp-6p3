@@ -252,11 +252,17 @@
 
   (context context-path []
 
-           (POST "/bytag" {{:keys [tag-id page page-size]} :params}
+           (POST "/bytag" {{:keys [tag-id page page-size fts-query]} :params}
                  (do
                    (-> webdoc-select* ;;; SRC
                        (ix/webdoc-pred-search-for-the-child-tree-tags*
                         {:id (if (= tag-id "root") nil tag-id)})
+
+                       (as-> query
+                           (let [f
+                             (if (empty? fts-query) query
+                                 (ix/webdoc-pred-search* query fts-query))))
+                       
                        (ix/com-pred-page* (dec page) page-size)
                        (korma.core/order :id :desc)
                        ix/com-exec
