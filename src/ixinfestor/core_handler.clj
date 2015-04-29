@@ -252,16 +252,17 @@
 
   (context context-path []
 
-           (GET "/bytag/:id/:page/:page-size" [id page page-size]
-                (-> webdoc-select* ;;; SRC
-                    (ix/webdoc-pred-search-for-the-child-tree-tags*
-                     {:id (if (= id "root") nil (Long/parseLong id))})
-                    (ix/com-pred-page* (dec (Long/parseLong page)) (Long/parseLong page-size))
-                    (korma.core/order :id :desc)
-                    ix/com-exec
-                    korma.db/transaction
-                    ring.util.response/response
-                    cw/error-response-json))
+           (POST "/bytag" {{:keys [tag-id page page-size]} :params}
+                 (do
+                   (-> webdoc-select* ;;; SRC
+                       (ix/webdoc-pred-search-for-the-child-tree-tags*
+                        {:id (if (= tag-id "root") nil tag-id)})
+                       (ix/com-pred-page* (dec page) page-size)
+                       (korma.core/order :id :desc)
+                       ix/com-exec
+                       korma.db/transaction
+                       ring.util.response/response
+                       cw/error-response-json)))
 
            (GET "/edit/new" [] (ring.util.response/response {}))
            (GET "/edit/:id" [id]
