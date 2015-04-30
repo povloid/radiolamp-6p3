@@ -156,7 +156,15 @@
 
                     (ring.util.response/response row))))
 
-           )
+           (POST "/delete" request
+                 (-> request
+                     :params
+                     :id
+                     ((partial ix/com-delete-for-id ix/webuser))
+                     ring.util.response/response
+                     cw/error-response-json))
+
+           )  
   )
 ;; END Users reference book
 ;;..................................................................................................
@@ -212,6 +220,7 @@
                  (ix/tag-tree-as-flat-groups)))
 
            ;; TAGS WORK ------------------------------------------------------
+           
            (POST "/save" request
                  (-> request
                      :params
@@ -259,7 +268,7 @@
                         {:id (if (= tag-id "root") nil tag-id)})
 
                        (as-> query
-                           (let [f
+                           (let [fts-query (clojure.string/trim fts-query)]
                              (if (empty? fts-query) query
                                  (ix/webdoc-pred-search* query fts-query))))
                        
