@@ -337,6 +337,16 @@
                                                                           doall))
                                                    })))))
 
+           (POST "/delete" request
+                 (friend/authorize
+                  edit-roles-set
+                  (-> request
+                      :params
+                      :id
+                      ((partial ix/com-delete-for-id ix/webdoc))
+                      ring.util.response/response
+                      cw/error-response-json)))
+
            (GET "/images-list" request
                 (-> request :params :id parseLong
                     ((partial hash-map :id))

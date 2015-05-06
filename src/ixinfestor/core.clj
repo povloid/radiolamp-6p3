@@ -513,6 +513,9 @@
       exec
       first))
 
+(defn webuser-pred-search* [query s]
+  (com-pred-full-text-search* query :fts s))
+
 ;; END entity webuser
 ;;..................................................................................................
 
@@ -643,6 +646,8 @@
                                               "image/svg+xml"
                                               "image/tiff"]]}))
 
+(defn files-pred-search* [query s]
+  (com-pred-full-text-search* query :fts s))
 
 ;;связи для файлов
 
@@ -777,6 +782,11 @@
 
 (defn tag-select-all-sub-tree-ids-and-with-this-id [{id :id :as tag-row}]
   (conj (tag-select-all-sub-tree-ids tag-row) id))
+
+
+(defn tag-pred-search* [query s]
+  (com-pred-full-text-search* query :fts s))
+
 ;; END ctag entity
 ;;..................................................................................................
 
@@ -932,7 +942,7 @@
 
 (def stext-select* (select* stext))
 
-(defn stext-search [query]
+(defn stext-pred-search* [query]
   (-> stext-select*
       (com-pred-full-text-search* :fts query)
       exec))
