@@ -48,20 +48,20 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn routes-ix* []
+(defn routes-ix* [cms-roles-set]
   (defroutes routes-for-ix-pathes*
 
     (ANY "/ix/set" request
          (cw/ix-accoc-parametr request))
 
     (GET "/ixinfestor" request
-         ;;(friend/authorize
-         ;;#{s/webrole-warehouser-1-key}
-         (-> request
-             cwb/page-ixcms-main
-             ring.util.response/response
-             (ring.util.response/header "Content-Type" "text/html; charset=utf-8"))
-         ;;)
+         (friend/authorize
+          cms-roles-set
+          (-> request
+              cwb/page-ixcms-main
+              ring.util.response/response
+              (ring.util.response/header "Content-Type" "text/html; charset=utf-8"))
+          )
          )
 
     ))
@@ -78,20 +78,22 @@
 ;; description: Маршруты для файлового аплоадера
 ;;------------------------------------------------------------------------------
 
-(defn routes-file* []
+(defn routes-file* [edit-roles-set]
   (defroutes routes-for-file-upload*
 
     (multipart/wrap-multipart-params
      (POST "/files/upload" request
-           (web-file-upload ix/file-upload (-> request :params :image-uploader))))
+           (friend/authorize
+            edit-roles-set
+            (web-file-upload ix/file-upload (-> request :params :image-uploader)))))
 
     (POST "/files/edit" request
-          (do
-            (println request)
-            (-> request
-                :params
-                ix/files-save
-                ring.util.response/response)))
+          (friend/authorize
+           edit-roles-set
+           (-> request
+               :params
+               ix/files-save
+               ring.util.response/response)))
 
     ;; Кэшированный источник файлов для картинок
     (GET "/image/*" {{path :*} :params :as request}
@@ -114,58 +116,70 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn routes-webusers* []
+(defn routes-webusers* [roles-set]
   (context "/tc/rb/webusers" []
-
            (GET "/list/:page/:page-size" [page page-size]
-                (ring.util.response/response
-                 (-> ix/webuser-select*
-                     (ix/com-pred-page* (dec (Long/parseLong page)) (Long/parseLong page-size))
-                     (korma.core/order :id :desc)
-                     ix/com-exec
-                     ((partial map #(dissoc % :password))))))
+                (friend/authorize
+                 roles-set
+                 (ring.util.response/response
+                  (-> ix/webuser-select*
+                      (ix/com-pred-page* (dec (Long/parseLong page)) (Long/parseLong page-size))
+                      (korma.core/order :id :desc)
+                      ix/com-exec
+                      ((partial map #(dissoc % :password)))))))
 
 
-           (GET "/find/new" []   (-> {}
-                                     (assoc :troles-set [(ix/webrole-list) #{}])
-                                     ring.util.response/response))
-           (GET "/find/:id" [id] (-> id Long/parseLong
-                                     ((partial ix/com-find ix/webuser))
-                                     (dissoc :password)
-                                     (as-> row
-                                         (assoc row :troles-set [(ix/webrole-list)
-                                                                 (ix/webuserwebrole-own-get-rels-set row)]))
-                                     ring.util.response/response))
+           (GET "/find/new" []
+                (friend/authorize
+                 roles-set
+                 (-> {}
+                     (assoc :troles-set [(ix/webrole-list) #{}])
+                     ring.util.response/response)))
+           (GET "/find/:id" [id]
+                (friend/authorize
+                 roles-set
+                 (-> id Long/parseLong
+                     ((partial ix/com-find ix/webuser))
+                     (dissoc :password)
+                     (as-> row
+                         (assoc row :troles-set [(ix/webrole-list)
+                                                 (ix/webuserwebrole-own-get-rels-set row)]))
+                     ring.util.response/response)))
 
 
            (POST "/save" request
-                 (cw/error-response-json
-                  (let [{:keys [row user-roles-keys-set]} (request :params)
-                        row (-> row
-                                ix/print-debug->>>
-                                (as-> row
-                                    (if (empty? (:password row)) (dissoc row :password)
-                                        (update-in row [:password] creds/hash-bcrypt)))
-                                ix/print-debug->>>
-                                ((partial ix/com-save-for-id ix/webuser))
-                                (dissoc :password))]
+                 (friend/authorize
+                  roles-set
+                  (cw/error-response-json
+                   (let [{:keys [row user-roles-keys-set]} (request :params)
+                         row (-> row
+                                 ix/print-debug->>>
+                                 (as-> row
+                                     (if (empty? (:password row)) (dissoc row :password)
+                                         (update-in row [:password] creds/hash-bcrypt)))
+                                 ix/print-debug->>>
+                                 ((partial ix/com-save-for-id ix/webuser))
+                                 (dissoc :password))]
 
-                    (when user-roles-keys-set
-                      (println (map keyword user-roles-keys-set))
-                      (ix/webuserwebrole-add-rels-for-keynames row (map keyword user-roles-keys-set)))
+                     (when user-roles-keys-set
+                       (println (map keyword user-roles-keys-set))
+                       (ix/webuserwebrole-add-rels-for-keynames row (map keyword user-roles-keys-set)))
 
-                    (ring.util.response/response row))))
+                     (ring.util.response/response row)))))
 
            (POST "/delete" request
-                 (-> request
-                     :params
-                     :id
-                     ((partial ix/com-delete-for-id ix/webuser))
-                     ring.util.response/response
-                     cw/error-response-json))
+                 (friend/authorize
+                  roles-set
+                  (-> request
+                      :params
+                      :id
+                      ((partial ix/com-delete-for-id ix/webuser))
+                      ring.util.response/response
+                      cw/error-response-json)))
 
-           )  
+           )
   )
+
 ;; END Users reference book
 ;;..................................................................................................
 
@@ -177,7 +191,7 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn routes-stext* []
+(defn routes-stext* [edit-roles-set]
   (context "/tc/rb/stext" []
 
            (GET "/list/:page/:page-size" [page page-size]
@@ -194,21 +208,24 @@
                                      ring.util.response/response))
 
            (POST "/save" request
-                 (-> request
-                     :params
-                     :row
-                     ((partial ix/com-save-for-id ix/stext))
-                     ring.util.response/response
-                     cw/error-response-json))
+                 (friend/authorize
+                  edit-roles-set
+                  (-> request
+                      :params
+                      :row
+                      ((partial ix/com-save-for-id ix/stext))
+                      ring.util.response/response
+                      cw/error-response-json))
 
-           ))
+                 )))
 ;; END Spec text reference book
 ;;..................................................................................................
 
 
 
-(defn routes-tag* []
+(defn routes-tag* [edit-roles-set]
   (context "/tag" []
+
 
            (GET "/:id/path-and-chailds" [id]
                 (ring.util.response/response
@@ -220,20 +237,25 @@
                  (ix/tag-tree-as-flat-groups)))
 
            ;; TAGS WORK ------------------------------------------------------
-           
+
+
            (POST "/save" request
-                 (-> request
-                     :params
-                     ix/tag-save
-                     ring.util.response/response
-                     cw/error-response-json))
+                 (friend/authorize
+                  edit-roles-set
+                  (-> request
+                      :params
+                      ix/tag-save
+                      ring.util.response/response
+                      cw/error-response-json)))
 
            (POST "/delete" request
-                 (-> request
-                     :params
-                     ix/tag-delete
-                     ring.util.response/response
-                     cw/error-response-json))
+                 (friend/authorize
+                  edit-roles-set
+                  (-> request
+                      :params
+                      ix/tag-delete
+                      ring.util.response/response
+                      cw/error-response-json)))
 
            ;; TAGS WORK ------------------------------------------------------
            )
@@ -247,7 +269,8 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn routes-webdocs* [{:keys [webdoc-entity
+(defn routes-webdocs* [edit-roles-set
+                       {:keys [webdoc-entity
                                webdoc-select*
                                webdoc-save-fn
                                context-path
@@ -271,7 +294,7 @@
                            (let [fts-query (clojure.string/trim fts-query)]
                              (if (empty? fts-query) query
                                  (ix/webdoc-pred-search* query fts-query))))
-                       
+
                        (ix/com-pred-page* (dec page) page-size)
                        (korma.core/order :id :desc)
                        ix/com-exec
@@ -290,27 +313,29 @@
                       cw/error-response-json)))
 
            (POST "/save" {{:keys [webdoc-row webdoctag-ids-for-updating swops]} :params}
-                 (cw/error-response-json
-                  (let [new-webdoc-row (when webdoc-row
-                                         (-> webdoc-row
+                 (friend/authorize
+                  edit-roles-set
+                  (cw/error-response-json
+                   (let [new-webdoc-row (when webdoc-row
+                                          (-> webdoc-row
                                              ;;; SPEC HANDLER
-                                             ;;(update-in-if-not-nil? [:price] bigdec)
-                                             ;;(update-in-if-not-nil? [:orderindex] parseLong)
-                                             ;;(update-in-if-not-nil? [:showbdate] #(new java.util.Date %))
-                                             ;;(update-in-if-not-nil? [:showedate] #(new java.util.Date %))
-                                             covertors-fn
-                                             webdoc-save-fn
-                                             ))]
+                                              ;;(update-in-if-not-nil? [:price] bigdec)
+                                              ;;(update-in-if-not-nil? [:orderindex] parseLong)
+                                              ;;(update-in-if-not-nil? [:showbdate] #(new java.util.Date %))
+                                              ;;(update-in-if-not-nil? [:showedate] #(new java.util.Date %))
+                                              covertors-fn
+                                              webdoc-save-fn
+                                              ))]
 
-                    (ring.util.response/response {:result-code 0
-                                                  :webdoc-row new-webdoc-row
-                                                  :webdoctag-rows (when (and new-webdoc-row
-                                                                             webdoctag-ids-for-updating)
-                                                                    (->> webdoctag-ids-for-updating
-                                                                         (map (partial assoc {} :id))
-                                                                         ((partial ix/webdoctag-update-tags new-webdoc-row))
-                                                                         doall))
-                                                  }))))
+                     (ring.util.response/response {:result-code 0
+                                                   :webdoc-row new-webdoc-row
+                                                   :webdoctag-rows (when (and new-webdoc-row
+                                                                              webdoctag-ids-for-updating)
+                                                                     (->> webdoctag-ids-for-updating
+                                                                          (map (partial assoc {} :id))
+                                                                          ((partial ix/webdoctag-update-tags new-webdoc-row))
+                                                                          doall))
+                                                   })))))
 
            (GET "/images-list" request
                 (-> request :params :id parseLong
@@ -331,40 +356,44 @@
                     cw/error-response-json))
 
            (context "/upload/:id" [id]
-                    (multipart/wrap-multipart-params
-                     (POST "/image/avatar" request
-                           (ring.util.response/response
-                            (let [id (parseLong id)
-                                  [{path :path} _] (web-file-upload
-                                                    (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id id})
-                                                    (-> request :params :file-uploader))]
-                              (ix/webdoc-save {:id id :web_title_image path})
-                              "OK"))))
+                    (friend/authorize
+                     edit-roles-set
+                     (multipart/wrap-multipart-params
+                      (POST "/image/avatar" request
+                            (ring.util.response/response
+                             (let [id (parseLong id)
+                                   [{path :path} _] (web-file-upload
+                                                     (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id id})
+                                                     (-> request :params :file-uploader))]
+                               (ix/webdoc-save {:id id :web_title_image path})
+                               "OK"))))
 
-                    (multipart/wrap-multipart-params
-                     (POST "/image" request
-                           (ring.util.response/response
-                            (do (web-file-upload
-                                 (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id (parseLong id)})
-                                 (-> request :params :image-uploader))
-                                "OK"))))
+                     (multipart/wrap-multipart-params
+                      (POST "/image" request
+                            (ring.util.response/response
+                             (do (web-file-upload
+                                  (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id (parseLong id)})
+                                  (-> request :params :image-uploader))
+                                 "OK"))))
 
-                    (multipart/wrap-multipart-params
-                     (POST "/file" request
-                           (ring.util.response/response
-                            (do
-                              (web-file-upload
-                               (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id (parseLong id)})
-                               (-> request :params :file-uploader))
-                              "OK"))))
+                     (multipart/wrap-multipart-params
+                      (POST "/file" request
+                            (ring.util.response/response
+                             (do
+                               (web-file-upload
+                                (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id (parseLong id)})
+                                (-> request :params :file-uploader))
+                               "OK"))))
 
-                    )
+                     ))
 
            (POST "/files_rel/delete" {{:keys [webdoc-id file-id]} :params}
-                 (-> (ix/files_rel-delete :webdoc_id {:id file-id} {:id webdoc-id})
-                     ring.util.response/response
-                     cw/error-response-json))
-           )
+                 (friend/authorize
+                  edit-roles-set
+                  (-> (ix/files_rel-delete :webdoc_id {:id file-id} {:id webdoc-id})
+                      ring.util.response/response
+                      cw/error-response-json))
+                 ))
 
   )
 

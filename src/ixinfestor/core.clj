@@ -494,7 +494,9 @@
 ;;**************************************************************************************************
 
 (defentity webuser
-  (pk :id))
+  (pk :id)
+  (transform (fn [row] (dissoc row :fts)))
+  )
 
 
 (defn webuser-save
@@ -525,8 +527,10 @@
 
 (defentity webrole
   (pk :id)
-  (prepare (fn [row] (->> row (prepare-as-string :keyname))))
-  (transform (fn [row] (->> row (transform-as-keyword :keyname)))))
+  (prepare (fn [row] (-> row
+                         ((partial prepare-as-string :keyname)))))
+  (transform (fn [row] (-> row
+                           ((partial transform-as-keyword :keyname))))))
 
 (defn webrole-init [keyname title description]
   (com-save-for-field webrole :keyname
@@ -673,10 +677,20 @@
 ;;*
 ;;**************************************************************************************************
 
+;; Пример рекурсивного запроса с выдачей путей
+;; WITH RECURSIVE temp1 ( id, parent_id, tagname ) AS (
+;; SELECT id, parent_id, tagname, cast (tagname as text) as PATH FROM tag WHERE parent_id IS NULL
+;; union
+;; select a.id, a.parent_id, a.tagname, cast (b.PATH ||'->'|| a.tagname as text) as PATH FROM tag a, temp1 b WHERE a.parent_id = b.id)
+;; select * from temp1 order by PATH
+
 (defentity tag
   (pk :id)
-  (prepare (fn [row] (->> row (prepare-as-string :constname))))
-  (transform (fn [row] (->> row (transform-as-keyword :constname)))))
+  (prepare (fn [row] (-> row
+                         ((partial prepare-as-string :constname)))))
+  (transform (fn [row] (-> row
+                           ((partial transform-as-keyword :constname))
+                           (dissoc :fts)))))
 
 (defn tag-const? [{id :id}]
   (-> (select* tag)
@@ -907,8 +921,11 @@
 
 (defentity stext
   (pk :id)
-  (prepare (fn [row] (->> row (prepare-as-string :keyname))))
-  (transform (fn [row] (->> row (transform-as-keyword :keyname)))))
+  (prepare (fn [row] (-> row
+                         ((partial prepare-as-string :keyname)))))
+  (transform (fn [row] (-> row
+                           ((partial transform-as-keyword :keyname))
+                           (dissoc :fts)))))
 
 (defn stext-save [row]
   (com-save-for-id stext row))
