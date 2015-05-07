@@ -118,15 +118,22 @@
 
 (defn routes-webusers* [roles-set]
   (context "/tc/rb/webusers" []
-           (GET "/list/:page/:page-size" [page page-size]
-                (friend/authorize
-                 roles-set
-                 (ring.util.response/response
-                  (-> ix/webuser-select*
-                      (ix/com-pred-page* (dec (Long/parseLong page)) (Long/parseLong page-size))
-                      (korma.core/order :id :desc)
-                      ix/com-exec
-                      ((partial map #(dissoc % :password)))))))
+           (POST "/list" {{:keys [page page-size fts-query]
+                           :or {page 1 page-size 10 fts-query ""}} :params}
+                 (friend/authorize
+                  roles-set
+                  (ring.util.response/response
+                   (-> ix/webuser-select*
+                       (ix/com-pred-page* (dec page) page-size)
+
+                       (as-> query
+                           (let [fts-query (clojure.string/trim fts-query)]
+                             (if (empty? fts-query) query
+                                 (ix/webdoc-pred-search* query fts-query))))
+
+                       (korma.core/order :id :desc)
+                       ix/com-exec
+                       ((partial map #(dissoc % :password)))))))
 
 
            (GET "/find/new" []
@@ -174,6 +181,7 @@
                       :params
                       :id
                       ((partial ix/com-delete-for-id ix/webuser))
+                      ((fn [_] {:result "OK"}))
                       ring.util.response/response
                       cw/error-response-json)))
 
@@ -194,13 +202,20 @@
 (defn routes-stext* [edit-roles-set]
   (context "/tc/rb/stext" []
 
-           (GET "/list/:page/:page-size" [page page-size]
-                (ring.util.response/response
+           (POST "/list" {{:keys [page page-size fts-query]
+                           :or {page 1 page-size 10 fts-query ""}} :params}
                  (-> ix/stext-select*
-                     (ix/com-pred-page* (dec (Long/parseLong page)) (Long/parseLong page-size))
+                     (ix/com-pred-page* (dec page) page-size)
+
+                     (as-> query
+                         (let [fts-query (clojure.string/trim fts-query)]
+                           (if (empty? fts-query) query
+                               (ix/webdoc-pred-search* query fts-query))))
+
                      (korma.core/order :id :desc)
                      ix/com-exec
-                     ((partial map #(dissoc % :password))))))
+                     ((partial map #(dissoc % :password)))
+                     ring.util.response/response))
 
            (GET "/find/:id" [id] (-> id
                                      Long/parseLong
@@ -254,6 +269,7 @@
                   (-> request
                       :params
                       ix/tag-delete
+                      ((fn [_] {:result "OK"}))
                       ring.util.response/response
                       cw/error-response-json)))
 
@@ -284,7 +300,8 @@
 
   (context context-path []
 
-           (POST "/bytag" {{:keys [tag-id page page-size fts-query]} :params}
+           (POST "/bytag" {{:keys [tag-id page page-size fts-query]
+                            :or {page 1 page-size 10 fts-query ""}} :params}
                  (do
                    (-> webdoc-select* ;;; SRC
                        (ix/webdoc-pred-search-for-the-child-tree-tags*
@@ -341,9 +358,9 @@
                  (friend/authorize
                   edit-roles-set
                   (-> request
-                      :params
-                      :id
-                      ((partial ix/com-delete-for-id ix/webdoc))
+                      :params                      
+                      ix/webdoc-delete
+                      ((fn [_] {:result "OK"}))
                       ring.util.response/response
                       cw/error-response-json)))
 

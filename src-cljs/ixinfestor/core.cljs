@@ -319,7 +319,7 @@
                   :type "number" :min "1"
                   :value (or (:page init-params) 1)
                   :placeholder "Страница"
-                  :on-change #(this-as this (put! event-chan [id :page (dommy/value this)]))
+                  :on-change #(this-as this (put! event-chan [id :page (js/parseInt (dommy/value this))]))
                   }]
 
          [:span {:class "input-group-btn"}
@@ -445,7 +445,7 @@
                                    [:div {:class "modal-header"}
                                     (or header [:h4.modal-title (or title "Modal title...")])]
                                    [:div {:class "modal-body"} (or body nil)]
-                                   [:div {:class "modal-footer"}                                    
+                                   [:div {:class "modal-footer"}
                                     [:div  {:class "navbar-left"}]
                                     (or footer [:button {:class "btn btn-default" :type "button" :data-dismiss "modal"} "Закрыть"])
                                     ]]]])
@@ -457,8 +457,30 @@
       ((partial str \#))
       js/jQuery (.modal "hide")))
 
+
+
+;; YES - NO - dialogs
+
+(defn dialog-delete-row-yes?-no? [row modal-id fn-if-yes]
+  (modal-cr-and-show-on-id
+   modal-id
+   {:title (str "Удаление записи #" (:id row))
+    :body  [:div {:class "well center-block" :style "max-width:400px;"}
+            "Желаете удалить запись?"]
+    :footer (list
+             [:button {:class "btn btn-danger btn-lg"
+                       :type "button" :data-dismiss "modal"
+                       :on-click fn-if-yes}
+              "Удалить!"]
+             [:button {:class "btn btn-lg btn-default" :data-dismiss "modal" :type "button"}
+              "Закрыть"])
+    }))
+
+
+
 ;; END Modal dialogs
 ;;..................................................................................................
+
 
 
 ;;**************************************************************************************************
@@ -526,4 +548,55 @@
 
 
 ;; END Form engine
+;;..................................................................................................
+
+
+
+;;**************************************************************************************************
+;;* BEGIN FTS
+;;* tag: <fts>
+;;*
+;;* description: для полнотекстового поиска
+;;*
+;;**************************************************************************************************
+
+
+(defn input-fts [{:keys [id
+                         value
+                         on-change-fn
+                         find-fn]
+                  :or {id :fts-form-div
+                       value ""
+                       on-change-fn #(println "Функция изменения значения поискового поля не задана! " %)
+                       find-fn #(println "Функция выполнения поискового запроса не задана!")}}]
+  (let [input-id (xml-id :input id)]
+    [:div {:id id :class "input-group"}
+     [:span {:class "input-group-btn"}
+      [:button {:class "btn btn-default" :type "button"
+
+                :on-click #(do
+                             (dommy/set-value! (by-id input-id) "")
+                             (on-change-fn "")
+                             (find-fn))
+
+                } [:span {:class "glyphicon glyphicon-remove" :aria-hidden "true"}]]
+      ]
+     [:input {:id (name input-id)
+              :type "text" :class "form-control" :placeholder "Искать по..."
+              :on-change #(this-as this (on-change-fn (dommy/value this)))
+              :on-keypress #(this-as this
+                                     (do
+                                       (on-change-fn (dommy/value this))
+                                       (when (= 13 (.-keyCode %)) (find-fn))))
+              :value value
+              }]
+     [:span {:class "input-group-btn"}
+      [:button {:class "btn btn-default" :type "button"
+                :on-click find-fn
+                } [:span {:class "glyphicon glyphicon-search" :aria-hidden "true"}]]
+      ]
+     ]
+    ))
+
+;; END FTS
 ;;..................................................................................................

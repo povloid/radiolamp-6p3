@@ -826,6 +826,13 @@
 
 (def webdoc-select* (select* webdoc))
 
+(declare webdoctag)
+(defn webdoc-delete [{id :id}]
+  (transaction
+   (delete webdoctag (where (= :webdoc_id id)))
+   (delete files_rel (where (= :webdoc_id id)))
+   (com-delete-for-id webdoc id)))
+
 ;; END entity webdoc
 ;;..................................................................................................
 
