@@ -358,15 +358,16 @@
                  (friend/authorize
                   edit-roles-set
                   (-> request
-                      :params                      
+                      :params
                       ix/webdoc-delete
                       ((fn [_] {:result "OK"}))
                       ring.util.response/response
                       cw/error-response-json)))
 
            (GET "/images-list" request
-                (-> request :params :id parseLong
-                    ((partial hash-map :id))
+                (-> request
+                    :params
+                    (update-in [:id] parseLong)
                     (ix/files_rel-select-files-by-* :webdoc_id)
                     ix/file-pred-images*
                     ix/com-exec
@@ -374,8 +375,9 @@
                     cw/error-response-json))
 
            (GET "/files-list" request
-                (-> request :params :id parseLong
-                    ((partial hash-map :id))
+                (-> request
+                    :params
+                    (update-in [:id] parseLong)
                     (ix/files_rel-select-files-by-* :webdoc_id)
                     (ix/file-pred-images* :not-image)
                     ix/com-exec
@@ -383,36 +385,41 @@
                     cw/error-response-json))
 
            (context "/upload/:id" [id]
-                    (friend/authorize
-                     edit-roles-set
-                     (multipart/wrap-multipart-params
-                      (POST "/image/avatar" request
+
+                    (multipart/wrap-multipart-params
+                     (POST "/image/avatar" request
+                           (friend/authorize
+                            edit-roles-set
                             (ring.util.response/response
                              (let [id (parseLong id)
                                    [{path :path} _] (web-file-upload
                                                      (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id id})
                                                      (-> request :params :file-uploader))]
                                (ix/webdoc-save {:id id :web_title_image path})
-                               "OK"))))
+                               "OK")))))
 
-                     (multipart/wrap-multipart-params
-                      (POST "/image" request
+                    (multipart/wrap-multipart-params
+                     (POST "/image" request
+                           (friend/authorize
+                            edit-roles-set
                             (ring.util.response/response
                              (do (web-file-upload
                                   (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id (parseLong id)})
                                   (-> request :params :image-uploader))
-                                 "OK"))))
+                                 "OK")))))
 
-                     (multipart/wrap-multipart-params
-                      (POST "/file" request
+                    (multipart/wrap-multipart-params
+                     (POST "/file" request
+                           (friend/authorize
+                            edit-roles-set
                             (ring.util.response/response
                              (do
                                (web-file-upload
                                 (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id (parseLong id)})
                                 (-> request :params :file-uploader))
-                               "OK"))))
+                               "OK")))))
 
-                     ))
+                    )
 
            (POST "/files_rel/delete" {{:keys [webdoc-id file-id]} :params}
                  (friend/authorize

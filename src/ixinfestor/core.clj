@@ -618,7 +618,8 @@
 
 
 (defentity files
-  (pk :id))
+  (pk :id)
+  (transform (fn [row] (dissoc row :fts))))
 
 (defn files-save
   "Сохранение files"
