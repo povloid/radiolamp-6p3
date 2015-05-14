@@ -324,10 +324,16 @@
                 ;;TODO: Попробовать сделать все в рамках одной транзакции
                 (let [id (Long/parseLong id)]
                   (-> {:webdoc-row (ix/com-find webdoc-entity id)  ;;; SRC
-                       :webdoctag-edit-table (ix/webdoctag-tag-tree-as-flat-groups-with-patches {:id id} :path)
                        }
                       ring.util.response/response
                       cw/error-response-json)))
+
+           (POST "/webdoctags-edit-table" request
+                (-> request
+                    :params                    
+                    (ix/webdoctag-tag-tree-as-flat-groups-with-patches :path)
+                    ring.util.response/response
+                    cw/error-response-json))
 
            (POST "/save" {{:keys [webdoc-row webdoctag-ids-for-updating swops]} :params}
                  (friend/authorize
