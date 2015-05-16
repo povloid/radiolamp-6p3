@@ -447,39 +447,43 @@
 
 (defn sort-tree-as-flat-groups
   "Сортировка дерева в списке по иерархии и группировка"
-  [get-id-fn get-parent-id-fn tree-list]
-  (let [roots (->> tree-list
-                   (reduce (fn [[is ps] item]
-                             [(conj is (get-parent-id-fn item))
-                              (conj ps (get-id-fn item))])
-                           [#{} #{}])
-                   ((fn [[parents-ids ids]]
-                      (let [roots-ids (clojure.set/difference parents-ids ids)]
-                        (filter #(->> % get-parent-id-fn (contains? roots-ids)) tree-list)))) )]
-    (letfn [(sort-tree [parent]
-              (let [parent-id (get-id-fn parent)]
-                (->> tree-list
-                     (filter #(-> % get-parent-id-fn (= parent-id)))
-                     (sort-by get-id-fn)
-                     (reduce #(-> %1 (into (sort-tree %2))) [parent]) )))]
-      (->> roots
-           vec
-           (sort-by get-id-fn)
-           (reduce #(-> %1 (conj (sort-tree %2))) [] )))))
+  ([get-id-fn get-parent-id-fn tree-list]
+   (sort-tree-as-flat-groups get-id-fn get-parent-id-fn tree-list get-id-fn))
+  ([get-id-fn get-parent-id-fn tree-list get-sort-field-fn]
+   (let [roots (->> tree-list
+                    (reduce (fn [[is ps] item]
+                              [(conj is (get-parent-id-fn item))
+                               (conj ps (get-id-fn item))])
+                            [#{} #{}])
+                    ((fn [[parents-ids ids]]
+                       (let [roots-ids (clojure.set/difference parents-ids ids)]
+                         (filter #(->> % get-parent-id-fn (contains? roots-ids)) tree-list)))) )]
+     (letfn [(sort-tree [parent]
+               (let [parent-id (get-id-fn parent)]
+                 (->> tree-list
+                      (filter #(-> % get-parent-id-fn (= parent-id)))
+                      (sort-by get-sort-field-fn)
+                      (reduce #(-> %1 (into (sort-tree %2))) [parent]) )))]
+       (->> roots
+            vec
+            (sort-by get-sort-field-fn)
+            (reduce #(-> %1 (conj (sort-tree %2))) [] ))))))
 
 ;; TODO: написать тесты!
 (defn sort-tree-as-flat-groups-with-patches
-  [get-id-fn get-parent-id-fn store-on-key tree-list]
-  (->> tree-list
-       (sort-tree-as-flat-groups get-id-fn get-parent-id-fn)
-       (map (partial add-tree-patches get-id-fn get-parent-id-fn store-on-key))))
+  ([get-id-fn get-parent-id-fn store-on-key tree-list]
+   (sort-tree-as-flat-groups-with-patches get-id-fn get-parent-id-fn store-on-key tree-list get-id-fn))
+  ([get-id-fn get-parent-id-fn store-on-key tree-list get-sort-field-fn]
+   (->> (sort-tree-as-flat-groups get-id-fn get-parent-id-fn tree-list get-sort-field-fn)
+        (map (partial add-tree-patches get-id-fn get-parent-id-fn store-on-key)))))
 
 (defn sort-tree-as-flat
   "Сортировка древовидной структуры"
-  [get-id-fn get-parent-id-fn tree-list]
-  (->> tree-list
-       (sort-tree-as-flat-groups get-id-fn get-parent-id-fn)
-       (reduce into)))
+  ([get-id-fn get-parent-id-fn tree-list]
+   (sort-tree-as-flat get-id-fn get-parent-id-fn tree-list get-id-fn))
+  ([get-id-fn get-parent-id-fn tree-list get-sort-field-fn]
+   (->> (sort-tree-as-flat-groups get-id-fn get-parent-id-fn tree-list get-sort-field-fn)
+        (reduce into))))
 
 ;; END Common utils
 ;;..................................................................................................
@@ -763,7 +767,7 @@
 
 ;; TODO: написать тесты
 (defn tag-tree-as-flat-groups-with-patches [store-on-key]
-  (sort-tree-as-flat-groups-with-patches :id :parent_id store-on-key (select tag)))
+  (sort-tree-as-flat-groups-with-patches :id :parent_id store-on-key (select tag) :tagname))
 
 ;; TODO: написать тесты
 (defn tag-tree-as-flat []
