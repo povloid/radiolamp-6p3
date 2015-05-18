@@ -9,7 +9,7 @@
   (:require
 
    ;; !!!!!!!
-   [hiccup-bridge.core :as hicv]
+   ;; [hiccup-bridge.core :as hicv]
 
    [postal.core :as postal]
 
@@ -58,25 +58,25 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn html->hiccup [& html]
-  (->> html
-       (reduce str)
-       str
-       rest
-       reverse
-       rest
-       reverse
-       (reduce str)
-       (#(clojure.string/replace % #" >" ">"))
-       (#(clojure.string/replace % #"> <" "><"))
-       hiccup-bridge.core/html->hiccup
-       first
-       ((fn [x]
-          (println)
-          (clojure.pprint/pprint x)
-          (println)
-          x))
-       doall))
+;; (defn html->hiccup [& html]
+;;   (->> html
+;;        (reduce str)
+;;        str
+;;        rest
+;;        reverse
+;;        rest
+;;        reverse
+;;        (reduce str)
+;;        (#(clojure.string/replace % #" >" ">"))
+;;        (#(clojure.string/replace % #"> <" "><"))
+;;        hiccup-bridge.core/html->hiccup
+;;        first
+;;        ((fn [x]
+;;           (println)
+;;           (clojure.pprint/pprint x)
+;;           (println)
+;;           x))
+;;        doall))
 
 ;; END Tools
 ;;..................................................................................................

@@ -3,14 +3,14 @@
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [compojure "1.3.1"]
+  :dependencies [[org.clojure/clojure "1.7.0-beta3"]
+                 [compojure "1.3.4"]
                  [hiccup "1.0.5"]
                  [clj-time "0.6.0"]
                  [korma "0.3.3"]
 
                  ;; Нужно только на время разработки
-                 [hiccup-bridge "1.0.1"]
+                 ;;[hiccup-bridge "1.0.1"]
                  ]
 
   :source-paths ["src" "src-cljs"]
@@ -18,12 +18,12 @@
   :profiles
   {:dev
    {:dependencies [
-                   [org.clojure/clojurescript "0.0-3169"]
-                   [prismatic/dommy "1.0.0"]
-                   [cljs-ajax "0.3.10"]
-                   [hipo "0.3.0"]
+                   [org.clojure/clojurescript "0.0-3269"]
+                   [prismatic/dommy "1.1.0"]
+                   [cljs-ajax "0.3.11"]
+                   [hipo "0.4.0"]
                    ]
-    :plugins [[lein-cljsbuild "1.0.5"]
+    :plugins [[lein-cljsbuild "1.0.6"]
               [com.cemerick/clojurescript.test "0.3.3"]]}}
   :cljsbuild
   {:builds
