@@ -509,6 +509,12 @@
   ;; SAVE
   (com-save-for-id webuser webuser-row))
 
+(defn webuser-save-for-username
+  "Сохранить пользователя по имени"
+  [webuser-row]
+  ;; SAVE
+  (com-save-for-field webuser :username webuser-row))
+
 (def webuser-select* (select* webuser))
 
 (defn webuser-find-by-username [username]

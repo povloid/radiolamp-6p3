@@ -174,6 +174,15 @@
 
                      (ring.util.response/response row)))))
 
+           (POST "/change-password" request
+                 (-> request
+                     :params
+                     (update-in [:password] creds/hash-bcrypt)
+                     (assoc :username (-> request :session :cemerick.friend/identity :current))
+                     ix/webuser-save-for-username
+                     ring.util.response/response
+                     cw/error-response-json))
+
            (POST "/delete" request
                  (friend/authorize
                   roles-set

@@ -209,7 +209,7 @@
      (include-js "/js/main.js")
      )}
    (list
-
+        
     (navbar
      [navbar-class-default navbar-class-static-top "navbar-fixed-top"]
      (list
@@ -235,4 +235,5 @@
     [:div#modal-error]
     [:div#main]
 
+    [:input {:type "hidden" :id "username" :value (-> request :session :cemerick.friend/identity :current)}]
     (javascript-tag (str "ixinfestor.page_main.init();")))))
