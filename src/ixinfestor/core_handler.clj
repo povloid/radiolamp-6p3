@@ -81,11 +81,28 @@
 (defn routes-file* [edit-roles-set]
   (defroutes routes-for-file-upload*
 
+    (POST "/files/list" {{:keys [page page-size fts-query]
+                          :or {page 1 page-size 10 fts-query ""}} :params}
+          (-> ix/files-select*
+              (ix/com-pred-page* (dec page) page-size)
+
+              (as-> query
+                  (let [fts-query (clojure.string/trim fts-query)]
+                    (if (empty? fts-query)
+                      (korma.core/order query :id :desc)
+                      (ix/files-pred-search* query fts-query))))
+
+              ix/com-exec
+              ring.util.response/response))
+
+
     (multipart/wrap-multipart-params
      (POST "/files/upload" request
            (friend/authorize
             edit-roles-set
-            (web-file-upload ix/file-upload (-> request :params :image-uploader)))))
+            (do
+              (web-file-upload ix/file-upload (-> request :params :image-uploader))
+              (ring.util.response/response "OK") ))))
 
     (POST "/files/edit" request
           (friend/authorize
@@ -94,6 +111,16 @@
                :params
                ix/files-save
                ring.util.response/response)))
+
+    (POST "/files/delete" request
+          (friend/authorize
+           edit-roles-set
+           (-> request
+               :params
+               ix/files-delete
+               ((fn [_] {:result "OK"}))
+               ring.util.response/response
+               cw/error-response-json)))
 
     ;; Кэшированный источник файлов для картинок
     (GET "/image/*" {{path :*} :params :as request}
@@ -128,10 +155,10 @@
 
                        (as-> query
                            (let [fts-query (clojure.string/trim fts-query)]
-                             (if (empty? fts-query) query
-                                 (ix/webdoc-pred-search* query fts-query))))
+                             (if (empty? fts-query)
+                               (korma.core/order query :id :desc)
+                               (ix/webdoc-pred-search* query fts-query))))
 
-                       (korma.core/order :id :desc)
                        ix/com-exec
                        ((partial map #(dissoc % :password)))))))
 
@@ -218,10 +245,10 @@
 
                      (as-> query
                          (let [fts-query (clojure.string/trim fts-query)]
-                           (if (empty? fts-query) query
-                               (ix/webdoc-pred-search* query fts-query))))
+                           (if (empty? fts-query)
+                             (korma.core/order query :id :desc)
+                             (ix/webdoc-pred-search* query fts-query))))
 
-                     (korma.core/order :id :desc)
                      ix/com-exec
                      ((partial map #(dissoc % :password)))
                      ring.util.response/response))
@@ -318,11 +345,12 @@
 
                        (as-> query
                            (let [fts-query (clojure.string/trim fts-query)]
-                             (if (empty? fts-query) query
-                                 (ix/webdoc-pred-search* query fts-query))))
+                             (if (empty? fts-query)
+                               (korma.core/order query :id :desc)
+                               (ix/webdoc-pred-search* query fts-query))))
+
 
                        (ix/com-pred-page* (dec page) page-size)
-                       (korma.core/order :id :desc)
                        ix/com-exec
                        korma.db/transaction
                        ring.util.response/response
@@ -338,11 +366,11 @@
                       cw/error-response-json)))
 
            (POST "/webdoctags-edit-table" request
-                (-> request
-                    :params                    
-                    (ix/webdoctag-tag-tree-as-flat-groups-with-patches :path)
-                    ring.util.response/response
-                    cw/error-response-json))
+                 (-> request
+                     :params
+                     (ix/webdoctag-tag-tree-as-flat-groups-with-patches :path)
+                     ring.util.response/response
+                     cw/error-response-json))
 
            (POST "/save" {{:keys [webdoc-row webdoctag-ids-for-updating swops]} :params}
                  (friend/authorize

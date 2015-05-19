@@ -631,10 +631,15 @@
   (pk :id)
   (transform (fn [row] (dissoc row :fts))))
 
+(def files-select* (select* files))
+
 (defn files-save
   "Сохранение files"
   [file-row]
   (com-save-for-id files file-row))
+
+(defn files-delete [row]
+  (com-delete-for-id files (:id row)))
 
 (defn file-upload [file-row tempfile]
   (transaction
