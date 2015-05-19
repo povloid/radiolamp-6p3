@@ -49,22 +49,22 @@
 ;;**************************************************************************************************
 
 (defn routes-ix* [cms-roles-set]
-  (routes routes-for-ix-pathes*
+  (routes
 
-          (ANY "/ix/set" request
-               (cw/ix-accoc-parametr request))
+   (ANY "/ix/set" request
+        (cw/ix-accoc-parametr request))
 
-          (GET "/ixinfestor" request
-               (friend/authorize
-                cms-roles-set
-                (-> request
-                    cwb/page-ixcms-main
-                    ring.util.response/response
-                    (ring.util.response/header "Content-Type" "text/html; charset=utf-8"))
-                )
-               )
+   (GET "/ixinfestor" request
+        (friend/authorize
+         cms-roles-set
+         (-> request
+             cwb/page-ixcms-main
+             ring.util.response/response
+             (ring.util.response/header "Content-Type" "text/html; charset=utf-8"))
+         )
+        )
 
-          ))
+   ))
 
 
 
