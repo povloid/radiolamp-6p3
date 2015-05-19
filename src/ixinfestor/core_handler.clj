@@ -89,9 +89,10 @@
              (as-> query
                  (let [fts-query (clojure.string/trim fts-query)]
                    (if (empty? fts-query)
-                     (korma.core/order query :id :desc)
+                     query
                      (ix/files-pred-search* query fts-query))))
 
+             (korma.core/order :id :desc)
              ix/com-exec
              ring.util.response/response))
 
@@ -157,9 +158,10 @@
                         (as-> query
                             (let [fts-query (clojure.string/trim fts-query)]
                               (if (empty? fts-query)
-                                (korma.core/order query :id :desc)
+                                query
                                 (ix/webdoc-pred-search* query fts-query))))
 
+                        (korma.core/order :id :desc)
                         ix/com-exec
                         ((partial map #(dissoc % :password)))))))
 
@@ -249,9 +251,10 @@
                       (as-> query
                           (let [fts-query (clojure.string/trim fts-query)]
                             (if (empty? fts-query)
-                              (korma.core/order query :id :desc)
+                              query
                               (ix/webdoc-pred-search* query fts-query))))
 
+                      (korma.core/order :id :desc)
                       ix/com-exec
                       ((partial map #(dissoc % :password)))
                       ring.util.response/response))
@@ -347,14 +350,15 @@
                         (ix/webdoc-pred-search-for-the-child-tree-tags*
                          {:id (if (= tag-id "root") nil tag-id)})
 
+                        (ix/com-pred-page* (dec page) page-size)
+                        
                         (as-> query
                             (let [fts-query (clojure.string/trim fts-query)]
                               (if (empty? fts-query)
-                                (korma.core/order query :id :desc)
+                                query
                                 (ix/webdoc-pred-search* query fts-query))))
 
-
-                        (ix/com-pred-page* (dec page) page-size)
+                        (korma.core/order :id :desc)                     
                         ix/com-exec
                         korma.db/transaction
                         ring.util.response/response
