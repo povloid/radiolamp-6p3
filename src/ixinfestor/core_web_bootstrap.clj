@@ -99,6 +99,12 @@
    [:nav#main-navbar {:class (reduce #(str %1 " " %2) "navbar" (or plus-class-params ""))}
     body]))
 
+(defn navbar-collapse [body]
+  [:div {:class "collapse navbar-collapse"} body])
+
+(defn nav [body]
+  [:div {:class "nav navbar-nav"} body])
+
 
 (defn navbar-header [href title]
   [:div.navbar-header
@@ -110,6 +116,29 @@
     [:span.icon-bar]
     [:span.icon-bar]]
    [:a.navbar-brand {:href href} title]])
+
+(defn nav-menu-item
+  ([title attrs] (nav-menu-item title attrs nil))
+  ([title glyphicon-name attrs]
+   [:li
+    [:a (merge {:href "#"} attrs)
+     (when glyphicon-name
+       [:span {:class (str "glyphicon " glyphicon-name) :aria-hidden "true"}])
+     " " title]]))
+
+(defn nav-menu
+  ([title attrs nav-menu-items] (nav-menu title nil attrs nav-menu-items))
+  ([title glyphicon-name attrs nav-menu-items]
+   [:li {:class "dropdown"}
+    [:a {:class "dropdown-toggle" :aria-expanded "false", :role "button", :data-toggle "dropdown", :href "#"}
+     (when glyphicon-name
+       [:span {:class (str "glyphicon " glyphicon-name) :aria-hidden "true"}])
+     " " title
+     [:span {:class "caret"}]]
+    [:ul {:class "dropdown-menu" :role "menu"}
+     nav-menu-items
+     ]]))
+
 
 ;; END navbar
 ;;..................................................................................................
