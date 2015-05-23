@@ -44,7 +44,7 @@
 
            (:header-additions page-params nil)
            ]
-          [:body
+          [:body {:data-spy "scroll" :data-target "#myScrollspy"}
            body
            ;;(reduce conj [:div {:id "root"}] body)
            ;;(include-js "/js/tarsonis.js")

@@ -312,6 +312,29 @@
                                   rel-entity field-fk-id-1 field-fk-id-2) row ))))
 
 
+(defn com-defn-get-rows-by-rels*
+  [entity-1 field-id-1 field-id-2
+   rel-entity field-fk-id-1 field-fk-id-2]
+  (fn [entity-2-rows]
+    (reduce
+     (fn [query entity-2-row]
+       (where query
+              (exists
+               (subselect rel-entity
+                          (fields field-fk-id-1)
+                          (where (and
+                                  (= field-fk-id-2 (field-id-2 entity-2-row))
+                                  (= field-fk-id-1 (-> entity-1 :table (str "." (name field-id-1)) keyword)))
+                                 )))))
+     (order (select* entity-1) field-id-1 :desc) entity-2-rows)))
+
+(defn com-defn-get-one-row-by-rels*
+  [entity-1 field-id-1 field-id-2
+   rel-entity field-fk-id-1 field-fk-id-2]
+  (fn [entity-2-rows]
+    (-> entity-2-rows
+        ((com-defn-get-rows-by-rels* entity-1 field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2))
+        (limit 1))))
 
 ;; END SQL TOOLS
 ;;..................................................................................................
@@ -623,7 +646,7 @@
           (do
             (.close in)
             (.close out)
-            (throw ex) )))
+            (throw ex))))
       dir-filename)))
 
 
@@ -834,20 +857,87 @@
   )
 
 
+(def webdoc-select* (select* webdoc))
 
 (defn webdoc-save
   "Сохранение webdoc"
-  [webdoc-row]
-  (com-save-for-id webdoc webdoc-row))
-
-(def webdoc-select* (select* webdoc))
+  ([webdoc-row]
+   (webdoc-save webdoc-row webdoc))
+  ([webdoc-row webdoc-entity]
+   (com-save-for-id webdoc-entity webdoc-row)))
 
 (declare webdoctag)
-(defn webdoc-delete [{id :id}]
-  (transaction
-   (delete webdoctag (where (= :webdoc_id id)))
-   (delete files_rel (where (= :webdoc_id id)))
-   (com-delete-for-id webdoc id)))
+
+(defn webdoc-delete
+  ([webdoc-row]
+   (webdoc-delete webdoc-row webdoc))
+  ([{id :id} webdoc-entity]
+   (transaction
+    (delete webdoctag (where (= :webdoc_id id)))
+    (delete files_rel (where (= :webdoc_id id)))
+    (com-delete-for-id webdoc-entity id))))
+
+;; TODO: написать тесты
+(defn webdoc-has-a-tag? [webdoc-row tag-tagname]
+  ((com-defn-has-a-rel? tag :id :tagname webdoctag :webdoc_id :tag_id) webdoc-row tag-tagname))
+
+;; TODO: написать тесты
+(defn webdoc-get-tags-set [webdoc-row & [field-for-set]]
+  ((com-defn-get-rels-set tag :id (or field-for-set :tagname)
+                          webdoctag :webdoc_id :tag_id) webdoc-row))
+
+;; TODO: написать тесты
+(defn webdocs-by-tag*
+  ([tag-row]
+   (webdocs-by-tag* tag-row webdoc))
+  ([tag-row webdoc-entity]
+   ((com-defn-get-rows-by-rel* webdoc-entity :id :id webdoctag :webdoc_id :tag_id) tag-row)))
+
+(defn webdocs-by-tags*
+  ([tags-rows]
+   (webdocs-by-tags* tags-rows webdoc))
+  ([tags-rows webdoc-entity]
+   ((com-defn-get-rows-by-rels*
+     webdoc-entity :id :id
+     webdoctag :webdoc_id :tag_id) tags-rows)))
+
+;; TODO: написать тесты
+(defn webdocs-by-tag--nil-other*-se
+  ([tag-row]
+   (webdocs-by-tag--nil-other*-se tag-row webdoc))
+  ([tag-row webdoc-entity]
+   ((com-defn-get-rows-by-rel--nil-other* webdoc-entity :id :id webdoctag :webdoc_id :tag_id) tag-row)))
+
+
+#_(defn webdocs-by-tag--nil-other*
+    ([tag-row]
+     (webdocs-by-tag--nil-other* webdoc-row webdoc))
+    ([tag-row webdoc-entity]
+     (webdocs-by-tag--nil-other*-se tag-row webdoc-entity)))
+
+
+
+
+;;---------------------------------------------------------------------------
+
+;; TODO: написать тесты
+(defn webdoctag-tag-tree-as-flat-groups [webdoc-row]
+  (let [webdoc-tags-ids-set (webdoc-get-tags-set webdoc-row :id)]
+    (map (fn [tree-as-flat]
+           (map #(assoc % :contain? (contains? webdoc-tags-ids-set (:id %)))
+                tree-as-flat))
+         (tag-tree-as-flat-groups))))
+
+;; TODO: написать тесты
+(defn webdoctag-tag-tree-as-flat-groups-with-patches [webdoc-row store-on-key]
+  (let [webdoc-tags-ids-set (webdoc-get-tags-set webdoc-row :id)]
+    (map (fn [tree-as-flat]
+           (map #(assoc % :contain? (contains? webdoc-tags-ids-set (:id %)))
+                tree-as-flat))
+         (tag-tree-as-flat-groups-with-patches store-on-key))))
+
+
+
 
 ;; END entity webdoc
 ;;..................................................................................................
@@ -875,49 +965,6 @@
         (map (fn [tag-row]
                (webdoctag-add-tag webdoc-row tag-row)))
         doall)))
-
-;; TODO: написать тесты
-(defn webdoctag-webdoc-has-a-tag? [webdoc-row tag-tagname]
-  ((com-defn-has-a-rel? tag :id :tagname webdoctag :webdoc_id :tag_id) webdoc-row tag-tagname))
-
-;; TODO: написать тесты
-(defn webdoctag-webdoc-get-tags-set [webdoc-row & [field-for-set]]
-  ((com-defn-get-rels-set tag :id (or field-for-set :tagname)
-                          webdoctag :webdoc_id :tag_id) webdoc-row))
-
-
-;; TODO: написать тесты
-(defn webdoctag-select-webdocs-by-tag* [tag-row]
-  ((com-defn-get-rows-by-rel* webdoc :id :id webdoctag :webdoc_id :tag_id) tag-row))
-
-;; TODO: написать тесты
-(defn webdoctag-select-webdocs-by-tag--nil-other*-se [tag-row ent]
-  ((com-defn-get-rows-by-rel--nil-other* ent :id :id webdoctag :webdoc_id :tag_id) tag-row))
-
-
-
-(defn webdoctag-select-webdocs-by-tag--nil-other* [tag-row]
-  (webdoctag-select-webdocs-by-tag--nil-other*-se tag-row webdoc))
-
-;; TODO: написать тесты
-(defn webdoctag-tag-tree-as-flat-groups [webdoc-row]
-  (let [webdoc-tags-ids-set (webdoctag-webdoc-get-tags-set webdoc-row :id)]
-    (map (fn [tree-as-flat]
-           (map #(assoc % :contain? (contains? webdoc-tags-ids-set (:id %)))
-                tree-as-flat))
-         (tag-tree-as-flat-groups))))
-
-;; TODO: написать тесты
-(defn webdoctag-tag-tree-as-flat-groups-with-patches [webdoc-row store-on-key]
-  (let [webdoc-tags-ids-set (webdoctag-webdoc-get-tags-set webdoc-row :id)]
-    (map (fn [tree-as-flat]
-           (map #(assoc % :contain? (contains? webdoc-tags-ids-set (:id %)))
-                tree-as-flat))
-         (tag-tree-as-flat-groups-with-patches store-on-key))))
-
-
-
-
 
 ;; END entity webdoctag
 ;;..................................................................................................
