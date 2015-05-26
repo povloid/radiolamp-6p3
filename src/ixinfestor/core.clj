@@ -233,6 +233,15 @@
   [query]
   (exec query))
 
+(defn com-exec-1
+  "Выполнить запрос одной записи"
+  [query]
+  (-> query
+      (limit 1)
+      exec
+      first))
+
+
 (defn com-pred-page* [query* page size]
   (-> query* (limit size) (offset (* page size))))
 
@@ -284,38 +293,37 @@
 
 
 
-(defn com-defn-get-rows-by-rel*
-  [entity-1 field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2]
-  (fn [{entity-2-id field-id-2}]
-    (-> (select* entity-1)
-        (where {field-id-1 [in (subselect rel-entity
-                                          (fields field-fk-id-1)
-                                          (where (= field-fk-id-2 entity-2-id)))]}))))
 
-(defn com-defn-get-rows-by-rel--nil-other*
-  [entity-1 field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2]
-  (fn [{entity-2-id field-id-2 :as row}]
+(defn com-defn-pred-rows-by-rel?
+  [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2]
+  (fn [select*-1 {entity-2-id field-id-2}]
+    (where select*-1 {field-id-1 [in (subselect rel-entity
+                                                (fields field-fk-id-1)
+                                                (where (= field-fk-id-2 entity-2-id)))]})))
+
+(defn com-defn-pred-rows-by-rel--nil-other?
+  [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2]
+  (fn [select*-1 {entity-2-id field-id-2 :as row}]
     (if (nil? entity-2-id)
       ;; nil
-      (-> (select* entity-1)
-          (where (not (exists
-                       (subselect rel-entity
-                                  (where (= field-fk-id-1
-                                            (-> entity-1
-                                                :table
-                                                str
-                                                (str "." (name field-id-1))
-                                                keyword)
-                                            )))))))
+      (where select*-1 (not (exists
+                             (subselect rel-entity
+                                        (where (= field-fk-id-1
+                                                  (-> select*-1
+                                                      :ent
+                                                      :table
+                                                      str
+                                                      (str "." (name field-id-1))
+                                                      keyword)
+                                                  ))))))
       ;; not nil
-      ((com-defn-get-rows-by-rel* entity-1 field-id-1 field-id-2
-                                  rel-entity field-fk-id-1 field-fk-id-2) row ))))
+      ((com-defn-pred-rows-by-rel? field-id-1 field-id-2
+                                   rel-entity field-fk-id-1 field-fk-id-2)
+       select*-1 row))))
 
-
-(defn com-defn-get-rows-by-rels*
-  [entity-1 field-id-1 field-id-2
-   rel-entity field-fk-id-1 field-fk-id-2]
-  (fn [entity-2-rows]
+(defn com-defn-pred-rows-by-rels?
+  [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2]
+  (fn [select*-1 entity-2-rows]
     (reduce
      (fn [query entity-2-row]
        (where query
@@ -324,17 +332,13 @@
                           (fields field-fk-id-1)
                           (where (and
                                   (= field-fk-id-2 (field-id-2 entity-2-row))
-                                  (= field-fk-id-1 (-> entity-1 :table (str "." (name field-id-1)) keyword)))
+                                  (= field-fk-id-1 (-> select*-1
+                                                       :ent
+                                                       :table
+                                                       (str "." (name field-id-1))
+                                                       keyword)))
                                  )))))
-     (order (select* entity-1) field-id-1 :desc) entity-2-rows)))
-
-(defn com-defn-get-one-row-by-rels*
-  [entity-1 field-id-1 field-id-2
-   rel-entity field-fk-id-1 field-fk-id-2]
-  (fn [entity-2-rows]
-    (-> entity-2-rows
-        ((com-defn-get-rows-by-rels* entity-1 field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2))
-        (limit 1))))
+     select*-1 entity-2-rows)))
 
 ;; END SQL TOOLS
 ;;..................................................................................................
@@ -546,8 +550,9 @@
       exec
       first))
 
-(defn webuser-pred-search* [query s]
-  (com-pred-full-text-search* query :fts s))
+(defn webuser-pred-search? [select*-1 fts-query]
+  (com-pred-full-text-search* select*-1 :fts fts-query))
+
 
 ;; END entity webuser
 ;;..................................................................................................
@@ -685,8 +690,8 @@
                                               "image/svg+xml"
                                               "image/tiff"]]}))
 
-(defn files-pred-search* [query s]
-  (com-pred-full-text-search* query :fts s))
+(defn files-pred-search? [select*-1 fts-query]
+  (com-pred-full-text-search* select*-1 :fts fts-query))
 
 ;;связи для файлов
 
@@ -704,7 +709,8 @@
                                 (= files-rel-field rel-id)))))
 
 (defn files_rel-select-files-by-* [row files-rel-field]
-  ((com-defn-get-rows-by-rel* files :id :id files_rel :files_id files-rel-field) row))
+  ((com-defn-pred-rows-by-rel? :id :id files_rel :files_id files-rel-field)
+   files-select* row))
 
 
 ;; END files entity
@@ -822,9 +828,8 @@
 (defn tag-select-all-sub-tree-ids-and-with-this-id [{id :id :as tag-row}]
   (conj (tag-select-all-sub-tree-ids tag-row) id))
 
-
-(defn tag-pred-search* [query s]
-  (com-pred-full-text-search* query :fts s))
+(defn tag-pred-search? [select*-1 fts-query]
+  (com-pred-full-text-search* select*-1 :fts fts-query))
 
 ;; END ctag entity
 ;;..................................................................................................
@@ -887,36 +892,49 @@
                           webdoctag :webdoc_id :tag_id) webdoc-row))
 
 ;; TODO: написать тесты
-(defn webdocs-by-tag*
-  ([tag-row]
-   (webdocs-by-tag* tag-row webdoc))
-  ([tag-row webdoc-entity]
-   ((com-defn-get-rows-by-rel* webdoc-entity :id :id webdoctag :webdoc_id :tag_id) tag-row)))
+(defn webdoc-pred-by-tag?
+  [select*-1 tag-row]
+  ((com-defn-pred-rows-by-rel? :id :id webdoctag :webdoc_id :tag_id)
+   select*-1  tag-row))
 
-(defn webdocs-by-tags*
-  ([tags-rows]
-   (webdocs-by-tags* tags-rows webdoc))
+(defn webdoc-pred-by-tags?
+  [select*-1 tags-rows]
+  ((com-defn-pred-rows-by-rels? :id :id webdoctag :webdoc_id :tag_id)
+   select*-1 tags-rows))
+
+(defn webdoc-pred-childs-tags-of-parent-tag? [query {id :id}]
+  (where query
+         {:id [in
+               (subselect webdoctag
+                          (fields :webdoc_id)
+                          (where {:tag_id [in
+                                           (subselect tag
+                                                      (fields :id)
+                                                      (where (= :parent_id id)))]}))]}))
+
+(defn webdoc-one-row-by-tags
   ([tags-rows webdoc-entity]
-   ((com-defn-get-rows-by-rels*
-     webdoc-entity :id :id
-     webdoctag :webdoc_id :tag_id) tags-rows)))
+   (-> webdoc-entity
+       select*
+       ((com-defn-pred-rows-by-rels? :id :id  webdoctag :webdoc_id :tag_id) tags-rows)
+       (order :id :desc)
+       com-exec-1)))
 
-;; TODO: написать тесты
-(defn webdocs-by-tag--nil-other*-se
-  ([tag-row]
-   (webdocs-by-tag--nil-other*-se tag-row webdoc))
-  ([tag-row webdoc-entity]
-   ((com-defn-get-rows-by-rel--nil-other* webdoc-entity :id :id webdoctag :webdoc_id :tag_id) tag-row)))
+#_(defn webdoc-pred-by-tag--nil-other*-se?
+  "Выбор либо дочерних либо несвязанных по nil"
+  [select*-1 tag-row]
+  ((com-defn-pred-rows-by-rel--nil-other? :id :id webdoctag :webdoc_id :tag_id)
+   select*-1 tag-row))
 
+(defn webdoc-pred-search? [select*-1 fts-query]
+  (com-pred-full-text-search* select*-1 :fts fts-query))
 
-#_(defn webdocs-by-tag--nil-other*
-    ([tag-row]
-     (webdocs-by-tag--nil-other* webdoc-row webdoc))
-    ([tag-row webdoc-entity]
-     (webdocs-by-tag--nil-other*-se tag-row webdoc-entity)))
-
-
-
+(defn webdoc-pred-search-for-the-child-tree-tags? [query tag-row]
+  (let [tags-ids (tag-select-all-sub-tree-ids-and-with-this-id tag-row)]
+    (where query
+           (in :id (subselect webdoctag
+                              (fields :webdoc_id)
+                              (where (in :tag_id tags-ids)))))))
 
 ;;---------------------------------------------------------------------------
 
@@ -935,9 +953,6 @@
            (map #(assoc % :contain? (contains? webdoc-tags-ids-set (:id %)))
                 tree-as-flat))
          (tag-tree-as-flat-groups-with-patches store-on-key))))
-
-
-
 
 ;; END entity webdoc
 ;;..................................................................................................
@@ -970,29 +985,6 @@
 ;;..................................................................................................
 
 ;;**************************************************************************************************
-;;* BEGIN webdoc predicates
-;;* tag: <webdoc predicates>
-;;*
-;;* description: Предикаты для поиска документов
-;;*
-;;**************************************************************************************************
-
-(defn webdoc-pred-search-for-the-child-tree-tags* [query tag-row]
-  (let [tags-ids (tag-select-all-sub-tree-ids-and-with-this-id tag-row)]
-    (println tags-ids)
-    (where query
-           (in :id (subselect webdoctag
-                              (fields :webdoc_id)
-                              (where (in :tag_id tags-ids)))))))
-
-(defn webdoc-pred-search* [query s]
-  (com-pred-full-text-search* query :fts s))
-
-
-;; END webdoc predicates
-;;..................................................................................................
-
-;;**************************************************************************************************
 ;;* BEGIN stext entity
 ;;* tag: <any web text entity>
 ;;*
@@ -1013,23 +1005,11 @@
 
 (def stext-select* (select* stext))
 
-(defn stext-pred-search* [query]
-  (-> stext-select*
-      (com-pred-full-text-search* :fts query)
-      exec))
+(defn stext-pred-search? [select*-1 fts-query]
+  (com-pred-full-text-search* select*-1 :fts fts-query))
 
 (defn stext-find [stext-keyname]
   (first (select stext (where (= :keyname (name stext-keyname))))))
 
 ;; END anytext entity
 ;;..................................................................................................
-
-
-
-
-
-
-
-
-
-

@@ -90,7 +90,7 @@
                  (let [fts-query (clojure.string/trim fts-query)]
                    (if (empty? fts-query)
                      query
-                     (ix/files-pred-search* query fts-query))))
+                     (ix/files-pred-search? query fts-query))))
 
              (korma.core/order :id :desc)
              ix/com-exec
@@ -159,7 +159,7 @@
                             (let [fts-query (clojure.string/trim fts-query)]
                               (if (empty? fts-query)
                                 query
-                                (ix/webdoc-pred-search* query fts-query))))
+                                (ix/webdoc-pred-search? query fts-query))))
 
                         (korma.core/order :id :desc)
                         ix/com-exec
@@ -252,7 +252,7 @@
                           (let [fts-query (clojure.string/trim fts-query)]
                             (if (empty? fts-query)
                               query
-                              (ix/webdoc-pred-search* query fts-query))))
+                              (ix/webdoc-pred-search? query fts-query))))
 
                       (korma.core/order :id :desc)
                       ix/com-exec
@@ -347,7 +347,7 @@
                              :or {page 1 page-size 10 fts-query ""}} :params}
                   (do
                     (-> webdoc-select* ;;; SRC
-                        (ix/webdoc-pred-search-for-the-child-tree-tags*
+                        (ix/webdoc-pred-search-for-the-child-tree-tags?
                          {:id (if (= tag-id "root") nil tag-id)})
 
                         (ix/com-pred-page* (dec page) page-size)
@@ -356,7 +356,7 @@
                             (let [fts-query (clojure.string/trim fts-query)]
                               (if (empty? fts-query)
                                 query
-                                (ix/webdoc-pred-search* query fts-query))))
+                                (ix/webdoc-pred-search? query fts-query))))
 
                         (korma.core/order :id :desc)                     
                         ix/com-exec

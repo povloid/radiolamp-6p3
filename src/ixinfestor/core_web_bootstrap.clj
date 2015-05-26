@@ -118,7 +118,7 @@
    [:a.navbar-brand {:href href} title]])
 
 (defn nav-menu-item
-  ([title attrs] (nav-menu-item title attrs nil))
+  ([title attrs] (nav-menu-item title nil attrs))
   ([title glyphicon-name attrs]
    [:li
     [:a (merge {:href "#"} attrs)
