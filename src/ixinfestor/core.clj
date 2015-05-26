@@ -1018,5 +1018,18 @@
       (com-pred-full-text-search* :fts query)
       exec))
 
+(defn stext-find [stext-keyname]
+  (first (select stext (where (= :keyname (name stext-keyname))))))
+
 ;; END anytext entity
 ;;..................................................................................................
+
+
+
+
+
+
+
+
+
+
