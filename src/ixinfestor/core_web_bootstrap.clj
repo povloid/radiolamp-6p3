@@ -266,3 +266,21 @@
 
     [:input {:type "hidden" :id "username" :value (-> request :session :cemerick.friend/identity :current)}]
     (javascript-tag (str "ixinfestor.page_main.init();")))))
+
+
+
+
+
+(defn page-header [text]
+  [:div {:class "page-header"}
+   [:h3 text]])
+
+
+
+
+
+
+
+
+
+

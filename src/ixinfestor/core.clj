@@ -276,6 +276,7 @@
        (if (empty? entity-2s-ids)
          (throw (Exception. (str "Row with " field-keyname-2 " = " entity-2-keyname " is not described.")))
          (not (empty? (select rel-entity
+                              (limit 1)
                               (where (and
                                       (= field-fk-id-1 entity-1-id)
                                       (= field-fk-id-2 (-> entity-2s-ids first field-id-2))))))))))))
@@ -290,9 +291,6 @@
                                                     (where (= field-fk-id-1 entity-1-id)))]}))
           (map field-keyname-2)
           set))))
-
-
-
 
 (defn com-defn-pred-rows-by-rel?
   [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2]
@@ -882,6 +880,13 @@
     (delete files_rel (where (= :webdoc_id id)))
     (com-delete-for-id webdoc-entity id))))
 
+(def webdoc-select*-for-urls
+  (-> webdoc-select*
+      (fields :id :keyname :ttitle :web_title_image :web_top_description :cdate)))
+
+(defn webdoc-get-url-path [{:keys [id ttitle]}]
+  (str "/" id "/" ttitle ))
+
 ;; TODO: написать тесты
 (defn webdoc-has-a-tag? [webdoc-row tag-tagname]
   ((com-defn-has-a-rel? tag :id :tagname webdoctag :webdoc_id :tag_id) webdoc-row tag-tagname))
@@ -911,6 +916,12 @@
                                            (subselect tag
                                                       (fields :id)
                                                       (where (= :parent_id id)))]}))]}))
+
+(defn webdoc-pred-by-tags?-and-childs-tags-of-parent-tag?
+  [select*-1 tags-rows parent-tag-row]
+  (-> select*-1
+      (webdoc-pred-by-tags? tags-rows)
+      (webdoc-pred-childs-tags-of-parent-tag? parent-tag-row)))
 
 (defn webdoc-one-row-by-tags
   ([tags-rows webdoc-entity]
