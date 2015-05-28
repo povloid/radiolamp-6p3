@@ -176,6 +176,22 @@
 
 
 ;; COMMON FUNCTIONS ----------------------------------------------------
+
+(defn com-exec
+  "Выполнить запрос"
+  [query]
+  (exec query))
+
+(defn com-exec-1
+  "Выполнить запрос одной записи"
+  [query]
+  (-> query
+      (limit 1)
+      exec
+      first))
+
+
+
 (defn com-save-for-field
   "Сохранить сущность"
   [entity field vals]
@@ -221,25 +237,25 @@
 (defn com-find
   "Найти сущность по :id"
   [entity id]
-  (first (select entity (where (= :id id)))) )
+  (let [rows (select entity (where (= :id id)))]
+    (cond (empty? rows) nil
+          (< 1 (count rows)) (do
+                               (println "Внимание! По com-find нашел более одной записи по id "
+                                        id "но выдал только первую")
+                               (first rows))
+          :else (first rows))))
+
+(defn com-find*-1
+  "Найти сущность по :id"
+  [select*-1 id]
+  (-> select*-1
+      (where (= :id id))
+      com-exec-1))
 
 (defn com-count
   "Количество всех элементов"
   [entity]
   (-> (select entity (aggregate (count :*) :c)) first :c)  )
-
-(defn com-exec
-  "Выполнить запрос"
-  [query]
-  (exec query))
-
-(defn com-exec-1
-  "Выполнить запрос одной записи"
-  [query]
-  (-> query
-      (limit 1)
-      exec
-      first))
 
 
 (defn com-pred-page* [query* page size]
@@ -690,7 +706,7 @@
 
 (defn file-pred-galleria? [query*]
   (where query* (= :galleria true)))
-         
+
 
 
 (defn files-pred-search? [select*-1 fts-query]
@@ -878,6 +894,18 @@
   (if tag-ids-set (contains? tag-ids-set id)
       (throw (Exception. "в записи нет поля :tag-ids-set либо оно пустое, сравнение невозможно!"))))
 
+
+(defn webdoc-row-get-tags-paths-to-root-parent [{:keys [tag] :as row} {id :id :as parent-tag}]
+  (if tag
+    (->> tag
+         (map (comp vec tag-get-tree-path))
+         (filter #(= (-> % last :id) id))
+         (sort-by count))
+    (throw (Exception. "в записи нет поля :tag либо оно пустое, выполнение невозможно!"))))
+
+
+
+
 (def webdoc-select* (select* webdoc))
 
 (defn webdoc-save
@@ -964,6 +992,44 @@
            (in :id (subselect webdoctag
                               (fields :webdoc_id)
                               (where (in :tag_id tags-ids)))))))
+
+
+
+
+;; SPEC !!! ---------------------------------------------------------------
+
+(defn tag-get-tree-childs-and-join-webdoc-for-urls [tags-rows parent-tag-row]
+  (->> parent-tag-row
+       tag-get-tree-childs
+       (map (fn [tag-row]
+              [tag-row (-> webdoc-select*-for-urls
+                           (webdoc-pred-by-tags? (conj tags-rows tag-row))
+                           com-exec-1)]))
+       doall
+       transaction))
+
+
+(defn tag-get-path-and-join-webdoc-for-urls [tags-rows tag-row]
+  (->> tag-row
+       tag-get-tree-path
+       (map (fn [tag-row]
+              [tag-row (-> webdoc-select*-for-urls
+                           (webdoc-pred-by-tags? (conj tags-rows tag-row))
+                           com-exec-1)]))
+       doall
+       transaction))
+       
+
+
+(defn webdoc-row-get-tags-paths-to-root-parent-and-join-webdoc-for-urls [webdoc-row tags-rows root-tag-row]
+  (->> (webdoc-row-get-tags-paths-to-root-parent webdoc-row root-tag-row)
+       first
+       (map (fn [tag-row]
+              [tag-row (-> webdoc-select*-for-urls
+                           (webdoc-pred-by-tags? (conj tags-rows tag-row))
+                           com-exec-1)]))
+       doall
+       transaction))
 
 ;;---------------------------------------------------------------------------
 

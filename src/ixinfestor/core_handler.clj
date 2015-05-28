@@ -125,13 +125,17 @@
 
    ;; Кэшированный источник файлов для картинок
    (GET "/image/*" {{path :*} :params :as request}
-        {:stawebuser 200
-         :headers {"Cache-Control" (str "max-age=" (* 60 60 24 7)) }
-         :body (clojure.java.io/file (str @ix/files-root-directory "/" path))})
+        (if (realized? ix/files-root-directory)
+          {:stawebuser 200
+           :headers {"Cache-Control" (str "max-age=" (* 60 60 24 7)) }
+           :body (clojure.java.io/file (str @ix/files-root-directory "/" path))}
+          (throw (Exception. "Значение пути в переменной files-root-directory еще не задано"))))
 
    ;; Источник файлов
    (GET "/file/*" {{path :*} :params :as request}
-        (clojure.java.io/file (str @ix/files-root-directory "/" path)))
+        (if (realized? ix/files-root-directory)
+          (clojure.java.io/file (str @ix/files-root-directory "/" path))
+          (throw (Exception. "Значение пути в переменной files-root-directory еще не задано"))))
 
    ))
 ;; -----------------------------------------------------------------------------
@@ -351,14 +355,14 @@
                          {:id (if (= tag-id "root") nil tag-id)})
 
                         (ix/com-pred-page* (dec page) page-size)
-                        
+
                         (as-> query
                             (let [fts-query (clojure.string/trim fts-query)]
                               (if (empty? fts-query)
                                 query
                                 (ix/webdoc-pred-search? query fts-query))))
 
-                        (korma.core/order :id :desc)                     
+                        (korma.core/order :id :desc)
                         ix/com-exec
                         korma.db/transaction
                         ring.util.response/response

@@ -273,8 +273,7 @@
 
 
 (defn page-header [text]
-  [:div {:class "page-header"}
-   [:h3 text]])
+  [:div {:class "page-header"} text])
 
 
 
