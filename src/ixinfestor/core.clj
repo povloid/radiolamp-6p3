@@ -688,6 +688,11 @@
                                               "image/svg+xml"
                                               "image/tiff"]]}))
 
+(defn file-pred-galleria? [query*]
+  (where query* (= :galleria true)))
+         
+
+
 (defn files-pred-search? [select*-1 fts-query]
   (com-pred-full-text-search* select*-1 :fts fts-query))
 
@@ -842,6 +847,9 @@
 
 (defentity webdoc
   (pk :id)
+
+  (many-to-many tag :webdoctag)
+
   (prepare (fn [{:keys [id keyname web_description] :as row}]
              (-> (if id row (assoc row :cdate (new java.util.Date)))
                  ((partial prepare-date-to-sql-timestamp :cdate))
@@ -856,9 +864,19 @@
                    ((partial transform-sql-date-to-date :cdate))
                    ((partial transform-sql-date-to-date :udate))
                    (dissoc :fts)
+                   (as-> row
+                       (if (:tag row)
+                         (-> row
+                             ;;(assoc :tag-tagnames-set (->> row :tag (map :tagname) set))
+                             (assoc :tag-ids-set (->> row :tag (map :id) set)))
+                         row))
                    )))
   )
 
+
+(defn webdoc-row-contain-tag? [{tag-ids-set :tag-ids-set} {id :id}]
+  (if tag-ids-set (contains? tag-ids-set id)
+      (throw (Exception. "в записи нет поля :tag-ids-set либо оно пустое, сравнение невозможно!"))))
 
 (def webdoc-select* (select* webdoc))
 
