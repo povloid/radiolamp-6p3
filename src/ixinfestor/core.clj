@@ -257,6 +257,13 @@
   [entity]
   (-> (select entity (aggregate (count :*) :c)) first :c)  )
 
+(defn com-count*
+  "Количество всех элементов"
+  [select*-1]
+  (-> select*-1
+      (aggregate (count :*) :c)
+      com-exec-1
+      :c))
 
 (defn com-pred-page* [query* page size]
   (-> query* (limit size) (offset (* page size))))
@@ -978,10 +985,10 @@
        com-exec-1)))
 
 #_(defn webdoc-pred-by-tag--nil-other*-se?
-  "Выбор либо дочерних либо несвязанных по nil"
-  [select*-1 tag-row]
-  ((com-defn-pred-rows-by-rel--nil-other? :id :id webdoctag :webdoc_id :tag_id)
-   select*-1 tag-row))
+    "Выбор либо дочерних либо несвязанных по nil"
+    [select*-1 tag-row]
+    ((com-defn-pred-rows-by-rel--nil-other? :id :id webdoctag :webdoc_id :tag_id)
+     select*-1 tag-row))
 
 (defn webdoc-pred-search? [select*-1 fts-query]
   (com-pred-full-text-search* select*-1 :fts fts-query))
@@ -1018,7 +1025,7 @@
                            com-exec-1)]))
        doall
        transaction))
-       
+
 
 
 (defn webdoc-row-get-tags-paths-to-root-parent-and-join-webdoc-for-urls [webdoc-row tags-rows root-tag-row]
@@ -1105,6 +1112,10 @@
 
 (defn stext-find [stext-keyname]
   (first (select stext (where (= :keyname (name stext-keyname))))))
+
+(defn stext-save-const [tag-row]
+  (com-save-for-field stext :keyname (update-in tag-row [:keyname] name)))
+
 
 ;; END anytext entity
 ;;..................................................................................................
