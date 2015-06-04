@@ -25,6 +25,7 @@
                    ]
     :plugins [[lein-cljsbuild "1.0.6"]
               [com.cemerick/clojurescript.test "0.3.3"]]}}
+  
   :cljsbuild
   {:builds
    {:test {:source-paths ["src-cljs" "test"]

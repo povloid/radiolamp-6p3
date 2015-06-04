@@ -38,15 +38,21 @@
            (include-js "/js/jquery-2.1.3.min.js")
            (include-css "/bootstrap/css/bootstrap.min.css")
            (include-css "/bootstrap/css/bootswatch.min.css")
+           
            (include-css "/bootstrap/css/sonis.css")
            ;;(include-css "/bootstrap/css/bootstrap-theme.min.css")
 
-           (include-js "/bootstrap/js/bootstrap.min.js")
+
 
            (:header-additions page-params nil)
+           
            ]
           [:body {:data-spy "scroll" :data-target "#body-scroll-spy"}
            body
+
+           (include-js "/bootstrap/js/bootstrap.min.js")
+           (include-js "/bootstrap/js/bootswatch.js")
+           
            ;;(reduce conj [:div {:id "root"}] body)
            ;;(include-js "/js/tarsonis.js")
            ;;(javascript-tag "hello.hello('main.core');")
@@ -274,13 +280,6 @@
 
 (defn page-header [text]
   [:div {:class "page-header"} text])
-
-
-
-
-
-
-
 
 
 
