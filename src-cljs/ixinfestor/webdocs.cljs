@@ -25,7 +25,7 @@
                            page-main--chan-show-page
                            chan-do-after-repaint
                            (or (webdocs-edit-imap-key specific) {}))
-        page-state (atom {:tag-id "root" :page 1 :page-size 5 :fts-query ""})
+        page-state (atom {:tag-id 0 :page 1 :page-size 5 :fts-query ""})
         chan-repaint (chan)
         chan-repaint-tree (chan)
         chan-repaint-table (chan)
@@ -152,33 +152,36 @@
         (let [_ (<! chan-repaint-tree)
               tree-bar (ix/by-id :tree-bar)]
           (dommy/clear! tree-bar)
-          (GET (str "/tag/" (@page-state :tag-id) "/path-and-chailds")
-               {:error-handler ix/error-handler
-                :response-format :json :keywords? true
-                :handler (fn [[tree-path childs :as response]]
-                           (let [root-e {:id "root" :tagname "Корень" :open? true}
-                                 [selected-node & path] (if (empty? tree-path) [root-e] (conj tree-path root-e))]
-                             ;;(.log js/console "go!")
-                             ;;(.log js/console (str response))
-                             (->> childs
-                                  (map (fn [n] (tree-node-cr (assoc n :on-click-fn #(put! chan-switch-tag (:id n))))))
-                                  (tree-node-add-childs
-                                   (tree-node-cr (assoc selected-node
-                                                        :active? true
-                                                        :open? true
-                                                        :on-click-fn #(put! chan-do-tag selected-node)
-                                                        )))
-                                  ((fn [o]
-                                     (reduce #(tree-node-add-childs %2 %1)
-                                             o (map (fn [n]
-                                                      (tree-node-cr
-                                                       (assoc n
-                                                              :open? true
-                                                              :on-click-fn #(put! chan-switch-tag (:id n)))))
-                                                    path))))
-                                  (hipo/create)
-                                  (dommy/append! tree-bar))))
-                }))))
+          (POST "/tag/path-and-chailds"
+                {:params {:id (@page-state :tag-id)}
+                 :error-handler ix/error-handler
+                 :format :json
+                 :response-format :json
+                 :keywords? true
+                 :handler (fn [[tree-path childs :as response]]
+                            (let [root-e {:id 0 :tagname "Корень" :open? true}
+                                  [selected-node & path] (if (empty? tree-path) [root-e] (conj tree-path root-e))]
+                              ;;(.log js/console "go!")
+                              ;;(.log js/console (str response))
+                              (->> childs
+                                   (map (fn [n] (tree-node-cr (assoc n :on-click-fn #(put! chan-switch-tag (:id n))))))
+                                   (tree-node-add-childs
+                                    (tree-node-cr (assoc selected-node
+                                                         :active? true
+                                                         :open? true
+                                                         :on-click-fn #(put! chan-do-tag selected-node)
+                                                         )))
+                                   ((fn [o]
+                                      (reduce #(tree-node-add-childs %2 %1)
+                                              o (map (fn [n]
+                                                       (tree-node-cr
+                                                        (assoc n
+                                                               :open? true
+                                                               :on-click-fn #(put! chan-switch-tag (:id n)))))
+                                                     path))))
+                                   (hipo/create)
+                                   (dommy/append! tree-bar))))
+                 }))))
 
     (go
       (while true
@@ -320,7 +323,7 @@
                                                     :handler
                                                     (fn [response]
                                                       (println "old row - " row)
-                                                      (put! chan-switch-tag (or (:parent_id row) "root"))
+                                                      (put! chan-switch-tag (or (:parent_id row) 0))
                                                       (println "OK"))
                                                     }))}
                         "Удалить"])
@@ -330,7 +333,7 @@
                                :on-click (fn []
                                            (println "SAVE TAG:")
                                            (when-let [row (-> row ;;(if id {:id id} {})
-                                                              (update-in [:parent_id] #(if (= % "root") nil %))
+                                                              (update-in [:parent_id] #(if (= % 0) nil %))
                                                               (ix/input-validate-and-assoc :tagname :input-tagname [ix/validate-for-not-empty])
                                                               (assoc :description (-> :input-tag-description ix/by-id dommy/value))
                                                               ix/input-all-valid-or-nil)]

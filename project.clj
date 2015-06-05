@@ -8,6 +8,8 @@
                  [hiccup "1.0.5"]
                  [clj-time "0.6.0"]
                  [korma "0.3.3"]
+                 
+                 [net.sourceforge.htmlcleaner/htmlcleaner "2.12"]
 
                  ;; Нужно только на время разработки
                  ;;[hiccup-bridge "1.0.1"]

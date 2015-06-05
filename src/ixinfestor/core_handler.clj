@@ -170,22 +170,23 @@
                         ((partial map #(dissoc % :password)))))))
 
 
-            (GET "/find/new" []
-                 (friend/authorize
-                  roles-set
-                  (-> {}
-                      (assoc :troles-set [(ix/webrole-list) #{}])
-                      ring.util.response/response)))
-            (GET "/find/:id" [id]
-                 (friend/authorize
-                  roles-set
-                  (-> id Long/parseLong
-                      ((partial ix/com-find ix/webuser))
-                      (dissoc :password)
-                      (as-> row
-                          (assoc row :troles-set [(ix/webrole-list)
-                                                  (ix/webuserwebrole-own-get-rels-set row)]))
-                      ring.util.response/response)))
+            (POST "/find" {{id :id} :params}
+                  (friend/authorize
+                   roles-set
+                   (-> (if id
+                         (-> id
+                             ((partial ix/com-find ix/webuser))
+                             (dissoc :password)
+                             (as-> row
+                                 (assoc row :troles-set [(ix/webrole-list)
+                                                         (ix/webuserwebrole-own-get-rels-set row)]))
+                             )
+
+                         (-> {} ;; new
+                             (assoc :troles-set [(ix/webrole-list) #{}])))
+
+                       ring.util.response/response
+                       cw/error-response-json)))
 
 
             (POST "/save" request
@@ -261,12 +262,14 @@
                       (korma.core/order :id :desc)
                       ix/com-exec
                       ((partial map #(dissoc % :password)))
-                      ring.util.response/response))
+                      ring.util.response/response
+                      cw/error-response-json))
 
-            (GET "/find/:id" [id] (-> id
-                                      Long/parseLong
-                                      ((partial ix/com-find ix/stext))
-                                      ring.util.response/response))
+            (POST "/find" {{id :id} :params}
+                  (-> id
+                      ((partial ix/com-find ix/stext))
+                      ring.util.response/response
+                      cw/error-response-json))
 
             (POST "/save" request
                   (friend/authorize
@@ -288,15 +291,17 @@
   (routes
    (context "/tag" []
 
+            (POST "/path-and-chailds" request
+                  (-> request
+                      :params
+                      (update-in [:id] #(if (= % 0) nil %))
+                      ix/tag-get-tree-path-and-childs
+                      ring.util.response/response
+                      cw/error-response-json))
 
-            (GET "/:id/path-and-chailds" [id]
-                 (ring.util.response/response
-                  (ix/tag-get-tree-path-and-childs
-                   {:id (if (= id "root") nil (Long/parseLong id))})))
-
-            (GET "/tree-as-flat-groups" []
-                 (ring.util.response/response
-                  (ix/tag-tree-as-flat-groups)))
+            #_(GET "/tree-as-flat-groups" []
+                   (ring.util.response/response
+                    (ix/tag-tree-as-flat-groups)))
 
             ;; TAGS WORK ------------------------------------------------------
 
@@ -352,7 +357,7 @@
                   (do
                     (-> webdoc-select* ;;; SRC
                         (ix/webdoc-pred-search-for-the-child-tree-tags?
-                         {:id (if (= tag-id "root") nil tag-id)})
+                         {:id (if (= tag-id 0) nil tag-id)})
 
                         (ix/com-pred-page* (dec page) page-size)
 
@@ -368,14 +373,10 @@
                         ring.util.response/response
                         cw/error-response-json)))
 
-            (GET "/edit/new" [] (ring.util.response/response {}))
-            (GET "/edit/:id" [id]
-                 ;;TODO: Попробовать сделать все в рамках одной транзакции
-                 (let [id (Long/parseLong id)]
-                   (-> {:webdoc-row (ix/com-find webdoc-entity id)  ;;; SRC
-                        }
-                       ring.util.response/response
-                       cw/error-response-json)))
+            (POST "/edit" {{id :id} :params}
+                  (-> {:webdoc-row (if id (ix/com-find webdoc-entity id) {})}
+                      ring.util.response/response
+                      cw/error-response-json))
 
             (POST "/webdoctags-edit-table" request
                   (-> request
@@ -419,25 +420,23 @@
                        ring.util.response/response
                        cw/error-response-json)))
 
-            (GET "/images-list" request
-                 (-> request
-                     :params
-                     (update-in [:id] parseLong)
-                     (ix/files_rel-select-files-by-* :webdoc_id)
-                     ix/file-pred-images*
-                     ix/com-exec
-                     ring.util.response/response
-                     cw/error-response-json))
+            (POST "/images-list" request
+                  (-> request
+                      :params
+                      (ix/files_rel-select-files-by-* :webdoc_id)
+                      ix/file-pred-images*
+                      ix/com-exec
+                      ring.util.response/response
+                      cw/error-response-json))
 
-            (GET "/files-list" request
-                 (-> request
-                     :params
-                     (update-in [:id] parseLong)
-                     (ix/files_rel-select-files-by-* :webdoc_id)
-                     (ix/file-pred-images* :not-image)
-                     ix/com-exec
-                     ring.util.response/response
-                     cw/error-response-json))
+            (POST "/files-list" request
+                  (-> request
+                      :params
+                      (ix/files_rel-select-files-by-* :webdoc_id)
+                      (ix/file-pred-images* :not-image)
+                      ix/com-exec
+                      ring.util.response/response
+                      cw/error-response-json))
 
             (context "/upload/:id" [id]
 

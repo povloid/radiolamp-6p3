@@ -47,9 +47,9 @@
     (go
       (while true
         (let [_ (<! chan-repaint)]
-          (GET (str "/tc/rb/webusers/find/" (or (@page-state :id) "new"))
-               {;;:params {:id (@page-state :id)}
-                :error-handler #(.log js/console (str %))
+          (POST "/tc/rb/webusers/find"
+               {:params {:id (@page-state :id)}
+                :error-handler ix/error-handler
                 :format :json
                 :response-format :json :keywords? true
                 :handler

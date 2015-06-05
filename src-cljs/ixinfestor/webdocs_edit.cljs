@@ -104,238 +104,239 @@
     (go
       (while true
         (let [_ (<! chan-repaint)]
-          (GET (str "/tc/rb/webdocs/edit/" (or (@page-state :id) "new"))
-               {;;:params {:id (@page-state :id)}
-                :error-handler ix/error-handler
-                :format :json
-                :response-format :json :keywords? true
-                :handler
-                (fn [row]
+          (POST "/tc/rb/webdocs/edit"
+                {:params {:id (@page-state :id)}
+                 :error-handler ix/error-handler
+                 :format :json
+                 :response-format :json
+                 :keywords? true
+                 :handler
+                 (fn [row]
 
-                  (ix/clear-and-set-on-tag-by-id :page-caption "Редактирование документа")
+                   (ix/clear-and-set-on-tag-by-id :page-caption "Редактирование документа")
 
-                  (ix/clear-and-set-on-tag-by-id
-                   :toolbars-container
-                   (list
-                    [:div {:class "row" :style "padding: 4px; margin-right: 5px"}
-                     [:div {:class "col-sm-12 col-md-12 col-lg-12"}
-                      [:button {:class "btn btn-default navbar-left"
-                                :role "button" :style "margin-right: 10px"
-                                :on-click #(put! page-main--chan-show-page (@page-state :on-close))}
-                       "закрыть"]
+                   (ix/clear-and-set-on-tag-by-id
+                    :toolbars-container
+                    (list
+                     [:div {:class "row" :style "padding: 4px; margin-right: 5px"}
+                      [:div {:class "col-sm-12 col-md-12 col-lg-12"}
+                       [:button {:class "btn btn-default navbar-left"
+                                 :role "button" :style "margin-right: 10px"
+                                 :on-click #(put! page-main--chan-show-page (@page-state :on-close))}
+                        "закрыть"]
 
-                      ;; tablabels
-                      [:ul {:id "tabs" :class "nav nav-tabs" :style "margin-bottom: 0px;"}
-                       [:li {:id "tab-label-0" :role "presentation" :on-click #(put! chan-switch-tab 0)} [:a "Основные данные"]]
-                       ;;[:li {:id "tab-label-1" :role "presentation" :on-click #(put! chan-switch-tab 1)} [:a "....."]]
-                       [:li {:id "tab-label-2" :role "presentation" :on-click #(put! chan-switch-tab 2)} [:a "Теги"]]
-                       [:li {:id "tab-label-3" :role "presentation" :on-click #(put! chan-switch-tab 3)} [:a "Web"]]
-                       [:li {:id "tab-label-4" :role "presentation" :on-click #(put! chan-switch-tab 4)} [:a "Фото"]]
-                       [:li {:id "tab-label-5" :role "presentation" :on-click #(put! chan-switch-tab 5)} [:a "Файлы"]]
-                       ]
-                      ]]
-
-                    ;; Toolbar - Main
-                    [:div{:id "tab-toolbar-0" :class "row" :style "padding: 5px; display: none"}
-                     [:a {:id "btn-save-common" :class "btn btn-primary navbar-left"
-                          :role "button" :style "margin-right: 10px" :on-click #(put! chan-save-common 0)}
-                      "Сохранить"]]
-
-                    ;; Toolbar - Tags and groups
-                    [:div {:id "tab-toolbar-2" :class "row" :style "padding: 5px; display: none"}
-                     [:a {:id "btn-save-tags" :class "btn btn-primary navbar-left"
-                          :role "button" :style "margin-right: 10px" :on-click #(put! chan-save-tags 0)}
-                      "Сохранить теги"]
-                     [:div {:id "tags-scroll-buttons"}]
-                     ]
-
-                    ;; Toolbar - Web
-                    [:div {:id "tab-toolbar-3"  :class "row" :style "padding: 5px; display: none"}
-                     [:a {:id "btn-save-web" :class "btn btn-primary navbar-left"
-                          :role "button" :style "margin-right: 10px" :on-click #(put! chan-save-web 0)}
-                      "Сохранить"]]
-
-                    ;; Toolbar - Fotos
-                    [:div {:id "tab-toolbar-4" :class "row" :style "padding: 5px; display: none"}
-                     [:form {:id "image-uploader-form" :enctype "multipart/form-data" :method "POST"}
-                      [:span {:class "btn btn-default btn-file btn-primary"}
-                       "Добавить изображение"
-                       [:input {:id "image-uploader"
-                                :name "image-uploader"
-                                :type "file" :multiple true :accept "image/gif, image/jpeg, image/png"
-                                :on-change #(put! chan-add-image 1)}]]]]
-
-                    ;; Toolbar - Files
-                    [:div {:id "tab-toolbar-5" :class "row" :style "padding: 5px; display: none"}
-                     [:form {:id "file-uploader-form" :enctype "multipart/form-data" :method "POST"}
-                      [:span {:class "btn btn-default btn-file btn-primary"}
-                       "Добавить фаил"
-                       [:input {:id "file-uploader"
-                                :name "file-uploader"
-                                :type "file" :multiple true
-                                :on-change #(put! chan-add-file 1)}]]]]
-                    ))
-
-
-                  (ix/clear-and-set-on-tag-by-id
-                   :main
-                   [:div {:class "container-fluid"}
-                    [:div {:class "row"}
-                     [:div {:id "tab-0" :class "col-sm-12 col-md-12 col-lg-12" :style "display: none"}
-
-                      ;; Panel - Main
-                      [:form {:id "main-form" :class "form-horizontal col-sm-12 col-md-10 col-lg-9"}
-                       [:fieldset
-                        [:legend "Основные данные документа"]
-                        (when-let [id (get-in row [:webdoc-row :id])]
-                          (list
-                           [:div {:class "form-group"}
-                            [:label {:class "col-sm-2 control-label" :for "input-web-meta-subject"} "Параметры документа"]
-                            [:div {:class "col-sm-5"}
-                             [:ul {:class "list-group"}
-                              [:li {:class "list-group-item"}
-                               [:span {:class "badge"}
-                                (ix/str-to-date-and-format :SHORT_DATETIME "нет" (get-in row [:webdoc-row :cdate]))
-                                ]
-                               "Cоздан:"]
-                              [:li {:class "list-group-item"}
-                               [:span {:class "badge"}
-                                (ix/str-to-date-and-format :SHORT_DATETIME "нет" (get-in row [:webdoc-row :udate]))
-                                ]
-                               "Оюновлен:"]]]]
-
-                           [:div {:class "form-group"}
-                            [:label {:class "col-sm-2 control-label"} "URL+"]
-                            [:div {:class "col-sm-10"}
-                             [:div {:class "panel panel-default"}
-                              [:div {:class "panel-body"}
-                               [:a {:href (str "/doc/" id "/" (get-in row [:webdoc-row :ttitle])) :target "_blank"}
-                                "Документ на сайте..."]
-                               [:br]
-                               [:var (str "/doc/" id "/" (get-in row [:webdoc-row :ttitle]))]]]]]))
-
-                        [:div {:class "form-group"}
-                         [:label {:class "col-sm-2 control-label" :for "input-url1"} "URL"]
-                         [:div {:class "col-sm-10"}
-                          [:div {:class "checkbox"}
-                           [:label
-                            [:input {:id "input-url1flag" :type "checkbox"
-                                     :checked (get-in row [:webdoc-row :url1flag] false)}]
-                            "перенаправлять на"]]
-                          [:input {:id "input-url1" :class "form-control"
-                                   :placeholder "Дополниетельные URL...", :type "text"
-                                   :value (get-in row [:webdoc-row :url1] "")}]]]
-
-                        [:div {:class "form-group"}
-                         [:label {:class "col-sm-2 control-label" :for "input-keyname"} "Заголовок"]
-                         [:div {:class "col-sm-10"}
-                          [:input {:id "input-keyname" :class "form-control"
-                                   :placeholder "наименование", :type "text"
-                                   :value (get-in row [:webdoc-row :keyname] "")}]]]
-
-                        [:div {:class "form-group"}
-                         [:label {:class "col-sm-2 control-label" :for "input-description"} "Описание"]
-                         [:div {:class "col-sm-10"}
-                          [:textarea {:id "input-description" :class "form-control"
-                                      :placeholder "описание", :rows 2}
-                           (get-in row [:webdoc-row :description] "")]]]
-
-
-
+                       ;; tablabels
+                       [:ul {:id "tabs" :class "nav nav-tabs" :style "margin-bottom: 0px;"}
+                        [:li {:id "tab-label-0" :role "presentation" :on-click #(put! chan-switch-tab 0)} [:a "Основные данные"]]
+                        ;;[:li {:id "tab-label-1" :role "presentation" :on-click #(put! chan-switch-tab 1)} [:a "....."]]
+                        [:li {:id "tab-label-2" :role "presentation" :on-click #(put! chan-switch-tab 2)} [:a "Теги"]]
+                        [:li {:id "tab-label-3" :role "presentation" :on-click #(put! chan-switch-tab 3)} [:a "Web"]]
+                        [:li {:id "tab-label-4" :role "presentation" :on-click #(put! chan-switch-tab 4)} [:a "Фото"]]
+                        [:li {:id "tab-label-5" :role "presentation" :on-click #(put! chan-switch-tab 5)} [:a "Файлы"]]
                         ]
-
-                       ;; Fieldsets...
-                       (when-let [f (specific-common-inputs-fn-key specific)]
-                         (f row))
-
                        ]]
 
-                     ;; Panel - Tags and groups
-                     [:div {:id "tab-2" :class "col-sm-12 col-md-12 col-lg-12" :style "display: none"}
-                      [:div {:id "tags-list"}]]
+                     ;; Toolbar - Main
+                     [:div{:id "tab-toolbar-0" :class "row" :style "padding: 5px; display: none"}
+                      [:a {:id "btn-save-common" :class "btn btn-primary navbar-left"
+                           :role "button" :style "margin-right: 10px" :on-click #(put! chan-save-common 0)}
+                       "Сохранить"]]
 
-                     ;; Panel - Web content
-                     [:div {:id "tab-3" :class "col-sm-12 col-md-12 col-lg-12" :style "display: none"}
-                      [:form {:id "main-form" :class "form-horizontal col-sm-12 col-md-10 col-lg-9"}
+                     ;; Toolbar - Tags and groups
+                     [:div {:id "tab-toolbar-2" :class "row" :style "padding: 5px; display: none"}
+                      [:a {:id "btn-save-tags" :class "btn btn-primary navbar-left"
+                           :role "button" :style "margin-right: 10px" :on-click #(put! chan-save-tags 0)}
+                       "Сохранить теги"]
+                      [:div {:id "tags-scroll-buttons"}]
+                      ]
 
-                       [:div {:class "form-group"}
-                        [:label {:class "col-sm-2 control-label" :for "input-web-meta-subject"} "Метатег subject"]
-                        [:div {:class "col-sm-10"}
-                         [:input {:id "input-web-meta-subject" :class "form-control"
-                                  :placeholder "тема", :type "text"
-                                  :value (get-in row [:webdoc-row :web_meta_subject] "")}]]]
+                     ;; Toolbar - Web
+                     [:div {:id "tab-toolbar-3"  :class "row" :style "padding: 5px; display: none"}
+                      [:a {:id "btn-save-web" :class "btn btn-primary navbar-left"
+                           :role "button" :style "margin-right: 10px" :on-click #(put! chan-save-web 0)}
+                       "Сохранить"]]
 
-                       [:div {:class "form-group"}
-                        [:label {:class "col-sm-2 control-label" :for "input-web-meta-keywords"} "Метатег keywords"]
-                        [:div {:class "col-sm-10"}
-                         [:textarea {:id "input-web-meta-keywords" :class "form-control"
-                                     :placeholder "ключевые слова", :rows 3}
-                          (get-in row [:webdoc-row :web_meta_keywords] "")]]]
+                     ;; Toolbar - Fotos
+                     [:div {:id "tab-toolbar-4" :class "row" :style "padding: 5px; display: none"}
+                      [:form {:id "image-uploader-form" :enctype "multipart/form-data" :method "POST"}
+                       [:span {:class "btn btn-default btn-file btn-primary"}
+                        "Добавить изображение"
+                        [:input {:id "image-uploader"
+                                 :name "image-uploader"
+                                 :type "file" :multiple true :accept "image/gif, image/jpeg, image/png"
+                                 :on-change #(put! chan-add-image 1)}]]]]
 
-                       [:div {:class "form-group"}
-                        [:label {:class "col-sm-2 control-label" :for "input-web-meta-description"} "Метатег description"]
-                        [:div {:class "col-sm-10"}
-                         [:textarea {:id "input-web-meta-description" :class "form-control"
-                                     :placeholder "описание", :rows 4}
-                          (get-in row [:webdoc-row :web_meta_description] "")]]]
-
-                       [:div {:class "form-group"}
-                        [:label {:class "col-sm-2 control-label" :for "input-web-meta-subject"} "Аватар"]
-                        [:div {:class "col-sm-10"}
-                         (input-one-image :avatar (get-in row [:webdoc-row :web_title_image]))]]
-
-                       [:div {:class "form-group"}
-                        [:label {:class "col-sm-2 control-label" :for "input-web-top-description"} "Краткое описание"]
-                        [:div {:class "col-sm-10"}
-                         [:textarea {:id "input-web-top-description" :class "form-control"
-                                     :placeholder "описание в заголовке", :rows 4}
-                          (get-in row [:webdoc-row :web_top_description] "")]]]
-
-                       [:div {:class "form-group"}
-                        [:label {:class "col-sm-2 control-label" :for "input-web-citems"} "Структура оглавния"]
-                        [:div {:class "col-sm-10"}
-                         [:textarea {:id "input-web-citems" :class "form-control"
-                                     :placeholder "Структура оглавления (#p1 > Якорь 1; #p1 > Якорь 2; #p3 > Якорь 3;.....)"
-                                     :rows 3}
-                          (get-in row [:webdoc-row :web_citems] "")]]]
+                     ;; Toolbar - Files
+                     [:div {:id "tab-toolbar-5" :class "row" :style "padding: 5px; display: none"}
+                      [:form {:id "file-uploader-form" :enctype "multipart/form-data" :method "POST"}
+                       [:span {:class "btn btn-default btn-file btn-primary"}
+                        "Добавить фаил"
+                        [:input {:id "file-uploader"
+                                 :name "file-uploader"
+                                 :type "file" :multiple true
+                                 :on-change #(put! chan-add-file 1)}]]]]
+                     ))
 
 
-                       [:div {:class "form-group"}
-                        [:label {:class "col-sm-2 control-label" :for "input-web-description"} "Полное описание"]
-                        [:div {:class "col-sm-10" :style "color: black"}
-                         [:textarea {:id "inputckedit1" :class "form-control ckeditor"
-                                     ;;.ckeditor
-                                     ;;:data-provide "markdown"
-                                     :placeholder "полное описание", :rows 10 }
-                          (get-in row [:webdoc-row :web_description] "")]]]
+                   (ix/clear-and-set-on-tag-by-id
+                    :main
+                    [:div {:class "container-fluid"}
+                     [:div {:class "row"}
+                      [:div {:id "tab-0" :class "col-sm-12 col-md-12 col-lg-12" :style "display: none"}
 
-                       ;; For mardown
-                       [:script {:type "text/javascript"} "CKEDITOR.replace('inputckedit1');"]
-                       ;;[:script {:type "text/javascript"} "$('#inputckedit1').markdown({autofocus:false,savable:false})"]
-                       ]]
+                       ;; Panel - Main
+                       [:form {:id "main-form" :class "form-horizontal col-sm-12 col-md-10 col-lg-9"}
+                        [:fieldset
+                         [:legend "Основные данные документа"]
+                         (when-let [id (get-in row [:webdoc-row :id])]
+                           (list
+                            [:div {:class "form-group"}
+                             [:label {:class "col-sm-2 control-label" :for "input-web-meta-subject"} "Параметры документа"]
+                             [:div {:class "col-sm-5"}
+                              [:ul {:class "list-group"}
+                               [:li {:class "list-group-item"}
+                                [:span {:class "badge"}
+                                 (ix/str-to-date-and-format :SHORT_DATETIME "нет" (get-in row [:webdoc-row :cdate]))
+                                 ]
+                                "Cоздан:"]
+                               [:li {:class "list-group-item"}
+                                [:span {:class "badge"}
+                                 (ix/str-to-date-and-format :SHORT_DATETIME "нет" (get-in row [:webdoc-row :udate]))
+                                 ]
+                                "Оюновлен:"]]]]
 
-                     ;; Panel - Fotos
-                     [:div {:id "tab-4" :class "col-sm-12 col-md-12 col-lg-12" :style "display: none"}]
+                            [:div {:class "form-group"}
+                             [:label {:class "col-sm-2 control-label"} "URL+"]
+                             [:div {:class "col-sm-10"}
+                              [:div {:class "panel panel-default"}
+                               [:div {:class "panel-body"}
+                                [:a {:href (str "/doc/" id "/" (get-in row [:webdoc-row :ttitle])) :target "_blank"}
+                                 "Документ на сайте..."]
+                                [:br]
+                                [:var (str "/doc/" id "/" (get-in row [:webdoc-row :ttitle]))]]]]]))
 
-                     ;; Panel - Files
-                     [:div {:id "tab-5" :class "col-sm-12 col-md-12 col-lg-12" :style "display: none"}]
+                         [:div {:class "form-group"}
+                          [:label {:class "col-sm-2 control-label" :for "input-url1"} "URL"]
+                          [:div {:class "col-sm-10"}
+                           [:div {:class "checkbox"}
+                            [:label
+                             [:input {:id "input-url1flag" :type "checkbox"
+                                      :checked (get-in row [:webdoc-row :url1flag] false)}]
+                             "перенаправлять на"]]
+                           [:input {:id "input-url1" :class "form-control"
+                                    :placeholder "Дополниетельные URL...", :type "text"
+                                    :value (get-in row [:webdoc-row :url1] "")}]]]
 
-                     ;; необходимо помещать во внутреннюю чать проматываемого тега
-                     [:div {:id "modal-1"}]
-                     ]]
-                   )
+                         [:div {:class "form-group"}
+                          [:label {:class "col-sm-2 control-label" :for "input-keyname"} "Заголовок"]
+                          [:div {:class "col-sm-10"}
+                           [:input {:id "input-keyname" :class "form-control"
+                                    :placeholder "наименование", :type "text"
+                                    :value (get-in row [:webdoc-row :keyname] "")}]]]
+
+                         [:div {:class "form-group"}
+                          [:label {:class "col-sm-2 control-label" :for "input-description"} "Описание"]
+                          [:div {:class "col-sm-10"}
+                           [:textarea {:id "input-description" :class "form-control"
+                                       :placeholder "описание", :rows 2}
+                            (get-in row [:webdoc-row :description] "")]]]
 
 
-                  ;; first update
-                  ;; !!!
-                  ;; Отработка справочных данных. обязательно только после полной отрисовки интерфейса, иначе обновлять будет нечего
-                  ;; !!!
-                  ;;(com/chan-rb-data-repaint (:rb-data row))
 
-                  (put! chan-switch-tab (@page-state :tab))
-                  (println "REPAINT END")
-                  (put! chan-do-after-repaint 1)
-                  )}))))
+                         ]
+
+                        ;; Fieldsets...
+                        (when-let [f (specific-common-inputs-fn-key specific)]
+                          (f row))
+
+                        ]]
+
+                      ;; Panel - Tags and groups
+                      [:div {:id "tab-2" :class "col-sm-12 col-md-12 col-lg-12" :style "display: none"}
+                       [:div {:id "tags-list"}]]
+
+                      ;; Panel - Web content
+                      [:div {:id "tab-3" :class "col-sm-12 col-md-12 col-lg-12" :style "display: none"}
+                       [:form {:id "main-form" :class "form-horizontal col-sm-12 col-md-10 col-lg-9"}
+
+                        [:div {:class "form-group"}
+                         [:label {:class "col-sm-2 control-label" :for "input-web-meta-subject"} "Метатег subject"]
+                         [:div {:class "col-sm-10"}
+                          [:input {:id "input-web-meta-subject" :class "form-control"
+                                   :placeholder "тема", :type "text"
+                                   :value (get-in row [:webdoc-row :web_meta_subject] "")}]]]
+
+                        [:div {:class "form-group"}
+                         [:label {:class "col-sm-2 control-label" :for "input-web-meta-keywords"} "Метатег keywords"]
+                         [:div {:class "col-sm-10"}
+                          [:textarea {:id "input-web-meta-keywords" :class "form-control"
+                                      :placeholder "ключевые слова", :rows 3}
+                           (get-in row [:webdoc-row :web_meta_keywords] "")]]]
+
+                        [:div {:class "form-group"}
+                         [:label {:class "col-sm-2 control-label" :for "input-web-meta-description"} "Метатег description"]
+                         [:div {:class "col-sm-10"}
+                          [:textarea {:id "input-web-meta-description" :class "form-control"
+                                      :placeholder "описание", :rows 4}
+                           (get-in row [:webdoc-row :web_meta_description] "")]]]
+
+                        [:div {:class "form-group"}
+                         [:label {:class "col-sm-2 control-label" :for "input-web-meta-subject"} "Аватар"]
+                         [:div {:class "col-sm-10"}
+                          (input-one-image :avatar (get-in row [:webdoc-row :web_title_image]))]]
+
+                        [:div {:class "form-group"}
+                         [:label {:class "col-sm-2 control-label" :for "input-web-top-description"} "Краткое описание"]
+                         [:div {:class "col-sm-10"}
+                          [:textarea {:id "input-web-top-description" :class "form-control"
+                                      :placeholder "описание в заголовке", :rows 4}
+                           (get-in row [:webdoc-row :web_top_description] "")]]]
+
+                        [:div {:class "form-group"}
+                         [:label {:class "col-sm-2 control-label" :for "input-web-citems"} "Структура оглавния"]
+                         [:div {:class "col-sm-10"}
+                          [:textarea {:id "input-web-citems" :class "form-control"
+                                      :placeholder "Структура оглавления (#p1 > Якорь 1; #p1 > Якорь 2; #p3 > Якорь 3;.....)"
+                                      :rows 3}
+                           (get-in row [:webdoc-row :web_citems] "")]]]
+
+
+                        [:div {:class "form-group"}
+                         [:label {:class "col-sm-2 control-label" :for "input-web-description"} "Полное описание"]
+                         [:div {:class "col-sm-10" :style "color: black"}
+                          [:textarea {:id "inputckedit1" :class "form-control ckeditor"
+                                      ;;.ckeditor
+                                      ;;:data-provide "markdown"
+                                      :placeholder "полное описание", :rows 10 }
+                           (get-in row [:webdoc-row :web_description] "")]]]
+
+                        ;; For mardown
+                        [:script {:type "text/javascript"} "CKEDITOR.replace('inputckedit1');"]
+                        ;;[:script {:type "text/javascript"} "$('#inputckedit1').markdown({autofocus:false,savable:false})"]
+                        ]]
+
+                      ;; Panel - Fotos
+                      [:div {:id "tab-4" :class "col-sm-12 col-md-12 col-lg-12" :style "display: none"}]
+
+                      ;; Panel - Files
+                      [:div {:id "tab-5" :class "col-sm-12 col-md-12 col-lg-12" :style "display: none"}]
+
+                      ;; необходимо помещать во внутреннюю чать проматываемого тега
+                      [:div {:id "modal-1"}]
+                      ]]
+                    )
+
+
+                   ;; first update
+                   ;; !!!
+                   ;; Отработка справочных данных. обязательно только после полной отрисовки интерфейса, иначе обновлять будет нечего
+                   ;; !!!
+                   ;;(com/chan-rb-data-repaint (:rb-data row))
+
+                   (put! chan-switch-tab (@page-state :tab))
+                   (println "REPAINT END")
+                   (put! chan-do-after-repaint 1)
+                   )}))))
 
 
     ;; tab
@@ -551,40 +552,40 @@
               id (@page-state :id)]
           (when (and id (= 4 (@page-state :tab)))
             (println "Start load images!")
-            (GET "/tc/rb/webdocs/images-list"
-                 {:params {:id (@page-state :id) :time (.getTime (new js/Date))}
-                  :format :json
-                  :response-format :json
-                  :keywords? true
-                  :error-handler ix/error-handler
-                  :handler (fn [response]
-                             (let [images-list (sel1 :#tab-4)]
-                               (dommy/clear! images-list)
-                               (->> response
-                                    (map (fn [{:keys [id path top_description description galleria] :as row}]
-                                           [:div {:class "col-xs-3 col-md-3"}
-                                            [:div {:class "thumbnail"
-                                                   :on-click #(put! chan-select-image-action row) :style "cursor: pointer"}
-                                             (when galleria
-                                               [:span {:class "glyphicon glyphicon-film" :style "position:absolute;top:10px;left:5px;font-size:2em" :aria-hidden "true"}])
-                                             [:a [:img {:src (str "/image/" path) :alt "фото"}]]
+            (POST "/tc/rb/webdocs/images-list"
+                  {:params {:id (@page-state :id)}
+                   :format :json
+                   :response-format :json
+                   :keywords? true
+                   :error-handler ix/error-handler
+                   :handler (fn [response]
+                              (let [images-list (sel1 :#tab-4)]
+                                (dommy/clear! images-list)
+                                (->> response
+                                     (map (fn [{:keys [id path top_description description galleria] :as row}]
+                                            [:div {:class "col-xs-3 col-md-3"}
+                                             [:div {:class "thumbnail"
+                                                    :on-click #(put! chan-select-image-action row) :style "cursor: pointer"}
+                                              (when galleria
+                                                [:span {:class "glyphicon glyphicon-film" :style "position:absolute;top:10px;left:5px;font-size:2em" :aria-hidden "true"}])
+                                              [:a [:img {:src (str "/image/" path) :alt "фото"}]]
 
-                                             [:div {:class "caption"}
-                                              (when (not (clojure.string/blank? top_description))
-                                                [:h3 top_description])
-                                              [:div
-                                               (when (not (clojure.string/blank? description))
-                                                 (list description [:br]))
-                                               [:span {:class "label label-default"} "URL"]" "
-                                               [:input {:type "text" :style "width:70%;font-size:0.7em"
-                                                        :value (str "/image/" path)
-                                                        :on-mousedown #(this-as this (.select this))}]]
-                                              ]]]))
-                                    (partition-all 4)
-                                    (map (partial conj [:div {:class "row"}]))
-                                    hipo/create
-                                    (dommy/append! images-list))))
-                  })))))
+                                              [:div {:class "caption"}
+                                               (when (not (clojure.string/blank? top_description))
+                                                 [:h3 top_description])
+                                               [:div
+                                                (when (not (clojure.string/blank? description))
+                                                  (list description [:br]))
+                                                [:span {:class "label label-default"} "URL"]" "
+                                                [:input {:type "text" :style "width:70%;font-size:0.7em"
+                                                         :value (str "/image/" path)
+                                                         :on-mousedown #(this-as this (.select this))}]]
+                                               ]]]))
+                                     (partition-all 4)
+                                     (map (partial conj [:div {:class "row"}]))
+                                     hipo/create
+                                     (dommy/append! images-list))))
+                   })))))
 
 
 
@@ -728,42 +729,42 @@
               id (@page-state :id)]
           (when (and id (= 5 (@page-state :tab)))
             (println "Start load files!")
-            (GET "/tc/rb/webdocs/files-list"
-                 {:params {:id (@page-state :id) :time (.getTime (new js/Date))}
-                  :format :json
-                  :response-format :json
-                  :keywords? true
-                  :error-handler ix/error-handler
-                  :handler (fn [response]
-                             (let [files-list (sel1 :#tab-5)]
-                               (dommy/clear! files-list)
-                               (->> response
-                                    (map (fn [{:keys [id path top_description description] :as row}]
-                                           [:div {:class "col-xs-3 col-md-3"}
-                                            [:div {:class "thumbnail"
-                                                   :on-click #(put! chan-select-file-action row)
-                                                   :style "cursor:pointer;min-height:75px;"}
+            (POST "/tc/rb/webdocs/files-list"
+                  {:params {:id (@page-state :id)}
+                   :format :json
+                   :response-format :json
+                   :keywords? true
+                   :error-handler ix/error-handler
+                   :handler (fn [response]
+                              (let [files-list (sel1 :#tab-5)]
+                                (dommy/clear! files-list)
+                                (->> response
+                                     (map (fn [{:keys [id path top_description description] :as row}]
+                                            [:div {:class "col-xs-3 col-md-3"}
+                                             [:div {:class "thumbnail"
+                                                    :on-click #(put! chan-select-file-action row)
+                                                    :style "cursor:pointer;min-height:75px;"}
 
-                                             [:span {:class "glyphicon glyphicon-file"
-                                                     :style "font-size:5em;float:left" :aria-hidden "true"}]
+                                              [:span {:class "glyphicon glyphicon-file"
+                                                      :style "font-size:5em;float:left" :aria-hidden "true"}]
 
-                                             [:div {:class "caption"}
-                                              (when (not (clojure.string/blank? top_description))
-                                                [:h3 top_description])
-                                              [:div
-                                               (when (not (clojure.string/blank? description))
-                                                 (list description [:br]))
-                                               [:div {:style ""}
-                                                [:span {:class "label label-default" } "URL"]" "
-                                                [:input {:type "text" :style "width:50%;font-size:0.7em"
-                                                         :value (str "/file/" path)
-                                                         :on-mousedown #(this-as this (.select this))}]]]
-                                              ]]]))
-                                    (partition-all 4)
-                                    (map (partial conj [:div {:class "row"}]))
-                                    hipo/create
-                                    (dommy/append! files-list))))
-                  })))))
+                                              [:div {:class "caption"}
+                                               (when (not (clojure.string/blank? top_description))
+                                                 [:h3 top_description])
+                                               [:div
+                                                (when (not (clojure.string/blank? description))
+                                                  (list description [:br]))
+                                                [:div {:style ""}
+                                                 [:span {:class "label label-default" } "URL"]" "
+                                                 [:input {:type "text" :style "width:50%;font-size:0.7em"
+                                                          :value (str "/file/" path)
+                                                          :on-mousedown #(this-as this (.select this))}]]]
+                                               ]]]))
+                                     (partition-all 4)
+                                     (map (partial conj [:div {:class "row"}]))
+                                     hipo/create
+                                     (dommy/append! files-list))))
+                   })))))
 
 
 
