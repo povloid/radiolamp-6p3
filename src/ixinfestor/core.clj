@@ -11,6 +11,8 @@
   )
 
 
+(declare print-debug->>>)
+
 ;;**************************************************************************************************
 ;;* BEGIN Translit
 ;;* tag: <translit>
@@ -195,29 +197,34 @@
 (defn com-save-for-field
   "Сохранить сущность"
   [entity field vals]
-  (let [r (update entity (set-fields vals) (where (= field (vals field))))]
-    (if (empty? r)
-      (insert entity (values vals))
-      r)))
+  (transaction
+   (let [r (update entity (set-fields vals) (where (= field (vals field))))]
+     (if (= r 0)
+       (insert entity (values vals))
+       (first (select entity (where (= field (vals field)))))))))
 
 (defn com-save-for-field-2
   "Сохранить сущность"
   [entity field-1 field-2 vals]
-  (let [r (update entity (set-fields vals) (where (and
-                                                   (= field-1 (vals field-1))
-                                                   (= field-2 (vals field-2))
-                                                   )))]
-    (if (empty? r)
-      (insert entity (values vals))
-      r)))
+  (transaction
+   (let [r (update entity (set-fields vals) (where (and
+                                                    (= field-1 (vals field-1))
+                                                    (= field-2 (vals field-2))
+                                                    )))]
+     (if (= r 0)
+       (insert entity (values vals))
+       (first (select entity (where (and
+                                     (= field-1 (vals field-1))
+                                     (= field-2 (vals field-2))))))))))
 
 (defn com-save-for-id
   "Сохранить сущность"
   [entity vals]
-  (let [r (update entity (set-fields vals) (where (= :id (vals :id))))]
-    (if (empty? r)
-      (insert entity (values vals))
-      r)))
+  (transaction
+   (let [r (update entity (set-fields vals) (where (= :id (vals :id))))]
+     (if (= r 0)
+       (insert entity (values vals))
+       (first (select entity (where (= :id (vals :id)))))))))
 
 (defn com-delete*
   "Удалить сущность"
@@ -255,7 +262,9 @@
 (defn com-count
   "Количество всех элементов"
   [entity]
-  (-> (select entity (aggregate (count :*) :c)) first :c)  )
+  (-> (select entity (aggregate (count :*) :c))
+      first
+      :c))
 
 (defn com-count*
   "Количество всех элементов"
@@ -985,10 +994,10 @@
        com-exec-1)))
 
 #_(defn webdoc-pred-by-tag--nil-other*-se?
-    "Выбор либо дочерних либо несвязанных по nil"
-    [select*-1 tag-row]
-    ((com-defn-pred-rows-by-rel--nil-other? :id :id webdoctag :webdoc_id :tag_id)
-     select*-1 tag-row))
+  "Выбор либо дочерних либо несвязанных по nil"
+  [select*-1 tag-row]
+  ((com-defn-pred-rows-by-rel--nil-other? :id :id webdoctag :webdoc_id :tag_id)
+   select*-1 tag-row))
 
 (defn webdoc-pred-search? [select*-1 fts-query]
   (com-pred-full-text-search* select*-1 :fts fts-query))

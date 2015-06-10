@@ -7,7 +7,7 @@
                  [compojure "1.3.4"]
                  [hiccup "1.0.5"]
                  [clj-time "0.6.0"]
-                 [korma "0.3.3"]
+                 [korma "0.4.2"]
                  
                  [net.sourceforge.htmlcleaner/htmlcleaner "2.12"]
 
