@@ -342,10 +342,12 @@
                                webdoc-select*
                                webdoc-save-fn
                                context-path
+                               rb
                                covertors-fn]
                         :or {webdoc-entity ix/webdoc
                              webdoc-select* ix/webdoc-select*
                              covertors-fn (fn [webdoc-row] webdoc-row)
+                             rb {}
                              context-path "/tc/rb/webdocs"
                              webdoc-save-fn ix/webdoc-save}
                         :as init-row}]
@@ -375,6 +377,7 @@
 
             (POST "/edit" {{id :id} :params}
                   (-> {:webdoc-row (if id (ix/com-find webdoc-entity id) {})}
+                      (assoc :rb rb) 
                       ring.util.response/response
                       cw/error-response-json))
 

@@ -2,6 +2,7 @@
 
   (:use korma.db)
   (:use korma.core)
+
   (:use clojure.pprint)
 
   (:require [clj-time.core :as tco]
@@ -196,35 +197,35 @@
 
 (defn com-save-for-field
   "Сохранить сущность"
-  [entity field vals]
+  [entity field row]
   (transaction
-   (let [r (update entity (set-fields vals) (where (= field (vals field))))]
+   (let [r (update entity (set-fields row) (where (= field (row field))))]
      (if (= r 0)
-       (insert entity (values vals))
-       (first (select entity (where (= field (vals field)))))))))
+       (insert entity (values row))
+       (first (select entity (where (= field (row field)))))))))
 
 (defn com-save-for-field-2
   "Сохранить сущность"
-  [entity field-1 field-2 vals]
+  [entity field-1 field-2 row]
   (transaction
-   (let [r (update entity (set-fields vals) (where (and
-                                                    (= field-1 (vals field-1))
-                                                    (= field-2 (vals field-2))
-                                                    )))]
+   (let [r (update entity (set-fields row) (where (and
+                                                   (= field-1 (row field-1))
+                                                   (= field-2 (row field-2))
+                                                   )))]
      (if (= r 0)
-       (insert entity (values vals))
+       (insert entity (values row))
        (first (select entity (where (and
-                                     (= field-1 (vals field-1))
-                                     (= field-2 (vals field-2))))))))))
+                                     (= field-1 (row field-1))
+                                     (= field-2 (row field-2))))))))))
 
 (defn com-save-for-id
   "Сохранить сущность"
-  [entity vals]
+  [entity row]
   (transaction
-   (let [r (update entity (set-fields vals) (where (= :id (vals :id))))]
+   (let [r (update entity (set-fields row) (where (= :id (row :id))))]
      (if (= r 0)
-       (insert entity (values vals))
-       (first (select entity (where (= :id (vals :id)))))))))
+       (insert entity (values row))
+       (first (select entity (where (= :id (row :id)))))))))
 
 (defn com-delete*
   "Удалить сущность"
@@ -994,10 +995,10 @@
        com-exec-1)))
 
 #_(defn webdoc-pred-by-tag--nil-other*-se?
-  "Выбор либо дочерних либо несвязанных по nil"
-  [select*-1 tag-row]
-  ((com-defn-pred-rows-by-rel--nil-other? :id :id webdoctag :webdoc_id :tag_id)
-   select*-1 tag-row))
+    "Выбор либо дочерних либо несвязанных по nil"
+    [select*-1 tag-row]
+    ((com-defn-pred-rows-by-rel--nil-other? :id :id webdoctag :webdoc_id :tag_id)
+     select*-1 tag-row))
 
 (defn webdoc-pred-search? [select*-1 fts-query]
   (com-pred-full-text-search* select*-1 :fts fts-query))
