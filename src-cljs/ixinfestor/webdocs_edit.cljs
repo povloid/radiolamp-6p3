@@ -17,9 +17,15 @@
 ;; Включаем печать в консоль из функции println
 (enable-console-print!)
 
+(def specific-common-key :specific-common)
 (def specific-common-inputs-fn-key :specific-common-inputs-fn)
 (def specific-common-save-fn-key :specific-common-save-fn)
 
+(def specific-tab1-key :specific-tab1)
+(def specific-tab1-caption-key :specific-tab1-caption)
+(def specific-tab1-tollbar-fn-key :specific-tab1-tollbar-fn)
+(def specific-tab1-inputs-fn-key :specific-tab1-inputs-fn)
+(def specific-tab1-save-fn-key :specific-tab1-save-fn)
 
 
 ;;**************************************************************************************************
@@ -128,7 +134,12 @@
                        ;; tablabels
                        [:ul {:id "tabs" :class "nav nav-tabs" :style "margin-bottom: 0px;"}
                         [:li {:id "tab-label-0" :role "presentation" :on-click #(put! chan-switch-tab 0)} [:a "Основные данные"]]
-                        ;;[:li {:id "tab-label-1" :role "presentation" :on-click #(put! chan-switch-tab 1)} [:a "....."]]
+                        
+                        (when-let [s (get-in specific [specific-tab1-key])]
+                          [:li {:id "tab-label-1" :role "presentation" :on-click #(put! chan-switch-tab 1)}
+                           [:a (if-let [c (get-in s [specific-tab1-caption-key])]
+                                 c "Спец.")]])
+                        
                         [:li {:id "tab-label-2" :role "presentation" :on-click #(put! chan-switch-tab 2)} [:a "Теги"]]
                         [:li {:id "tab-label-3" :role "presentation" :on-click #(put! chan-switch-tab 3)} [:a "Web"]]
                         [:li {:id "tab-label-4" :role "presentation" :on-click #(put! chan-switch-tab 4)} [:a "Фото"]]
@@ -141,6 +152,12 @@
                       [:a {:id "btn-save-common" :class "btn btn-primary navbar-left"
                            :role "button" :style "margin-right: 10px" :on-click #(put! chan-save-common 0)}
                        "Сохранить"]]
+
+                     ;; Toolbar - 2 cpecific
+                     (when-let [s (get-in specific [specific-tab1-key])]
+                       [:div {:id "tab-toolbar-1" :class "row" :style "padding: 5px; display: none"}
+                        (when-let [f (get-in s [specific-tab1-tollbar-fn-key])]
+                          (f row))])
 
                      ;; Toolbar - Tags and groups
                      [:div {:id "tab-toolbar-2" :class "row" :style "padding: 5px; display: none"}
@@ -246,10 +263,15 @@
                          ]
 
                         ;; Fieldsets...
-                        (when-let [f (specific-common-inputs-fn-key specific)]
+                        (when-let [f (get-in specific [specific-common-key specific-common-inputs-fn-key])]
                           (f row))
 
                         ]]
+
+                      (when-let [s (get-in specific [specific-tab1-key])]
+                        [:div {:id "tab-1" :class "col-sm-12 col-md-12 col-lg-12" :style "display: none"}
+                         (when-let [f (get-in s [specific-tab1-inputs-fn-key])]
+                           (f row))])
 
                       ;; Panel - Tags and groups
                       [:div {:id "tab-2" :class "col-sm-12 col-md-12 col-lg-12" :style "display: none"}
@@ -340,13 +362,17 @@
 
 
     ;; tab
-    (let [tabs-map {0 [:tab-label-0 :tab-toolbar-0 :tab-0]
-                    ;;1 [:tab-label-1 :tab-toolbar-1 :tab-1]
-                    2 [:tab-label-2 :tab-toolbar-2 :tab-2]
-                    3 [:tab-label-3 :tab-toolbar-3 :tab-3]
-                    4 [:tab-label-4 :tab-toolbar-4 :tab-4]
-                    5 [:tab-label-5 :tab-toolbar-5 :tab-5]
-                    }]
+    (let [tabs-map-0 {0 [:tab-label-0 :tab-toolbar-0 :tab-0]
+                      2 [:tab-label-2 :tab-toolbar-2 :tab-2]
+                      3 [:tab-label-3 :tab-toolbar-3 :tab-3]
+                      4 [:tab-label-4 :tab-toolbar-4 :tab-4]
+                      5 [:tab-label-5 :tab-toolbar-5 :tab-5]
+                      }
+
+          tabs-map (if (get-in specific [specific-tab1-key])
+                     (assoc tabs-map-0 1 [:tab-label-1 :tab-toolbar-1 :tab-1])
+                     tabs-map-0)
+          ]
       (go
         (while true
           (let [i (<! chan-switch-tab)
@@ -396,7 +422,12 @@
                              (assoc :url1 (-> :input-url1 ix/by-id dommy/value))
 
                              (as-> row
-                                 (if-let [f (specific-common-save-fn-key specific)]
+                                 (when-let [f (get-in specific [specific-common-key specific-common-save-fn-key])]
+                                   (f row)
+                                   row))
+
+                             (as-> row
+                                 (when-let [f (get-in specific [specific-tab1-key specific-tab1-save-fn-key])]
                                    (f row)
                                    row))
 
