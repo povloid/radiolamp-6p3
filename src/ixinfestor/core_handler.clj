@@ -342,11 +342,15 @@
                                webdoc-select*
                                webdoc-save-fn
                                context-path
+                               spec-edit-fn
+                               spec-save-fn
                                rb
                                covertors-fn]
                         :or {webdoc-entity ix/webdoc
                              webdoc-select* ix/webdoc-select*
                              covertors-fn (fn [webdoc-row] webdoc-row)
+                             spec-edit-fn (fn [webdoc-row] webdoc-row)
+                             spec-save-fn (fn [_ _] nil)
                              rb {}
                              context-path "/tc/rb/webdocs"
                              webdoc-save-fn ix/webdoc-save}
@@ -377,6 +381,7 @@
 
             (POST "/edit" {{id :id} :params}
                   (-> {:webdoc-row (if id (ix/com-find webdoc-entity id) {})}
+                      spec-edit-fn
                       (assoc :rb rb) 
                       ring.util.response/response
                       cw/error-response-json))
@@ -388,7 +393,7 @@
                       ring.util.response/response
                       cw/error-response-json))
 
-            (POST "/save" {{:keys [webdoc-row webdoctag-ids-for-updating swops]} :params}
+            (POST "/save" {{:keys [webdoc-row webdoctag-ids-for-updating swops] :as row} :params}
                   (friend/authorize
                    edit-roles-set
                    (cw/error-response-json
@@ -401,9 +406,10 @@
                                                ;;(update-in-if-not-nil? [:showedate] #(new java.util.Date %))
                                                covertors-fn
                                                webdoc-save-fn
-                                               ))]
+                                               ))]                      
 
                       (ring.util.response/response {:result-code 0
+                                                    :spec-save-fn-result (spec-save-fn row new-webdoc-row)
                                                     :webdoc-row new-webdoc-row
                                                     :webdoctag-rows (when (and new-webdoc-row
                                                                                webdoctag-ids-for-updating)
@@ -480,9 +486,10 @@
 
             (POST "/files_rel/delete" {{:keys [webdoc-id file-id]} :params}
                   (friend/authorize
-                   edit-roles-set
-                   (-> (ix/files_rel-delete :webdoc_id {:id file-id} {:id webdoc-id})
-                       ring.util.response/response
+                   edit-roles-set                   
+                   (-> (do
+                         (ix/files_rel-delete :webdoc_id {:id file-id} {:id webdoc-id})
+                         (ring.util.response/response {:result "OK"}))
                        cw/error-response-json))
                   ))
    )

@@ -422,17 +422,13 @@
                              (assoc :url1 (-> :input-url1 ix/by-id dommy/value))
 
                              (as-> row
-                                 (when-let [f (get-in specific [specific-common-key specific-common-save-fn-key])]
+                                 (if-let [f (get-in specific [specific-common-key specific-common-save-fn-key])]
                                    (f row)
                                    row))
 
-                             (as-> row
-                                 (when-let [f (get-in specific [specific-tab1-key specific-tab1-save-fn-key])]
-                                   (f row)
-                                   row))
-
+                             (#(do (println "ROW FOR SAVING:"  %) %))
+                             
                              ix/input-all-valid-or-nil)]
-
             (POST "/tc/rb/webdocs/save"
                   {:params {:webdoc-row row
                             :webdoctag-ids-for-updating  (when (not (:id row))
