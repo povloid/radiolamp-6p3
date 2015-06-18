@@ -215,12 +215,15 @@
 ;;..................................................................................................
 
 
-(defn page-ixcms-main [request]
+(defn page-ixcms-main [request
+                       {:keys [title navbar-class+]
+                        :or {title "CMS"
+                             navbar-class+ ""}}]
   (template-main
-   {:title "CMS NewVovage - управление контентом"
+   {:title title
     :header-additions
     (list
-     ;; Отключил, так как решил исползовать MARKDOWN
+     ;; Отключить, если как решил исползовать MARKDOWN
      (include-js "/js/ckeditor/ckeditor.js")
 
      (include-css "/js/codemirror/codemirror.css")
@@ -247,14 +250,14 @@
    (list
         
     (navbar
-     [navbar-class-default navbar-class-static-top "navbar-fixed-top"]
+     [navbar-class-default navbar-class-static-top (str "navbar-fixed-top " navbar-class+) ]
      (list
       (container-fluid
        {:id :navbar-container}
        (list
         (navbar-header
          "#" [:div {:style "line-height: 15px;"}
-              [:div "CMS New Voyage"]
+              [:div title]
               [:small {:id :page-caption :style "font-size: small"
                        :class "text-primary"} ""]
               ])

@@ -48,7 +48,13 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn routes-ix* [cms-roles-set]
+(defn routes-ix* [cms-roles-set
+                  {:keys [page-ixcms-main-params]
+                   :or {page-ixcms-main-params {}
+                        }
+                   :as spec}]
+  (println "routes-ix* - spec>" spec)
+  
   (routes
 
    (ANY "/ix/set" request
@@ -58,7 +64,7 @@
         (friend/authorize
          cms-roles-set
          (-> request
-             cwb/page-ixcms-main
+             (cwb/page-ixcms-main page-ixcms-main-params)
              ring.util.response/response
              (ring.util.response/header "Content-Type" "text/html; charset=utf-8"))
          )
