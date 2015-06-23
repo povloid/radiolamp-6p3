@@ -14,6 +14,11 @@
 
 (declare print-debug->>>)
 
+
+(def development?
+  (= "dev" (get (System/getenv) "IX_MODE")))
+
+
 ;;**************************************************************************************************
 ;;* BEGIN Translit
 ;;* tag: <translit>
