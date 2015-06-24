@@ -29,9 +29,9 @@
   (if (get-in params path) (do-fn params) params))
 
 (defn update-in-if-not-nil? [params path f & args]
-  (update-in params path
-             (fn [r]
-               (if r (apply (partial f r) args)))))
+  (if-let [v (get-in params path)]
+    (assoc-in params path (apply (partial f v) args))
+    params))
 
 
 (defn web-file-upload [service-upload-fn uploader-params]

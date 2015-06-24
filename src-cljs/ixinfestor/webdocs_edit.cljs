@@ -180,7 +180,7 @@
                         "Добавить изображение"
                         [:input {:id "image-uploader"
                                  :name "image-uploader"
-                                 :type "file" :multiple true :accept "image/gif, image/jpeg, image/png"
+                                 :type "file" :multiple true :accept "image/gif, image/jpeg, image/png, image/*"
                                  :on-change #(put! chan-add-image 1)}]]]]
 
                      ;; Toolbar - Files
