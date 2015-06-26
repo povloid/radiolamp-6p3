@@ -331,11 +331,14 @@
           set))))
 
 (defn com-defn-pred-rows-by-rel?
-  [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2]
+  [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2 & [not?]]
   (fn [select*-1 {entity-2-id field-id-2}]
-    (where select*-1 {field-id-1 [in (subselect rel-entity
-                                                (fields field-fk-id-1)
-                                                (where (= field-fk-id-2 entity-2-id)))]})))
+    (where select*-1
+           {field-id-1
+            (let [p [in (subselect rel-entity
+                                   (fields field-fk-id-1)
+                                   (where (= field-fk-id-2 entity-2-id)))]]
+              (if not? (not p) p))})))
 
 (defn com-defn-pred-rows-by-rel--nil-other?
   [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2]
@@ -358,22 +361,23 @@
        select*-1 row))))
 
 (defn com-defn-pred-rows-by-rels?
-  [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2]
+  [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2 & [not?]]
   (fn [select*-1 entity-2-rows]
     (reduce
      (fn [query entity-2-row]
        (where query
-              (exists
-               (subselect rel-entity
-                          (fields field-fk-id-1)
-                          (where (and
-                                  (= field-fk-id-2 (field-id-2 entity-2-row))
-                                  (= field-fk-id-1 (-> select*-1
-                                                       :ent
-                                                       :table
-                                                       (str "." (name field-id-1))
-                                                       keyword)))
-                                 )))))
+              (let [p (exists
+                       (subselect rel-entity
+                                  (fields field-fk-id-1)
+                                  (where (and
+                                          (= field-fk-id-2 (field-id-2 entity-2-row))
+                                          (= field-fk-id-1 (-> select*-1
+                                                               :ent
+                                                               :table
+                                                               (str "." (name field-id-1))
+                                                               keyword)))
+                                         )))]
+                (if not? (not p) p))))
      select*-1 entity-2-rows)))
 
 ;; END SQL TOOLS
@@ -966,13 +970,13 @@
 
 ;; TODO: написать тесты
 (defn webdoc-pred-by-tag?
-  [select*-1 tag-row]
-  ((com-defn-pred-rows-by-rel? :id :id webdoctag :webdoc_id :tag_id)
+  [select*-1 tag-row & [not?]]
+  ((com-defn-pred-rows-by-rel? :id :id webdoctag :webdoc_id :tag_id not?)
    select*-1  tag-row))
 
 (defn webdoc-pred-by-tags?
-  [select*-1 tags-rows]
-  ((com-defn-pred-rows-by-rels? :id :id webdoctag :webdoc_id :tag_id)
+  [select*-1 tags-rows & [not?]]
+  ((com-defn-pred-rows-by-rels? :id :id webdoctag :webdoc_id :tag_id not?)
    select*-1 tags-rows))
 
 (defn webdoc-pred-childs-tags-of-parent-tag? [query {id :id}]
