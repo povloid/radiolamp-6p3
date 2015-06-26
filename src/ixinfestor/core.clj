@@ -8,7 +8,10 @@
   (:require [clj-time.core :as tco]
             [clj-time.format :as tf]
             [clj-time.coerce :as tc]
-            [clj-time.local :as tl])
+            [clj-time.local :as tl]
+
+            [image-resizer.core :refer :all]
+            )
   )
 
 
@@ -674,12 +677,14 @@
 (def files-root-directory (promise))
 
 
-(defn save-file [tempfile dir filename]
+(defn save-file-o [tempfile dir filename {:keys [ws] :or {ws []}}]
   (let [dir-filename (str dir "/" filename)
         full-path (str (if (realized? files-root-directory) @files-root-directory
                            (throw (Exception. "Значение пути  files-root-directory еще не задано")))
                        "/" dir-filename)]
+
     (clojure.java.io/make-parents full-path)
+
     (with-open [in (clojure.java.io/input-stream tempfile)
                 out (clojure.java.io/output-stream full-path)]
       (try
@@ -692,8 +697,21 @@
             (.close in)
             (.close out)
             (throw ex))))
+
+      (let [file-src (new java.io.File full-path)
+            ext (image-resizer.fs/extension full-path)]
+        ;;(println "EXT:" (clojure.string/lower-case ext))
+        (when (#{"png" "jpg" "jpeg" "gif"} (clojure.string/lower-case ext))
+          (doseq [w ws
+                  :let [full-path-spec (str full-path w)]]
+            (-> file-src
+                (image-resizer.core/resize-to-width w)
+                (javax.imageio.ImageIO/write ext (new java.io.File full-path-spec))))))
+
       dir-filename)))
 
+(defn save-file [tempfile dir filename]
+  (save-file-o tempfile dir filename {}))
 
 (defentity files
   (pk :id)
@@ -709,17 +727,22 @@
 (defn files-delete [row]
   (com-delete-for-id files (:id row)))
 
-(defn file-upload [file-row tempfile]
+(defn file-upload-o [file-row tempfile options]
   (transaction
    (let [{id :id :as new-row} (-> file-row
                                   (assoc :path "?TMP?")
                                   files-save)
-         path (save-file tempfile
-                         (str (tf/unparse (tf/formatter-local "yyyy/MM/dd/") (tl/local-now)) id)
-                         (file-row :filename))]
+         path (save-file-o tempfile
+                           (str (tf/unparse (tf/formatter-local "yyyy/MM/dd/") (tl/local-now)) id)
+                           (file-row :filename)
+                           options)]
      (-> new-row
          (assoc :path path)
          files-save))))
+
+(defn file-upload [file-row tempfile]
+  (file-upload-o file-row tempfile {}))
+
 
 (defn file-pred-images* [query* & [not?]]
   (where query*
@@ -743,11 +766,16 @@
 (defentity files_rel
   (belongs-to files))
 
-(defn file-upload-rel-on [entity files-rel-field {id :id :as entity-row} file-row tempfile]
+(defn file-upload-rel-on-o [entity files-rel-field {id :id :as entity-row} options file-row tempfile]
   (transaction
-   (let [file-row (file-upload file-row tempfile)]
+   (let [file-row (file-upload-o file-row tempfile options)]
      [file-row (insert files_rel (values {:files_id (:id file-row) files-rel-field id}))]
      )))
+
+(defn file-upload-rel-on [entity files-rel-field {id :id :as entity-row} file-row tempfile]
+  (file-upload-rel-on-o entity files-rel-field {id :id :as entity-row} {} file-row tempfile))
+
+
 
 (defn files_rel-delete [files-rel-field {file-id :id} {rel-id :id}]
   (delete files_rel (where (and (= :files_id file-id)

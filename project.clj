@@ -8,7 +8,8 @@
                  [hiccup "1.0.5"]
                  [clj-time "0.9.0"]
                  [korma "0.4.2"]
-                 [net.sourceforge.htmlcleaner/htmlcleaner "2.12"]
+                 [net.sourceforge.htmlcleaner/htmlcleaner "2.12"]                 
+                 [image-resizer "0.1.6"]
                  ]
 
   :source-paths ["src" "src-cljs"]

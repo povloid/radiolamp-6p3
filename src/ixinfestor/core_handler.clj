@@ -33,7 +33,6 @@
     (assoc-in params path (apply (partial f v) args))
     params))
 
-
 (defn web-file-upload [service-upload-fn uploader-params]
   (letfn [(upload-one [{:keys [size tempfile content-type filename]}]
             (service-upload-fn {:filename filename :size size :content_type content-type} tempfile))]
@@ -54,7 +53,7 @@
                         }
                    :as spec}]
   (println "routes-ix* - spec>" spec)
-  
+
   (routes
 
    (ANY "/ix/set" request
@@ -84,7 +83,7 @@
 ;; description: Маршруты для файлового аплоадера
 ;;------------------------------------------------------------------------------
 
-(defn routes-file* [edit-roles-set]
+(defn routes-file* [edit-roles-set {:keys [save-file-fn-options]}]
   (routes
 
    (POST "/files/list" {{:keys [page page-size fts-query]
@@ -108,7 +107,10 @@
           (friend/authorize
            edit-roles-set
            (do
-             (web-file-upload ix/file-upload (-> request :params :image-uploader))
+             (web-file-upload
+              (fn [a b]
+                (ix/file-upload-o a b save-file-fn-options))
+              (-> request :params :image-uploader))
              (ring.util.response/response "OK") ))))
 
    (POST "/files/edit" request
@@ -351,7 +353,8 @@
                                spec-edit-fn
                                spec-save-fn
                                rb
-                               covertors-fn]
+                               covertors-fn
+                               save-file-fn-options]
                         :or {webdoc-entity ix/webdoc
                              webdoc-select* ix/webdoc-select*
                              covertors-fn (fn [webdoc-row] webdoc-row)
@@ -359,7 +362,8 @@
                              spec-save-fn (fn [_ _] nil)
                              rb {}
                              context-path "/tc/rb/webdocs"
-                             webdoc-save-fn ix/webdoc-save}
+                             webdoc-save-fn ix/webdoc-save
+                             save-file-fn-options {}}
                         :as init-row}]
   (routes
    (context context-path []
@@ -388,7 +392,7 @@
             (POST "/edit" {{id :id} :params}
                   (-> {:webdoc-row (if id (ix/com-find webdoc-entity id) {})}
                       spec-edit-fn
-                      (assoc :rb rb) 
+                      (assoc :rb rb)
                       ring.util.response/response
                       cw/error-response-json))
 
@@ -412,7 +416,7 @@
                                                ;;(update-in-if-not-nil? [:showedate] #(new java.util.Date %))
                                                covertors-fn
                                                webdoc-save-fn
-                                               ))]                      
+                                               ))]
 
                       (ring.util.response/response {:result-code 0
                                                     :spec-save-fn-result (spec-save-fn row new-webdoc-row)
@@ -454,16 +458,16 @@
                       cw/error-response-json))
 
             (context "/upload/:id" [id]
-
                      (multipart/wrap-multipart-params
                       (POST "/image/avatar" request
                             (friend/authorize
                              edit-roles-set
                              (ring.util.response/response
                               (let [id (parseLong id)
-                                    [{path :path} _] (web-file-upload
-                                                      (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id id})
-                                                      (-> request :params :file-uploader))]
+                                    [{path :path} _]
+                                    (web-file-upload
+                                     (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id id})
+                                     (-> request :params :file-uploader))]
                                 (ix/webdoc-save {:id id :web_title_image path})
                                 "OK")))))
 
@@ -473,7 +477,7 @@
                              edit-roles-set
                              (ring.util.response/response
                               (do (web-file-upload
-                                   (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id (parseLong id)})
+                                   (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id (parseLong id)} save-file-fn-options)
                                    (-> request :params :image-uploader))
                                   "OK")))))
 
@@ -484,7 +488,7 @@
                              (ring.util.response/response
                               (do
                                 (web-file-upload
-                                 (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id (parseLong id)})
+                                 (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id (parseLong id)} save-file-fn-options)
                                  (-> request :params :file-uploader))
                                 "OK")))))
 
@@ -492,7 +496,7 @@
 
             (POST "/files_rel/delete" {{:keys [webdoc-id file-id]} :params}
                   (friend/authorize
-                   edit-roles-set                   
+                   edit-roles-set
                    (-> (do
                          (ix/files_rel-delete :webdoc_id {:id file-id} {:id webdoc-id})
                          (ring.util.response/response {:result "OK"}))
