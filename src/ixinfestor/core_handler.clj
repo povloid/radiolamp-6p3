@@ -203,11 +203,9 @@
                    (cw/error-response-json
                     (let [{:keys [row user-roles-keys-set]} (request :params)
                           row (-> row
-                                  ix/print-debug->>>
                                   (as-> row
                                       (if (empty? (:password row)) (dissoc row :password)
                                           (update-in row [:password] creds/hash-bcrypt)))
-                                  ix/print-debug->>>
                                   ((partial ix/com-save-for-id ix/webuser))
                                   (dissoc :password))]
 
@@ -466,7 +464,7 @@
                               (let [id (parseLong id)
                                     [{path :path} _]
                                     (web-file-upload
-                                     (partial ix/file-upload-rel-on webdoc-entity :webdoc_id {:id id})
+                                     (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id id} save-file-fn-options)
                                      (-> request :params :file-uploader))]
                                 (ix/webdoc-save {:id id :web_title_image path})
                                 "OK")))))
