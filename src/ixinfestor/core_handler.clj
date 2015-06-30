@@ -347,6 +347,7 @@
                        {:keys [webdoc-entity
                                webdoc-select*
                                webdoc-save-fn
+                               webdoc-delete-fn
                                context-path
                                spec-edit-fn
                                spec-save-fn
@@ -361,6 +362,7 @@
                              rb {}
                              context-path "/tc/rb/webdocs"
                              webdoc-save-fn ix/webdoc-save
+                             webdoc-delete-fn ix/webdoc-delete
                              save-file-fn-options {}}
                         :as init-row}]
   (routes
@@ -432,7 +434,7 @@
                    edit-roles-set
                    (-> request
                        :params
-                       ix/webdoc-delete
+                       webdoc-delete-fn
                        ((fn [_] {:result "OK"}))
                        ring.util.response/response
                        cw/error-response-json)))

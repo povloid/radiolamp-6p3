@@ -976,9 +976,10 @@
    (webdoc-delete webdoc-row webdoc))
   ([{id :id} webdoc-entity]
    (transaction
-    (delete webdoctag (where (= :webdoc_id id)))
-    (delete files_rel (where (= :webdoc_id id)))
-    (com-delete-for-id webdoc-entity id))))
+    (do
+      (delete webdoctag (where (= :webdoc_id id)))
+      (delete files_rel (where (= :webdoc_id id)))
+      (com-delete-for-id webdoc-entity id)))))
 
 (def webdoc-select*-for-urls
   (-> webdoc-select*
