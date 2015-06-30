@@ -15,11 +15,15 @@
 
 (enable-console-print!)
 
+(def doc-buttons-plus-fn :doc-buttons-plus-fn)
+
 (def webdocs-edit-imap-key :webdocs-edit-imap)
 
 (defn webdocs-new [page-main--chan-show-page
                    chan-do-after-repaint
-                   specific]
+                   {:keys [doc-buttons-plus-fn]
+                    :or {doc-buttons-plus-fn (fn [page-state chan-repaint-tree chan-repaint-table] (list))}
+                    :as specific}]
   (let [
         webdocs-edit-rmap (webdocs-edit/webdocs-edit-new
                            page-main--chan-show-page
@@ -57,37 +61,43 @@
                        }
               "новый тег"]
              ]
-            [:div {:class "col-sm-2 col-sm-offset-1 col-md-2 col-md-offset-1 col-lg-2 col-lg-offset-1"
-                   :style "padding: 2px"}
-             [:button {:class "btn btn-primary"
-                       :role "button"
-                       :on-click #(put! (webdocs-edit-rmap :chan-show-dialog)
-                                        {:on-close :webdocs
-                                         :id nil
-                                         :tag-id (@page-state :tag-id)})
-                       }
-              "новый документ"]
-             ]
 
-            [:div {:class "col-sm-3 col-md-3 col-lg-3"
-                   :style "padding: 2px"}
-             (ix/input-fts {:id :fts-form-div
-                            :value (@page-state :fts-query)
-                            :on-change-fn #(swap! page-state assoc :fts-query %)
-                            :find-fn #(do
-                                        (swap! page-state assoc :page 1)
-                                        (ix/t-table-paginator-update-value-from-map :pagenator-1 @page-state)
-                                        (put! chan-repaint-table 1))
-                            })
-             ]
+            [:div {:class "col-sm-10  col-md-10  col-lg-10"
+                   :style "padding: 2px;text-align:right"}
+
+             [:div {:style "float:left" :class "btn-group" :role "group"}
+              [:button {:class "btn btn-primary"
+                        :role "button"
+                        :on-click #(put! (webdocs-edit-rmap :chan-show-dialog)
+                                         {:on-close :webdocs
+                                          :id nil
+                                          :tag-id (@page-state :tag-id)})
+                        }
+               "новый документ"]
 
 
-            [:div {;;:class "col-sm-4 col-sm-offset-1 col-md-4 col-md-offset-1 col-lg-4 col-lg-offset-1"
-                   :class "col-sm-4 col-sm-offset-0 col-md-4 col-md-offset-0 col-lg-4 col-lg-offset-0"
-                   :style "text-align:right"}
+              (doc-buttons-plus-fn page-state chan-repaint-tree chan-repaint-table)
+              ;; [:button {:class "btn btn-default"
+              ;;           :role "button"
+              ;;           ;;:on-click #(put! chan-do-tag {:parent_id (@page-state :tag-id)})
+              ;;           }
+              ;;  "Импорт"]
+              ]
 
-             (ix/t-table-paginator :pagenator-1 "" chan-pagination @page-state)]
-            ])
+             [:div {:style "display:inline-block;width:220px;padding-right:4px"}
+              (ix/input-fts {:id :fts-form-div
+                             :value (@page-state :fts-query)
+                             :on-change-fn #(swap! page-state assoc :fts-query %)
+                             :find-fn #(do
+                                         (swap! page-state assoc :page 1)
+                                         (ix/t-table-paginator-update-value-from-map :pagenator-1 @page-state)
+                                         (put! chan-repaint-table 1))
+                             })
+              ]
+
+             (ix/t-table-paginator :pagenator-1 "" chan-pagination @page-state)
+
+             ]])
 
           (ix/clear-and-set-on-tag-by-id
            :main
