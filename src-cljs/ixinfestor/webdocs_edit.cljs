@@ -220,7 +220,7 @@
                                 [:span {:class "badge"}
                                  (ix/str-to-date-and-format :SHORT_DATETIME "нет" (get-in row [:webdoc-row :udate]))
                                  ]
-                                "Оюновлен:"]]]]
+                                "Обновлен:"]]]]
 
                             [:div {:class "form-group"}
                              [:label {:class "col-sm-2 control-label"} "URL+"]
