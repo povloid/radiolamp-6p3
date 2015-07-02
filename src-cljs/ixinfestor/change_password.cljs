@@ -50,7 +50,6 @@
                   [:input {:id "input-password-2" :class "form-control" :type "password" }]
                   ]]
 
-
                 ]]]]])
 
           (put! chan-do-after-repaint 1))))

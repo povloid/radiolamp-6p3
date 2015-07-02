@@ -303,6 +303,47 @@
                     (input-one-image :avatar (get-in row [:webdoc-row :web_title_image]))]]
 
                   [:div {:class "form-group"}
+                   [:label {:class "col-sm-2 control-label" :for "input-web-color-0"} "Цвета"]
+
+                   [:div {:class "col-sm-1"}
+                    [:label {:class "control-label" :for "input-web-color-0"} "Цвет 0 "]
+                    [:input {:id "input-web-color-0" :class "form-control"
+                             :placeholder "#000000", :type "color"
+                             :value (get-in row [:webdoc-row :web_color_0] "#000000")}]]
+
+                   [:div {:class "col-sm-1"}
+                    [:label {:class "control-label" :for "input-web-color-1"} "Цвет 1 "]
+                    [:input {:id "input-web-color-1" :class "form-control"
+                             :placeholder "#000000", :type "color"
+                             :value (get-in row [:webdoc-row :web_color_1] "#000000")}]]
+
+                   [:div {:class "col-sm-1"}
+                    [:label {:class "control-label" :for "input-web-color-2"} "Цвет 2 "]
+                    [:input {:id "input-web-color-2" :class "form-control"
+                             :placeholder "#000000", :type "color"
+                             :value (get-in row [:webdoc-row :web_color_2] "#000000")}]]
+
+                   [:div {:class "col-sm-1"}
+                    [:label {:class "control-label" :for "input-web-color-3"} "Цвет 3 "]
+                    [:input {:id "input-web-color-3" :class "form-control"
+                             :placeholder "#000000", :type "color"
+                             :value (get-in row [:webdoc-row :web_color_3] "#000000")}]]
+
+                   [:div {:class "col-sm-1"}
+                    [:label {:class "control-label" :for "input-web-color-4"} "Цвет 4 "]
+                    [:input {:id "input-web-color-4" :class "form-control"
+                             :placeholder "#000000", :type "color"
+                             :value (get-in row [:webdoc-row :web_color_4] "#000000")}]]
+                   
+                   [:div {:class "col-sm-1"}
+                    [:label {:class "control-label" :for "input-web-color-5"} "Цвет 5 "]
+                    [:input {:id "input-web-color-5" :class "form-control"
+                             :placeholder "#000000", :type "color"
+                             :value (get-in row [:webdoc-row :web_color_5] "#000000")}]]
+                   ]
+
+
+                  [:div {:class "form-group"}
                    [:label {:class "col-sm-2 control-label" :for "input-web-top-description"} "Краткое описание"]
                    [:div {:class "col-sm-10"}
                     [:textarea {:id "input-web-top-description" :class "form-control"
@@ -445,6 +486,15 @@
                               :web_meta_keywords (dommy/value (ix/by-id :input-web-meta-keywords))
                               :web_meta_description (dommy/value (ix/by-id :input-web-meta-description))
                               :web_top_description (dommy/value (ix/by-id :input-web-top-description))
+
+                              :web_color_0 (dommy/value (ix/by-id :input-web-color-0))
+                              :web_color_1 (dommy/value (ix/by-id :input-web-color-1))
+                              :web_color_2 (dommy/value (ix/by-id :input-web-color-2))
+                              :web_color_3 (dommy/value (ix/by-id :input-web-color-3))
+                              :web_color_4 (dommy/value (ix/by-id :input-web-color-4))
+                              :web_color_5 (dommy/value (ix/by-id :input-web-color-5))
+
+
                               :web_description (-> js/CKEDITOR .-instances (aget "inputckedit1") .getData)
                               ;;:web_description (dommy/value (ix/by-id :inputckedit1))
                               :web_citems (dommy/value (ix/by-id :input-web-citems))
