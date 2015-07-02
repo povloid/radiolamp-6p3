@@ -925,7 +925,12 @@
                  ((partial prepare-date-to-sql-timestamp :cdate))
                  (assoc :udate (new java.util.Date))
                  ((partial prepare-date-to-sql-timestamp :udate))
-                 (assoc :ttitle (make-translit-ru-en (str keyname)))
+
+                 (as-> row
+                     (if keyname
+                       (assoc row :ttitle (make-translit-ru-en (str keyname)))
+                       row))                   
+                 
                  (assoc :plan_text (html-clean-tags web_description))
                  )))
 
