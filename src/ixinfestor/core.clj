@@ -988,7 +988,8 @@
 
 (def webdoc-select*-for-urls
   (-> webdoc-select*
-      (fields :id :keyname :ttitle :web_title_image :web_top_description :cdate)))
+      (fields :id :keyname :ttitle :web_title_image :web_top_description :cdate
+              :web_color_0 :web_color_1 :web_color_2 :web_color_3 :web_color_4 :web_color_5)))
 
 (defn webdoc-get-url-path [{:keys [id ttitle]}]
   (str "/" id "/" ttitle ))

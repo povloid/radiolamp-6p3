@@ -144,9 +144,9 @@
     ))
 
 (defn display-message-on-time [time message]
-  (let [el [:div {:id "top-message" :class "alert alert-success" :style "position:absolute;bottom:10px;right:10px" :role "alert"}
+  (let [el [:div {:id "top-message" :class "alert alert-success" :style "position:absolute;top:5px;right:5px" :role "alert"}
             message]]
-    (->> el hipo/create (dommy/append! (sel1 :body)))
+    (->> el hipo/create (dommy/append! (sel1 :nav)))
     ;;(.appendChild (.-body js/document) (hipo/create el))
     (js/setTimeout (fn []
                      (when-let [e (by-id :top-message)]
