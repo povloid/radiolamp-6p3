@@ -144,9 +144,9 @@
     ))
 
 (defn display-message-on-time [time message]
-  (let [el [:div {:id "top-message" :class "alert alert-success" :style "position:absolute;top:10px;left:10px" :role "alert"}
+  (let [el [:div {:id "top-message" :class "alert alert-success" :style "position:absolute;bottom:10px;right:10px" :role "alert"}
             message]]
-    (->> el hipo/create (dommy/append! (by-id :main-navbar)))
+    (->> el hipo/create (dommy/append! (sel1 :body)))
     ;;(.appendChild (.-body js/document) (hipo/create el))
     (js/setTimeout (fn []
                      (when-let [e (by-id :top-message)]
@@ -608,6 +608,9 @@
 ;;*
 ;;**************************************************************************************************
 
+
+
+
 (def chan-ajax-post-json (chan))
 (def chan-ajax-post-json-white-end (chan))
 
@@ -615,6 +618,14 @@
   (while true
     (let [[url params handler-fn error-handler-fn] (<! chan-ajax-post-json)]
       (println "AJAX POST REQUEST: START ON " url " <- " params)
+
+
+      (let [el [:div {:id "top-download-message" :class "alert alert-warning" :style "position:absolute;top:40%;left:40%" :role "alert"}
+                [:img {:src "/images/preloader.gif"}]
+                "Подождите, идет загрузка данных..."]]
+        (->> el
+             hipo/create
+             (dommy/append! (sel1 :body))))
 
       ;; Данный вариант не работает в общей функции
       ;; #_(POST "/tag/path-and-chailds"
@@ -638,17 +649,19 @@
         :handler (fn [[ok response]]
 
                    (put! chan-ajax-post-json-white-end 1)
-                   
+
                    (if ok
                      (handler-fn response)
-                     (error-handler-fn response))
+                     (do (println "AJAX ERROR: " ok)
+                         (error-handler-fn response)))
+
                    ;;(println "AJAX POST RESPONSE ON " url " ->  " response)
 
                    (println "AJAX POST REQUEST: END ON " url))
         })
 
       (let [_ (<! chan-ajax-post-json-white-end)]
-        ))))
+        (when-let [e (by-id :top-download-message)] (dommy/remove! e))))))
 
 (defn ajax-post-json
   ([url params handler-fn]
