@@ -4,7 +4,6 @@
             [ixinfestor.core :as ix]
             [ixinfestor.io :as ix-io]
 
-            [ajax.core :refer [GET POST]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
 
             [cljs.core.async :as async :refer [>! <! put! chan alts!]]
@@ -77,62 +76,59 @@
     (go
       (while true
         (let [_ (<! chan-repaint-table)]
-          (POST "/files/list"
-                {:params (select-keys @page-state [:page :page-size :fts-query])
-                 :format :json
-                 :response-format :json
-                 :error-handler ix/error-handler
-                 :keywords? true
-                 :handler (fn [rows]
-                            (ix/clear-and-set-on-tag-by-id
-                             :main
-                             [:div {:class "container-fluid"}
-                              [:div {:class "row"}
-                               [:div {:class "col-sm-12 col-md-12 col-lg-12"}
-                                [:table {:class "table table-striped"}
-                                 [:thead
-                                  [:tr
-                                   [:th "Таблица ресурсов"]
-                                   ]
-                                  ]
-                                 [:tbody
-                                  (map
-                                   (fn [{:keys [id path content_type top_description description] :as row}]
-                                     (let [image? (#{"image/gif"
-                                                     "image/jpeg"
-                                                     "image/pjpeg"
-                                                     "image/png"
-                                                     "image/svg+xml"
-                                                     "image/tiff"} content_type)]
+          (ix/ajax-post-json
+           "/files/list"
+           (select-keys @page-state [:page :page-size :fts-query])
+           (fn [rows]
+             (ix/clear-and-set-on-tag-by-id
+              :main
+              [:div {:class "container-fluid"}
+               [:div {:class "row"}
+                [:div {:class "col-sm-12 col-md-12 col-lg-12"}
+                 [:table {:class "table table-striped"}
+                  [:thead
+                   [:tr
+                    [:th "Таблица ресурсов"]
+                    ]
+                   ]
+                  [:tbody
+                   (map
+                    (fn [{:keys [id path content_type top_description description] :as row}]
+                      (let [image? (#{"image/gif"
+                                      "image/jpeg"
+                                      "image/pjpeg"
+                                      "image/png"
+                                      "image/svg+xml"
+                                      "image/tiff"} content_type)]
 
-                                       [:tr {:on-click #(this-as this (put! chan-select-row row))
-                                             :style "cursor: pointer"}
-                                        [:td
-                                         [:div {:class "media"}
-                                          [:div {:class "media-left"}
-                                           (if image?
-                                             [:img {:class "media-object"
-                                                    :style "width:64px"
-                                                    :src (str "/image/" path) :alt "Аватарка"}]
-                                             [:span {:class "glyphicon glyphicon-file"
-                                                     :style "font-size:5em;float:left" :aria-hidden "true"}]
-                                             )
-                                           ]
-                                          [:div {:class "media-body"}
-                                           [:h4 {:class "media-heading"} top_description]
-                                           description
-                                           [:br]
-                                           [:div {:style ""}
-                                            [:span {:class "label label-default" } "URL"]" "
-                                            [:input {:type "text" :style "width:50%;font-size:0.7em"
-                                                     :value (str (if image? "/image/" "/file/") path)
-                                                     :on-mousedown #(this-as this (.select this))}]]
-                                           ]]]]
-                                       ))
-                                   rows)
-                                  ]]]]
-                              [:div {:id "modal-1"}]]
-                             ))}))))
+                        [:tr {:on-click #(this-as this (put! chan-select-row row))
+                              :style "cursor: pointer"}
+                         [:td
+                          [:div {:class "media"}
+                           [:div {:class "media-left"}
+                            (if image?
+                              [:img {:class "media-object"
+                                     :style "width:64px"
+                                     :src (str "/image/" path) :alt "Аватарка"}]
+                              [:span {:class "glyphicon glyphicon-file"
+                                      :style "font-size:5em;float:left" :aria-hidden "true"}]
+                              )
+                            ]
+                           [:div {:class "media-body"}
+                            [:h4 {:class "media-heading"} top_description]
+                            description
+                            [:br]
+                            [:div {:style ""}
+                             [:span {:class "label label-default" } "URL"]" "
+                             [:input {:type "text" :style "width:50%;font-size:0.7em"
+                                      :value (str (if image? "/image/" "/file/") path)
+                                      :on-mousedown #(this-as this (.select this))}]]
+                            ]]]]
+                        ))
+                    rows)
+                   ]]]]
+               [:div {:id "modal-1"}]]
+              ))))))
 
     ;; Канал работы с картинками
     (go
@@ -213,18 +209,15 @@
               {:class "btn btn-primary btn-lg"
                :type "button" :data-dismiss "modal"
                :on-click (fn []
-                           (POST "/files/edit"
-                                 {:params {:id (row :id)
-                                           :top_description (dommy/value (sel1 :#input-image-top-description))
-                                           :galleria (.-checked (sel1 :#input-image-galleria))
-                                           :description (dommy/value (sel1 :#input-image-description))}
-                                  :format :json
-                                  :response-format :json
-                                  :keywords? true
-                                  :error-handler ix/error-handler
-                                  :handler (fn [response]
-                                             (put! chan-repaint-table 1)
-                                             (println "IMAGE EDITED!")) }))}
+                           (ix/ajax-post-json
+                            "/files/edit"
+                            {:id (row :id)
+                             :top_description (dommy/value (sel1 :#input-image-top-description))
+                             :galleria (.-checked (sel1 :#input-image-galleria))
+                             :description (dommy/value (sel1 :#input-image-description))}
+                            (fn [response]
+                              (put! chan-repaint-table 1)
+                              (println "IMAGE EDITED!"))))}
               "Сохранить"]
 
              [:button {:class "btn btn-default" :data-dismiss "modal", :type "button"} "Закрыть"])
@@ -246,15 +239,12 @@
                      [:button {:class "btn btn-danger btn-lg"
                                :type "button" :data-dismiss "modal"
                                :on-click (fn []
-                                           (POST "/files/delete"
-                                                 {:params {:id (:id row)}
-                                                  :format :json
-                                                  :response-format :json
-                                                  :keywords? true
-                                                  :error-handler ix/error-handler
-                                                  :handler (fn [response]
-                                                             (put! chan-repaint-table 1)
-                                                             (println "IMAGE DELETED!")) }))}
+                                           (ix/ajax-post-json
+                                            "/files/delete"
+                                            {:id (:id row)}
+                                            (fn [response]
+                                              (put! chan-repaint-table 1)
+                                              (println "IMAGE DELETED!")))) }
                       "Удалить!"]
                      [:button {:class "btn btn-default" :data-dismiss "modal", :type "button"} "Закрыть"])
             }))))

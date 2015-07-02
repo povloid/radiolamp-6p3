@@ -3,7 +3,6 @@
   (:require [hipo.core :as hipo]
             [ixinfestor.core :as ix]
             [ixinfestor.webusers-edit :as webusers-edit]
-            [ajax.core :refer [GET POST]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
 
             [cljs.core.async :as async :refer [>! <! put! chan alts!]]
@@ -76,40 +75,37 @@
       (while true
         (let [_ (<! chan-repaint-table)]
           (println @page-state)
-          (POST "/tc/rb/webusers/list"
-                {:params (select-keys @page-state [:page :page-size :fts-query])
-                 :format :json
-                 :response-format :json
-                 :error-handler ix/error-handler
-                 :keywords? true
-                 :handler (fn [rows]
-                            (println rows)
-                            (ix/clear-and-set-on-tag-by-id
-                             :main
-                             [:div {:class "container-fluid"}
-                              [:div {:class "row"}
-                               [:div {:class "col-sm-12 col-md-12 col-lg-12"}
-                                [:table {:class "table table-striped"}
-                                 [:thead
-                                  [:tr
-                                   [:th "#"]
-                                   [:th "пользователь"]
-                                   [:th "Описание"]
-                                   ]
-                                  ]
-                                 [:tbody
-                                  (map
-                                   (fn [row]
-                                     [:tr {:on-click #(this-as this (put! chan-select-row [this (row :id)]))
-                                           :style "cursor: pointer"}
-                                      [:td (row :id)]
-                                      [:td (row :username)]
-                                      [:td (row :description)]
-                                      ])
-                                   rows)
-                                  ]]]]
-                              [:div {:id "modal-1"}]]
-                             ))}))))
+          (ix/ajax-post-json
+           "/tc/rb/webusers/list"
+           (select-keys @page-state [:page :page-size :fts-query])
+           (fn [rows]
+             (println rows)
+             (ix/clear-and-set-on-tag-by-id
+              :main
+              [:div {:class "container-fluid"}
+               [:div {:class "row"}
+                [:div {:class "col-sm-12 col-md-12 col-lg-12"}
+                 [:table {:class "table table-striped"}
+                  [:thead
+                   [:tr
+                    [:th "#"]
+                    [:th "пользователь"]
+                    [:th "Описание"]
+                    ]
+                   ]
+                  [:tbody
+                   (map
+                    (fn [row]
+                      [:tr {:on-click #(this-as this (put! chan-select-row [this (row :id)]))
+                            :style "cursor: pointer"}
+                       [:td (row :id)]
+                       [:td (row :username)]
+                       [:td (row :description)]
+                       ])
+                    rows)
+                   ]]]]
+               [:div {:id "modal-1"}]]
+              ))))))
 
     (go
       (while true
@@ -152,18 +148,14 @@
       (while true
         (let [row (<! chan-delete-row)]
           (println "Delete row! " row )
-          (POST "/tc/rb/webusers/delete"
-                {:params row
-                 :format :json
-                 :response-format :json
-                 :keywords? true
-                 :error-handler ix/error-handler
-                 :handler
-                 (fn [response]
-                   (put! chan-repaint-table 1)
-                   (println "OK"))
-                 })
-          )))
+          (ix/ajax-post-json
+           "/tc/rb/webusers/delete"
+           row
+
+           (fn [response]
+             (put! chan-repaint-table 1)
+             (println "OK"))))))
+
 
     {:chan-repaint chan-repaint
      :webusers-edit-rmap webusers-edit-rmap}

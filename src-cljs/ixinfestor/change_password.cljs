@@ -2,7 +2,6 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [hipo.core :as hipo]
             [ixinfestor.core :as ix]
-            [ajax.core :refer [GET POST]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
 
             [cljs.core.async :as async :refer [>! <! put! chan alts!]]
@@ -23,8 +22,6 @@
     (go
       (while true
         (let [_ (<! chan-repaint)]
-
-          (println 1234131341)
 
           (ix/clear-and-set-on-tag-by-id :page-caption "Смена пароля пользователя")
 
@@ -58,7 +55,6 @@
 
           (put! chan-do-after-repaint 1))))
 
-
     (go
       (while true
         (let [_ (<! chan-save)]
@@ -68,14 +64,12 @@
                                                                      "Введеные пароли не совпадают"
                                                                      :input-password-2)])
                               ix/input-all-valid-or-nil)]
-            (POST "/tc/rb/webusers/change-password"
-                  {:params row
-                   :error-handler ix/error-handler
-                   :format :json
-                   :response-format :json :keywords? true
-                   :handler
-                   (fn [_]
-                     (put! chan-repaint 1)
-                     (ix/display-message-on-time 2000 "Запись сохранена успешно"))})))))
+            (ix/ajax-post-json
+             "/tc/rb/webusers/change-password"
+             row
+
+             (fn [_]
+               (put! chan-repaint 1)
+               (ix/display-message-on-time 2000 "Запись сохранена успешно")))))))
 
     {:chan-repaint chan-repaint}))

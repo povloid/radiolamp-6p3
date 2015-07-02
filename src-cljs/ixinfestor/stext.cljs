@@ -5,7 +5,6 @@
 
             [ixinfestor.stext-edit :as stext-edit]
 
-            [ajax.core :refer [GET POST]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
 
             [cljs.core.async :as async :refer [>! <! put! chan alts!]]
@@ -71,44 +70,41 @@
     (go
       (while true
         (let [_ (<! chan-repaint-table)]
-          (POST "/tc/rb/stext/list"
-                {:params (select-keys @page-state [:page :page-size :fts-query])
-                 :format :json
-                 :response-format :json
-                 :error-handler ix/error-handler
-                 :keywords? true
-                 :handler (fn [rows]
-                            (ix/clear-and-set-on-tag-by-id
-                             :main
-                             [:div {:class "container-fluid"}
-                              [:div {:class "row"}
-                               [:div {:class "col-sm-12 col-md-12 col-lg-12"}
-                                [:table {:class "table table-striped"}
-                                 [:thead
-                                  [:tr
-                                   [:th "Текстовые переменные"]
-                                   ]
-                                  ]
-                                 [:tbody
-                                  (map
-                                   (fn [row]
-                                     [:tr {:on-click #(this-as this (put! chan-select-row [this (row :id)]))
-                                           :style "cursor: pointer"}
-                                      [:td
-                                       [:div {:class "media"}
-                                        [:div {:class "media-left"}
-                                         [:span {:class "glyphicon glyphicon-edit"
-                                                 :style "font-size:3em" :aria-hidden "true"}]
-                                         ]
-                                        [:div {:class "media-body"}
-                                         [:h4 {:class "media-heading"} (row :keyname)]
-                                         (row :description)
-                                         ]]
-                                       ]])
-                                   rows)
-                                  ]]]]
-                              [:div {:id "modal-1"}]]
-                             ))}))))
+          (ix/ajax-post-json
+           "/tc/rb/stext/list"
+           (select-keys @page-state [:page :page-size :fts-query])
+           (fn [rows]
+             (ix/clear-and-set-on-tag-by-id
+              :main
+              [:div {:class "container-fluid"}
+               [:div {:class "row"}
+                [:div {:class "col-sm-12 col-md-12 col-lg-12"}
+                 [:table {:class "table table-striped"}
+                  [:thead
+                   [:tr
+                    [:th "Текстовые переменные"]
+                    ]
+                   ]
+                  [:tbody
+                   (map
+                    (fn [row]
+                      [:tr {:on-click #(this-as this (put! chan-select-row [this (row :id)]))
+                            :style "cursor: pointer"}
+                       [:td
+                        [:div {:class "media"}
+                         [:div {:class "media-left"}
+                          [:span {:class "glyphicon glyphicon-edit"
+                                  :style "font-size:3em" :aria-hidden "true"}]
+                          ]
+                         [:div {:class "media-body"}
+                          [:h4 {:class "media-heading"} (row :keyname)]
+                          (row :description)
+                          ]]
+                        ]])
+                    rows)
+                   ]]]]
+               [:div {:id "modal-1"}]]
+              ))))))
 
     (go
       (while true

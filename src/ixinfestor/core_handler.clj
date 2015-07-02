@@ -298,12 +298,14 @@
    (context "/tag" []
 
             (POST "/path-and-chailds" request
-                  (-> request
-                      :params
-                      (update-in [:id] #(if (= % 0) nil %))
-                      ix/tag-get-tree-path-and-childs
-                      ring.util.response/response
-                      cw/error-response-json))
+                  (do
+                    ;;(Thread/sleep 100000)
+                    (-> request
+                        :params
+                        (update-in [:id] #(if (= % 0) nil %))
+                        ix/tag-get-tree-path-and-childs
+                        ring.util.response/response
+                        cw/error-response-json)))
 
             #_(GET "/tree-as-flat-groups" []
                    (ring.util.response/response

@@ -600,3 +600,62 @@
 
 ;; END FTS
 ;;..................................................................................................
+;;**************************************************************************************************
+;;* BEGIN ajax
+;;* tag: <ajax tools>
+;;*
+;;* description: Инструментарий для работы с ajax
+;;*
+;;**************************************************************************************************
+
+(def chan-ajax-post-json (chan))
+(def chan-ajax-post-json-white-end (chan))
+
+(go
+  (while true
+    (let [[url params handler-fn error-handler-fn] (<! chan-ajax-post-json)]
+      (println "AJAX POST REQUEST: START ON " url " <- " params)
+
+      ;; Данный вариант не работает в общей функции
+      ;; #_(POST "/tag/path-and-chailds"
+      ;;         {:params params
+      ;;          :error-handler error-handler-fn
+      ;;          :format :json
+      ;;          :response-format :json
+      ;;          :keywords? true
+      ;;          :handler (fn [response]
+      ;;                     (handler-fn response)
+      ;;                     (println "AJAX POST REQUEST: END ON " url))
+      ;;         })
+
+      (ajax.core/ajax-request
+       {:uri url
+        :params params
+        :method :post
+        ;;:timeout 20000
+        :format (ajax.core/json-request-format)
+        :response-format (ajax.core/json-response-format {:keywords? true})
+        :handler (fn [[ok response]]
+
+                   (put! chan-ajax-post-json-white-end 1)
+                   
+                   (if ok
+                     (handler-fn response)
+                     (error-handler-fn response))
+                   ;;(println "AJAX POST RESPONSE ON " url " ->  " response)
+
+                   (println "AJAX POST REQUEST: END ON " url))
+        })
+
+      (let [_ (<! chan-ajax-post-json-white-end)]
+        ))))
+
+(defn ajax-post-json
+  ([url params handler-fn]
+   (ajax-post-json url params handler-fn error-handler))
+  ([url params handler-fn error-handler-fn]
+   (put! chan-ajax-post-json [url params handler-fn error-handler-fn])
+   ))
+
+;; END ajax
+;;..................................................................................................

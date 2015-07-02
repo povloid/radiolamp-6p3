@@ -5,7 +5,6 @@
 
             [ixinfestor.webdocs-edit :as webdocs-edit]
 
-            [ajax.core :refer [GET POST]]
             [dommy.core :as dommy :refer-macros [sel sel1]]
 
             [cljs.core.async :as async :refer [>! <! put! chan alts!]]
@@ -14,6 +13,27 @@
             [goog.dom.classes :as classes]))
 
 (enable-console-print!)
+
+;; ----------------------------------------------------------------------------------------------
+
+(defn- tree-node-cr [{:keys [id tagname description href active? on-click-fn open? const]}]
+  (let [const-css (if const "text-warning" "")]
+    [:li (if active?
+           {:id id :role "presentation" :class "active"}
+           {:id id :role "presentation"})
+     [:a {:href (or href "#") :style "width: 190px"
+          :on-click (or on-click-fn #(.log js/console "click-" id))}
+      (if open?
+        [:span {:class (str "glyphicon glyphicon-folder-open " const-css)  :aria-hidden "true"}]
+        [:span {:class (str "glyphicon glyphicon-folder-close " const-css) :aria-hidden "true"}])
+      " "
+      [:span {:class const-css} (ix/drop-long-string tagname 50)]
+      ]]))
+
+(defn- tree-node-add-childs [tree-node childs]
+  (conj tree-node [:ul {:class "nav nav-pills nav-stacked" :style "margin-left: 5px"}  childs]))
+
+;; ----------------------------------------------------------------------------------------------
 
 (def doc-buttons-plus-fn :doc-buttons-plus-fn)
 
@@ -117,29 +137,6 @@
 
           (put! chan-do-after-repaint 1))))
 
-
-
-    ;; ----------------------------------------------------------------------------------------------
-
-    (defn- tree-node-cr [{:keys [id tagname description href active? on-click-fn open? const]}]
-      (let [const-css (if const "text-warning" "")]
-        [:li (if active?
-               {:id id :role "presentation" :class "active"}
-               {:id id :role "presentation"})
-         [:a {:href (or href "#") :style "width: 190px"
-              :on-click (or on-click-fn #(.log js/console "click-" id))}
-          (if open?
-            [:span {:class (str "glyphicon glyphicon-folder-open " const-css)  :aria-hidden "true"}]
-            [:span {:class (str "glyphicon glyphicon-folder-close " const-css) :aria-hidden "true"}])
-          " "
-          [:span {:class const-css} (ix/drop-long-string tagname 50)]
-          ]]))
-
-    (defn- tree-node-add-childs [tree-node childs]
-      (conj tree-node [:ul {:class "nav nav-pills nav-stacked" :style "margin-left: 5px"}  childs]))
-
-    ;; ----------------------------------------------------------------------------------------------
-
     (go
       (while true
         (let [id (<! chan-switch-tag)]
@@ -162,75 +159,69 @@
         (let [_ (<! chan-repaint-tree)
               tree-bar (ix/by-id :tree-bar)]
           (dommy/clear! tree-bar)
-          (POST "/tag/path-and-chailds"
-                {:params {:id (@page-state :tag-id)}
-                 :error-handler ix/error-handler
-                 :format :json
-                 :response-format :json
-                 :keywords? true
-                 :handler (fn [[tree-path childs :as response]]
-                            (let [root-e {:id 0 :tagname "Корень" :open? true}
-                                  [selected-node & path] (if (empty? tree-path) [root-e] (conj tree-path root-e))]
-                              ;;(.log js/console "go!")
-                              ;;(.log js/console (str response))
-                              (->> childs
-                                   (map (fn [n] (tree-node-cr (assoc n :on-click-fn #(put! chan-switch-tag (:id n))))))
-                                   (tree-node-add-childs
-                                    (tree-node-cr (assoc selected-node
-                                                         :active? true
-                                                         :open? true
-                                                         :on-click-fn #(put! chan-do-tag selected-node)
-                                                         )))
-                                   ((fn [o]
-                                      (reduce #(tree-node-add-childs %2 %1)
-                                              o (map (fn [n]
-                                                       (tree-node-cr
-                                                        (assoc n
-                                                               :open? true
-                                                               :on-click-fn #(put! chan-switch-tag (:id n)))))
-                                                     path))))
-                                   (hipo/create)
-                                   (dommy/append! tree-bar))))
-                 }))))
+          (ix/ajax-post-json
+           "/tag/path-and-chailds"
+           {:id (@page-state :tag-id)}
+           (fn [[tree-path childs :as response]]
+             (let [root-e {:id 0 :tagname "Корень" :open? true}
+                   [selected-node & path] (if (empty? tree-path) [root-e] (conj tree-path root-e))]
+               ;;(.log js/console "go!")
+               ;;(.log js/console (str response))
+               (->> childs
+                    (map (fn [n] (tree-node-cr (assoc n :on-click-fn #(put! chan-switch-tag (:id n))))))
+                    (tree-node-add-childs
+                     (tree-node-cr (assoc selected-node
+                                          :active? true
+                                          :open? true
+                                          :on-click-fn #(put! chan-do-tag selected-node)
+                                          )))
+                    ((fn [o]
+                       (reduce #(tree-node-add-childs %2 %1)
+                               o (map (fn [n]
+                                        (tree-node-cr
+                                         (assoc n
+                                                :open? true
+                                                :on-click-fn #(put! chan-switch-tag (:id n)))))
+                                      path))))
+                    (hipo/create)
+                    (dommy/append! tree-bar))))))))
+
 
     (go
       (while true
         (let [_ (<! chan-repaint-table)]
           ;; Рендерим таблицу товаров
-          (POST "/tc/rb/webdocs/bytag"
-                {:params (select-keys @page-state [:tag-id :page :page-size :fts-query])
-                 :format :json
-                 :response-format :json
-                 :error-handler ix/error-handler
-                 :keywords? true
-                 :handler (fn [rows]
-                            (ix/clear-and-set-on-tag-by-id
-                             :main-content
-                             [:table {:class "table table-striped"}
-                              [:thead
-                               [:tr
-                                [:th "Список документов"]
-                                ]
-                               ]
-                              [:tbody
-                               (map
-                                (fn [row]
-                                  [:tr {:on-click #(this-as this (put! chan-select-row [this (row :id)]))
-                                        :style "cursor: pointer"}
-                                   [:td
-                                    [:div {:class "media"}
-                                     [:div {:class "media-left"}
-                                      (when-let [i (row :web_title_image)]
-                                        [:img {:class "media-object"
-                                               :style "width:64px"
-                                               :src (str "/image/" i) :alt "Аватарка"}])
-                                      ]
-                                     [:div {:class "media-body"}
-                                      [:h4 {:class "media-heading"} (row :keyname)]
-                                      (row :web_top_description)
-                                      ]]]])
-                                rows)
-                               ]]))}))))
+          (ix/ajax-post-json
+           "/tc/rb/webdocs/bytag"
+           (select-keys @page-state [:tag-id :page :page-size :fts-query])
+           (fn [rows]
+             (ix/clear-and-set-on-tag-by-id
+              :main-content
+              [:table {:class "table table-striped"}
+               [:thead
+                [:tr
+                 [:th "Список документов"]
+                 ]
+                ]
+               [:tbody
+                (map
+                 (fn [row]
+                   [:tr {:on-click #(this-as this (put! chan-select-row [this (row :id)]))
+                         :style "cursor: pointer"}
+                    [:td
+                     [:div {:class "media"}
+                      [:div {:class "media-left"}
+                       (when-let [i (row :web_title_image)]
+                         [:img {:class "media-object"
+                                :style "width:64px"
+                                :src (str "/image/" i) :alt "Аватарка"}])
+                       ]
+                      [:div {:class "media-body"}
+                       [:h4 {:class "media-heading"} (row :keyname)]
+                       (row :web_top_description)
+                       ]]]])
+                 rows)]]))))))
+
 
     (go
       (while true
@@ -273,18 +264,12 @@
       (while true
         (let [row (<! chan-delete-row)]
           (println "Delete row! " row )
-          (POST "/tc/rb/webdocs/delete"
-                {:params row
-                 :format :json
-                 :response-format :json
-                 :keywords? true
-                 :error-handler ix/error-handler
-                 :handler
-                 (fn [response]
-                   (put! chan-repaint-table 1)
-                   (println "OK"))
-                 })
-          )))
+          (ix/ajax-post-json
+           "/tc/rb/webdocs/delete"
+           row
+           (fn [response]
+             (put! chan-repaint-table 1)
+             (println "OK"))))))
 
 
     ;; TAGS OPERATIONS -------------------------------------------------------------------------------------------
@@ -324,18 +309,14 @@
                        [:button {:class "btn btn-danger navbar-left" :data-dismiss "modal", :type "button"
                                  :on-click (fn []
                                              (println "DELETE TAG:")
-                                             (POST "/tag/delete"
-                                                   {:params row
-                                                    :format :json
-                                                    :response-format :json
-                                                    :keywords? true
-                                                    :error-handler ix/error-handler
-                                                    :handler
-                                                    (fn [response]
-                                                      (println "old row - " row)
-                                                      (put! chan-switch-tag (or (:parent_id row) 0))
-                                                      (println "OK"))
-                                                    }))}
+                                             (ix/ajax-post-json
+                                              "/tag/delete"
+                                              row
+                                              (fn [response]
+                                                (println "old row - " row)
+                                                (put! chan-switch-tag (or (:parent_id row) 0))
+                                                (println "OK"))
+                                              ))}
                         "Удалить"])
 
                      [:button {:class "btn btn-primary" ;;:data-dismiss "modal",
@@ -347,20 +328,16 @@
                                                               (ix/input-validate-and-assoc :tagname :input-tagname [ix/validate-for-not-empty])
                                                               (assoc :description (-> :input-tag-description ix/by-id dommy/value))
                                                               ix/input-all-valid-or-nil)]
-                                             (POST "/tag/save"
-                                                   {:params row
-                                                    :format :json
-                                                    :response-format :json
-                                                    :keywords? true
-                                                    :error-handler (fn [response]
-                                                                     (ix/modal-hide-on-id :modal-1)
-                                                                     (ix/error-handler response))
-                                                    :handler
-                                                    (fn [response]
-                                                      (put! chan-repaint-tree 1)
-                                                      (ix/modal-hide-on-id :modal-1)
-                                                      (println "OK"))
-                                                    })))
+                                             (ix/ajax-post-json
+                                              "/tag/save"
+                                              row
+                                              (fn [response]
+                                                (put! chan-repaint-tree 1)
+                                                (ix/modal-hide-on-id :modal-1)
+                                                (println "OK"))                                              
+                                              (fn [response]
+                                                (ix/modal-hide-on-id :modal-1)
+                                                (ix/error-handler response)))))
                                }
                       "Принять"]
 
