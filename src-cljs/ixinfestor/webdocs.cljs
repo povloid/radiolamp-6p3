@@ -214,7 +214,7 @@
                        (when-let [i (row :web_title_image)]
                          [:img {:class "media-object"
                                 :style "width:64px"
-                                :src (str "/image/" i) :alt "Аватарка"}])
+                                :src i :alt "Аватарка"}])
                        ]
                       [:div {:class "media-body"}
                        [:h4 {:class "media-heading"} (row :keyname)]

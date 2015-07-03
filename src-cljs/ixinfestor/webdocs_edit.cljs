@@ -35,29 +35,44 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn input-one-image [id & [image-url]]
-  (let [immage-id (ix/xml-id "-image" id)
-        input-id (ix/xml-id "-uploader" id)]
-    [:form {:id (name id) :enctype "multipart/form-data" :method "POST"}
-     [:div {:class "panel panel-default"}
-      [:div {:class "panel-heading"}
-       [:span {:class "btn btn-default btn-file btn-primary"}
-        "Фаил..."
-        [:input {:id (name input-id)
-                 :name "file-uploader"
-                 :type "file" :multiple true
-                 :on-change #(this-as this
-                                      (let [img (ix/by-id immage-id)
-                                            reader (new js/FileReader)]
-                                        (println (-> this .-files (aget 0) .-name))
-                                        (println (.createObjectURL js/URL (-> this .-files (aget 0))))
-                                        (set! (.-src img) (.createObjectURL js/URL (-> this .-files (aget 0)))) ))
-                 }]]]
-      [:div {:class "panel-body"}
-       ;;[:div {:class "thumbnail"}
-       [:img {:id (name immage-id) :src (if image-url (str "/image/" image-url) "") :class "img-thumbnail" :alt "нет картинки"}]
-       ;; ]
-       ]
+;; старый вариант, требующий доработки
+;; (defn input-one-image [id & [image-url]]
+;;   (let [immage-id (ix/xml-id "-image" id)
+;;         input-id (ix/xml-id "-uploader" id)]
+;;     [:form {:id (name id) :enctype "multipart/form-data" :method "POST"}
+;;      [:div {:class "panel panel-default"}
+;;       [:div {:class "panel-heading"}
+;;        [:span {:class "btn btn-default btn-file btn-primary"}
+;;         "Фаил..."
+;;         [:input {:id (name input-id)
+;;                  :name "file-uploader"
+;;                  :type "file" :multiple true
+;;                  :on-change #(this-as this
+;;                                       (let [img (ix/by-id immage-id)
+;;                                             reader (new js/FileReader)]
+;;                                         (println (-> this .-files (aget 0) .-name))
+;;                                         (println (.createObjectURL js/URL (-> this .-files (aget 0))))
+;;                                         (set! (.-src img) (.createObjectURL js/URL (-> this .-files (aget 0)))) ))
+;;                  }]]]
+;;       [:div {:class "panel-body"}
+;;        ;;[:div {:class "thumbnail"}
+;;        [:img {:id (name immage-id) :src (if image-url  image-url "") :class "img-thumbnail" :alt "нет картинки"}]
+;;        ;; ]
+;;        ]
+;;       ]]))
+
+
+(defn input-one-image-text [id value]
+  (let [in (name id)
+        immage-id (str id "-img")]
+    [:div {:class "panel panel-default"}
+     [:div {:class "panel-heading"}
+      [:input {:id id :name id :type "text" :placeholder "URL картинки" :style "width:100%"
+               :on-change #(this-as this
+                                    (set! (.-src (ix/by-id immage-id)) (dommy/value this)))
+               :value value}]]
+     [:div {:class "panel-body"}
+      [:img {:id immage-id :src value :class "img-thumbnail" :alt "нет картинки"}]
       ]]))
 
 ;; END tmp zone
@@ -298,9 +313,12 @@
                      (get-in row [:webdoc-row :web_meta_description] "")]]]
 
                   [:div {:class "form-group"}
-                   [:label {:class "col-sm-2 control-label" :for "input-web-meta-subject"} "Аватар"]
+                   [:label {:class "col-sm-2 control-label" :for "input-web-title-image"} "Аватар"]
                    [:div {:class "col-sm-10"}
-                    (input-one-image :avatar (get-in row [:webdoc-row :web_title_image]))]]
+                    ;; Старый вариант, требующий доработки
+                    ;;(input-one-image :avatar (get-in row [:webdoc-row :web_title_image]))
+                    (input-one-image-text "input-web-title-image" (get-in row [:webdoc-row :web_title_image]))
+                    ]]
 
                   [:div {:class "form-group"}
                    [:label {:class "col-sm-2 control-label" :for "input-web-color-0"} "Цвета"]
@@ -334,7 +352,7 @@
                     [:input {:id "input-web-color-4" :class "form-control"
                              :placeholder "#000000", :type "color"
                              :value (get-in row [:webdoc-row :web_color_4] "#000000")}]]
-                   
+
                    [:div {:class "col-sm-1"}
                     [:label {:class "control-label" :for "input-web-color-5"} "Цвет 5 "]
                     [:input {:id "input-web-color-5" :class "form-control"
@@ -485,7 +503,9 @@
                               :web_meta_subject (dommy/value (ix/by-id :input-web-meta-subject))
                               :web_meta_keywords (dommy/value (ix/by-id :input-web-meta-keywords))
                               :web_meta_description (dommy/value (ix/by-id :input-web-meta-description))
+                              
                               :web_top_description (dommy/value (ix/by-id :input-web-top-description))
+                              :web_title_image (dommy/value (ix/by-id :input-web-title-image))                             
 
                               :web_color_0 (dommy/value (ix/by-id :input-web-color-0))
                               :web_color_1 (dommy/value (ix/by-id :input-web-color-1))
@@ -507,12 +527,14 @@
              "/tc/rb/webdocs/save"
              {:webdoc-row row }
              (fn [response]
-               (println "SAVE WEB! " (-> (ix/xml-id "-uploader" :avatar) ix/by-id .-files .-length))
-               (when (-> (ix/xml-id "-uploader" :avatar) ix/by-id .-files .-length (= 1))
-                 (ix-io/file-upload
-                  (ix/by-id :avatar)
-                  (str "/tc/rb/webdocs/upload/" (@page-state :id) "/image/avatar")
-                  {:success #(println "AVATAR UPLOAD SUCCES!!!")}))
+               
+               ;; Старый рабочий вариант, но требующий доработки
+               ;;(println "SAVE WEB! " (-> (ix/xml-id "-uploader" :avatar) ix/by-id .-files .-length))               
+               ;; (when (-> (ix/xml-id "-uploader" :avatar) ix/by-id .-files .-length (= 1))
+               ;;   (ix-io/file-upload
+               ;;    (ix/by-id :avatar)
+               ;;    (str "/tc/rb/webdocs/upload/" (@page-state :id) "/image/avatar")
+               ;;   {:success #(println "AVATAR UPLOAD SUCCES!!!")}))
 
                (ix/display-message-on-time 2000 "Запись сохранена успешно"))
              )))))
@@ -624,7 +646,7 @@
                                      :on-click #(put! chan-select-image-action row) :style "cursor: pointer"}
                                (when galleria
                                  [:span {:class "glyphicon glyphicon-film" :style "position:absolute;top:10px;left:5px;font-size:2em" :aria-hidden "true"}])
-                               [:a [:img {:src (str "/image/" path) :alt "фото"}]]
+                               [:a [:img {:src path :alt "фото"}]]
 
                                [:div {:class "caption"}
                                 (when (not (clojure.string/blank? top_description))
@@ -634,7 +656,7 @@
                                    (list description [:br]))
                                  [:span {:class "label label-default"} "URL"]" "
                                  [:input {:type "text" :style "width:70%;font-size:0.7em"
-                                          :value (str "/image/" path)
+                                          :value path
                                           :on-mousedown #(this-as this (.select this))}]]
                                 ]]]))
                       (partition-all 4)
@@ -663,7 +685,7 @@
            {:title (str "Операции с запипсью #" (:id row))
             :body [:div {:class "well center-block" :style "max-width:400px;"}
                    [:a {:class "btn btn-info btn-lg btn-block"
-                        :target "_blank" :href (str "/file/" (:path row))
+                        :target "_blank" :href (:path row)
                         :type "button" }
                     "открыть в другой вкладке"]
                    [:button {:class "btn btn-primary btn-lg btn-block"
@@ -748,7 +770,7 @@
            {:title (str "Удаление записи #" (:id row))
             :body  [:div {:class "row"}
                     [:img {:class "thumbnail col-sm-4 col-sm-offset-4"
-                           :src (str "/image/" (row :path)) :alt "фото"}]]
+                           :src (row :path) :alt "фото"}]]
             :footer (list
                      [:button {:class "btn btn-danger btn-lg"
                                :type "button" :data-dismiss "modal"
@@ -800,7 +822,7 @@
                                  [:div {:style ""}
                                   [:span {:class "label label-default" } "URL"]" "
                                   [:input {:type "text" :style "width:50%;font-size:0.7em"
-                                           :value (str "/file/" path)
+                                           :value path
                                            :on-mousedown #(this-as this (.select this))}]]]
                                 ]]]))
                       (partition-all 4)
@@ -832,7 +854,7 @@
            {:title (str "Операции с запипсью #" (:id row))
             :body [:div {:class "well center-block" :style "max-width:400px;"}
                    [:a {:class "btn btn-info btn-lg btn-block"
-                        :target "_blank" :href (str "/file/" (:path row))
+                        :target "_blank" :href (:path row)
                         :type "button" }
                     "открыть в другой вкладке"]
                    [:button {:class "btn btn-primary btn-lg btn-block"

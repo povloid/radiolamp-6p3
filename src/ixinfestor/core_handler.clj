@@ -108,8 +108,10 @@
            edit-roles-set
            (do
              (web-file-upload
-              (fn [a b]
-                (ix/file-upload-o a b save-file-fn-options))
+              (fn [a b] 
+                (ix/file-upload-o a b
+                                  ;TODO: ДОбавить выбор варианта от типа контента
+                                  (merge {:path-prefix "/image/"} save-file-fn-options)))
               (-> request :params :image-uploader))
              (ring.util.response/response "OK") ))))
 
@@ -468,7 +470,8 @@
                               (let [id (parseLong id)
                                     [{path :path} _]
                                     (web-file-upload
-                                     (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id id} save-file-fn-options)
+                                     (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id id}
+                                              (merge {:path-prefix "/image/"} save-file-fn-options))
                                      (-> request :params :file-uploader))]
                                 (ix/webdoc-save {:id id :web_title_image path})
                                 "OK")))))
@@ -479,7 +482,8 @@
                              edit-roles-set
                              (ring.util.response/response
                               (do (web-file-upload
-                                   (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id (parseLong id)} save-file-fn-options)
+                                   (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id (parseLong id)}
+                                            (merge {:path-prefix "/image/"} save-file-fn-options))
                                    (-> request :params :image-uploader))
                                   "OK")))))
 
@@ -490,7 +494,8 @@
                              (ring.util.response/response
                               (do
                                 (web-file-upload
-                                 (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id (parseLong id)} save-file-fn-options)
+                                 (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id (parseLong id)}
+                                          (merge {:path-prefix "/file/"} save-file-fn-options))
                                  (-> request :params :file-uploader))
                                 "OK")))))
 

@@ -727,7 +727,9 @@
 (defn files-delete [row]
   (com-delete-for-id files (:id row)))
 
-(defn file-upload-o [file-row tempfile options]
+(defn file-upload-o [file-row tempfile {:keys [path-prefix]
+                                        :or {path-prefix ""}
+                                        :as options}]
   (transaction
    (let [{id :id :as new-row} (-> file-row
                                   (assoc :path "?TMP?")
@@ -737,7 +739,7 @@
                            (file-row :filename)
                            options)]
      (-> new-row
-         (assoc :path path)
+         (assoc :path (str path-prefix path))
          files-save))))
 
 (defn file-upload [file-row tempfile]

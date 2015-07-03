@@ -109,7 +109,7 @@
                             (if image?
                               [:img {:class "media-object"
                                      :style "width:64px"
-                                     :src (str "/image/" path) :alt "Аватарка"}]
+                                     :src path :alt "Аватарка"}]
                               [:span {:class "glyphicon glyphicon-file"
                                       :style "font-size:5em;float:left" :aria-hidden "true"}]
                               )
@@ -121,7 +121,7 @@
                             [:div {:style ""}
                              [:span {:class "label label-default" } "URL"]" "
                              [:input {:type "text" :style "width:50%;font-size:0.7em"
-                                      :value (str (if image? "/image/" "/file/") path)
+                                      :value path
                                       :on-mousedown #(this-as this (.select this))}]]
                             ]]]]
                         ))
@@ -151,7 +151,7 @@
            {:title (str "Операции с запипсью #" (:id row))
             :body [:div {:class "well center-block" :style "max-width:400px;"}
                    [:a {:class "btn btn-info btn-lg btn-block"
-                        :target "_blank" :href (str "/file/" (:path row))
+                        :target "_blank" :href (:path row)
                         :type "button" }
                     "открыть в другой вкладке"]
                    [:button {:class "btn btn-primary btn-lg btn-block"
@@ -234,7 +234,7 @@
            {:title (str "Удаление записи #" (:id row))
             :body  [:div {:class "row"}
                     [:img {:class "thumbnail col-sm-4 col-sm-offset-4"
-                           :src (str "/image/" (row :path)) :alt "фото"}]]
+                           :src (row :path) :alt "фото"}]]
             :footer (list
                      [:button {:class "btn btn-danger btn-lg"
                                :type "button" :data-dismiss "modal"
