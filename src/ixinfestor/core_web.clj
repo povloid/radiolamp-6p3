@@ -11,16 +11,18 @@
    ;; !!!!!!!
    ;; [hiccup-bridge.core :as hicv]
 
-   [postal.core :as postal]
+   ;;; [postal.core :as postal]
 
-   [cemerick.friend :as friend]
-   (cemerick.friend [workflows :as workflows]
-                    [credentials :as creds])
+   ;;[cemerick.friend :as friend]
+   ;;(cemerick.friend [workflows :as workflows]
+   ;;                 [credentials :as creds])
 
    [clj-time.core :as tco]
    [clj-time.format :as tf]
    [clj-time.coerce :as tc]
    [clj-time.local :as tl]
+
+   [ring.util.response :as response]
 
    [clojure.stacktrace] ;; Нужно для error-response-json
 
@@ -129,7 +131,7 @@
             uri (request :uri)]
         (-> (hiccup.util/url uri {key-ix-request-parametr sc-id})
             str
-            (ring.util.response/redirect)
+            (response/redirect)
             (update-in [:session] merge (request :session))
             (assoc-in [:session key-ix-seq-id] sc-id)
             (assoc-in [:session key-ix-store (str sc-id) uri] {})))
@@ -143,7 +145,7 @@
           ;; то надо их сохранить в хранилище и заново запросить в чистую
           (-> (hiccup.util/url (request :uri) {key-ix-request-parametr sc-id})
               str
-              (ring.util.response/redirect)
+              (response/redirect)
               (assoc :session (request :session))
               (assoc-in [:session key-ix-store sc-id (request :uri)] restored-params))
           ;; иначе запрос чистый и выполняем функцию по запросу
@@ -165,12 +167,12 @@
   ;;(println ">>>1> " request)
   ;;(println ">>>2> " session)
   (-> "ok"
-      (ring.util.response/response)
+      (response/response)
       (assoc :session (update-in session [key-ix-store ix-id ix-page]
                                  merge (dissoc params
                                                key-ix-request-parametr
                                                key-ix-page-key-parametr)))
-      (ring.util.response/header "Content-Type" "text/html; charset=utf-8")))
+      (response/header "Content-Type" "text/html; charset=utf-8")))
 
 
 
@@ -234,11 +236,11 @@
                                         ; в функцию рендеринга целиком
 
                                         ;ответ сразу без отрисовки
-                    (= tag :response) (-> (ring.util.response/response (act-result-body result))
-                                          (ring.util.response/charset "UTF-8"))
+                    (= tag :response) (-> (response/response (act-result-body result))
+                                          (response/charset "UTF-8"))
 
                                         ;перенаправление на другой ресурс
-                    (= tag :redirect) (ring.util.response/redirect (act-result-body result))
+                    (= tag :redirect) (response/redirect (act-result-body result))
 
                                         ;если ничего не найдено то выводим страницу с сообщением
                     :else (html5 [:h1 "[2] Событие act: " act]
@@ -310,9 +312,9 @@
          (-> ex#
              .getMessage
              (ix/print-debug->>> "error-response-json")
-             ring.util.response/response
-             (ring.util.response/status 500)
-             (ring.util.response/content-type "text/javascript ; charset=utf-8"))))))
+             response/response
+             (response/status 500)
+             (response/content-type "text/javascript ; charset=utf-8"))))))
 
 ;; END json errors
 ;;........................................................................
