@@ -245,7 +245,7 @@
      ;;(include-css "/js/toopay-bootstrap-markdown/bootstrap-markdown.min.css")
 
      (include-css "/css/dashboard.css")
-     (include-js "/js/main.js")
+     (include-js "/js/c/ix/main.js")
      )}
    (list
         
