@@ -705,7 +705,11 @@
           (doseq [w ws
                   :let [full-path-spec (str full-path w)]]
             (-> file-src
-                (image-resizer.core/resize-to-width w)
+                ;;(image-resizer.core/resize-to-width w)
+                
+                ;;((image-resizer.resize/resize-width-fn w image-resizer.scale-methods/ultra-quality))
+                ((image-resizer.resize/force-resize-fn w w image-resizer.scale-methods/ultra-quality))
+                
                 (javax.imageio.ImageIO/write ext (new java.io.File full-path-spec))))))
 
       dir-filename)))

@@ -49,7 +49,6 @@
            ]
           [:body {:data-spy "scroll" :data-target "#body-scroll-spy"}
            body
-
            (include-js "/bootstrap/js/bootstrap.min.js")
            (include-js "/bootstrap/js/bootswatch.js")
            
