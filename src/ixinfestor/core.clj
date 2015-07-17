@@ -5,12 +5,16 @@
 
   (:use clojure.pprint)
 
+  (:import [org.imgscalr Scalr])
+
   (:require [clj-time.core :as tco]
             [clj-time.format :as tf]
             [clj-time.coerce :as tc]
             [clj-time.local :as tl]
 
             [image-resizer.core :refer :all]
+            [image-resizer.format :as format]
+            [image-resizer.pad :as pad]
             )
   )
 
@@ -677,6 +681,11 @@
 (def files-root-directory (promise))
 
 
+(defn image-file_as_w_png [buffered-file file-src w]
+  (let [resized-file (new java.io.File (str (.getPath file-src) "_as_" w ".png"))]
+    (javax.imageio.ImageIO/write buffered-file "png" resized-file)
+    (.getAbsolutePath resized-file)))
+
 (defn save-file-o [tempfile dir filename {:keys [ws] :or {ws []}}]
   (let [dir-filename (str dir "/" filename)
         full-path (str (if (realized? files-root-directory) @files-root-directory
@@ -702,17 +711,48 @@
             ext (image-resizer.fs/extension full-path)]
         ;;(println "EXT:" (clojure.string/lower-case ext))
         (when (#{"png" "jpg" "jpeg" "gif"} (clojure.string/lower-case ext))
-          (doseq [w ws
-                  :let [full-path-spec (str full-path w)]]
+          (doseq [w ws]
             (-> file-src
                 ;;(image-resizer.core/resize-to-width w)
-                
-                ;;((image-resizer.resize/resize-width-fn w image-resizer.scale-methods/ultra-quality))
-                ((image-resizer.resize/force-resize-fn w w image-resizer.scale-methods/ultra-quality))
-                
-                (javax.imageio.ImageIO/write ext (new java.io.File full-path-spec))))))
+
+                ((image-resizer.resize/resize-fn w w image-resizer.scale-methods/ultra-quality))
+
+                ;;(javax.imageio.ImageIO/write ext (new java.io.File full-path-spec))
+                ;;(format/as-file full-path-spec)
+                (image-file_as_w_png file-src w)
+                ))))
 
       dir-filename)))
+
+
+(declare files)
+
+(defn files-resize-all-images [{:keys [ws] :or {ws []}}]
+  (doseq [{path :path} (select files
+                               (fields :path)
+                               (where {:content_type [in ["image/gif"
+                                                          "image/jpeg"
+                                                          "image/pjpeg"
+                                                          "image/png"
+                                                          ;;"image/svg+xml"
+                                                          ;;"image/tiff"
+                                                          ]]}))
+          :let [path (clojure.string/replace-first path #"/image/" "/")
+                file-src (new java.io.File (str @files-root-directory "/" path))]]
+    (do
+      (println "Do file: " (.getPath file-src))
+      (doseq [w ws]
+        (-> file-src
+            ;;(image-resizer.core/resize-to-width w)
+
+            ((image-resizer.resize/resize-fn w w image-resizer.scale-methods/ultra-quality))
+
+            ;;(format/as-file full-path-spec)
+            (image-file_as_w_png file-src w)
+            
+            println))
+      (println "OK")
+      )))
 
 (defn save-file [tempfile dir filename]
   (save-file-o tempfile dir filename {}))
@@ -935,8 +975,8 @@
                  (as-> row
                      (if keyname
                        (assoc row :ttitle (make-translit-ru-en (str keyname)))
-                       row))                   
-                 
+                       row))
+
                  (assoc :plan_text (html-clean-tags web_description))
                  )))
 
