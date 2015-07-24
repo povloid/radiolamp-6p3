@@ -5,22 +5,24 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.7.0"]
 
-                 [ring "1.3.2"]
+                 [ring "1.4.0"]
                  [ring/ring-json "0.3.1"]
-                 [ring-transit "0.1.3"]
+
+                 ;;[ring-transit "0.1.3"]
+                 [prismatic/plumbing "0.4.4"]
                  [com.cognitect/transit-clj "0.8.275"]
                  
 
-                 [compojure "1.3.4"]
+                 [compojure "1.4.0"]
                  [hiccup "1.0.5"]
                  [com.cemerick/friend "0.2.1"]
 
-                 [clj-time "0.9.0"]
+                 [clj-time "0.10.0"]
 
                  [org.postgresql/postgresql "9.3-1102-jdbc41"]
                  [korma "0.4.2"]
                  
-                 [net.sourceforge.htmlcleaner/htmlcleaner "2.12"]
+                 [net.sourceforge.htmlcleaner/htmlcleaner "2.13"]
                  
                  [com.draines/postal "1.11.3"]                 
                  [image-resizer "0.1.6"]
@@ -43,7 +45,8 @@
   :aot [ixinfestor.core
         ixinfestor.core-web
         ixinfestor.core-web-bootstrap
-        ixinfestor.core-handler]
+        ixinfestor.core-handler
+        ixinfestor.transit]
   
   ;;:omit-source true
   :jar-exclusions [#"(?:^|ixinfestor/)*.clj\z"]
