@@ -46,6 +46,8 @@
            {:id (@page-state :id)}
 
            (fn [row]
+             (swap! page-state merge (select-keys row [:plantext]))
+
              (ix/clear-and-set-on-tag-by-id :page-caption "Редактирование текстовой переменной")
 
              (ix/clear-and-set-on-tag-by-id
@@ -79,12 +81,14 @@
                       (row :description)
                       ]]]]
 
+
                   [:div {:class "form-group"}
-                   [:label {:class "col-sm-3 control-label" :for "input-anytext"} "Описание"]
+                   [:label {:class "col-sm-3 control-label" :for "inputanytext1"} "Описание"]
                    [:div {:class "col-sm-9"}
-                    [:textarea {:id "input-anytext" :class "form-control"
+                    [:textarea {:id "inputanytext1" :class "form-control"
                                 :placeholder "Значение текстовой переменной...", :rows 14}
                      (or (:anytext row) "")]]]
+
 
                   ;; [:script
                   ;;  "var myCodeMirror = CodeMirror.fromTextArea(document.getElementById('input-anytext'),
@@ -93,26 +97,39 @@
                   ;;                     ndentUnit: 4                    // размер табуляции
                   ;;                     });"]
 
+                  ;; Вариант под ckeditor !
+                  (when (not (:plantext row))
+                    [:script {:type "text/javascript"} "CKEDITOR.replace('inputanytext1');"])
                   ]]]])
 
-             (let [cm (.fromTextArea js/CodeMirror (ix/by-id "input-anytext")
-                                     (clj->js
-                                      {:mode {:name "htmlmixed"
-                                              :xml true :javascript true :css true}
-                                       :lineNumbers true
-                                       :matchBrackets true
-                                       :selectionPointer true
-                                       :ndentUnit 4
-                                       }))]
-               (swap! page-state assoc :cm cm)))))))
+             ;; Вариант для codemirror !!!
+             (when (:plantext row)
+               (let [cm (.fromTextArea js/CodeMirror (ix/by-id "inputanytext1")
+                                       (clj->js
+                                        {:mode {:name "htmlmixed"
+                                                :xml true :javascript true :css true}
+                                         :lineNumbers true
+                                         :matchBrackets true
+                                         :selectionPointer true
+                                         :ndentUnit 4
+                                         }))]
+                 (swap! page-state assoc :cm cm))) )))))
 
     (go
       (while true
         (let [_ (<! chan-save)]
-          (-> @page-state :cm .save)
+
+
           (when-let [row  (-> (if-let [id (@page-state :id)] {:id id} {})
-                              (assoc :anytext (-> :input-anytext ix/by-id dommy/value))
-                              ;;(assoc :anytext (-> js/CKEDITOR .-instances (aget "inputckedit1") .getData))
+
+                              (as-> new-row
+                                  (if (not (@page-state :plantext))
+                                    ;; ckeditor !
+                                    (assoc new-row :anytext (-> js/CKEDITOR .-instances (aget "inputanytext1") .getData))
+                                    ;; codemirror !
+                                    (do (-> @page-state :cm .save)
+                                        (assoc new-row :anytext (-> :inputanytext1 ix/by-id dommy/value)))))
+
                               ix/input-all-valid-or-nil)]
             (ix/ajax-post-json
              "/tc/rb/stext/save"
