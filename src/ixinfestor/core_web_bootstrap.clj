@@ -106,7 +106,8 @@
     body]))
 
 (defn navbar-collapse [body]
-  [:div {:class "collapse navbar-collapse"} body])
+  [:div {:id :navbar-collapse
+         :class "collapse navbar-collapse"} body])
 
 (defn nav [body]
   [:div {:class "nav navbar-nav"} body])

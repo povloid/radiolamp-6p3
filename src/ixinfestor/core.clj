@@ -1214,6 +1214,7 @@
   (first (select stext (where (= :keyname (name stext-keyname))))))
 
 (defn stext-save-const [tag-row]
+  (println "stext-save-const >" tag-row)
   (com-save-for-field stext :keyname (update-in tag-row [:keyname] name)))
 
 
