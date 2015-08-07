@@ -460,6 +460,7 @@
 
 
 
+
 (defn ui-nav [{:keys [brand
                       brand-href]
                :or {brand "IX"
@@ -490,11 +491,22 @@
   (apply dom/ul #js {:className "nav navbar-nav"}
          body))
 
-(defn ui-navbar-li [text href]
-  (dom/li nil (dom/a #js {:href href} text)))
+(defn ui-ul-navbar-nav-right [& body]
+  (apply dom/ul #js {:className "nav navbar-nav navbar-right"}
+         body))
 
 
-(defn ui-navbar-li-dropdown [text & body]
+(defn ui-navbar-li [{:keys [glyphicon text href]}]
+  (dom/li nil
+          (dom/a #js {:href href}
+                 (when glyphicon
+                   (dom/span #js {:style #js {:paddingRight 4}
+                                  :className (str "glyphicon " glyphicon)
+                                  :aria-hidden "true"}))
+                 text)))
+
+
+(defn ui-navbar-li-dropdown [{:keys [glyphicon text]} & body]
   (dom/li #js {:className "dropdown"}
           (dom/a #js {:href "#"
                       :className "dropdown-toggle"
@@ -502,18 +514,36 @@
                       :role "button"
                       :aria-haspopup "true"
                       :aria-expanded "false"}
+                 (when glyphicon
+                   (dom/span #js {:style #js {:paddingRight 4}
+                                  :className (str "glyphicon " glyphicon)
+                                  :aria-hidden "true"}))
                  text
                  (dom/span #js {:className "caret"}))
           (apply dom/ul #js {:className "dropdown-menu"} body)))
 
+(defn ui-navbar-li-separator []
+  (dom/li #js{:role "separator" :className "divider"}))
 
 
+(def nav-app-state-key :menu)
 
 (defn nav [app _]
-  (letfn [(f1 [] )]
+  (letfn [(f1 [{:keys [sub separator?] :as row}]
+            (if separator?
+              (ui-navbar-li-separator)
+              (if (coll? sub)
+                (apply (partial ui-navbar-li-dropdown row) (map f1 sub))
+                (ui-navbar-li row))))]
     (reify
       om/IRender
       (render [_]
-
-        
-        ))))
+        (let [m (nav-app-state-key app)]
+          (ui-nav {}
+                  (when-let [menus (:left m)]
+                    (apply ui-ul-navbar-nav
+                           (map f1 menus)))
+                  (when-let [menus (:right m)]
+                    (apply ui-ul-navbar-nav-right
+                           (map f1 menus)))
+                  ))))))
