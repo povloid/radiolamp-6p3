@@ -1,10 +1,13 @@
 (ns ixinfestor.omut
 
+  (:import [goog.dom query])
+
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
 
+            [goog.dom.classes :as aclasses]
             ;;[sablono.core :as html :refer-macros [html]]
 
             [ixinfestor.net :as ixnet]
@@ -13,32 +16,40 @@
 
 
 
-
 (def modal-app-init
   {:show false})
 
 (defn modal-show [app]
   (om/transact!
-   app [:show]
+   app :show
    (fn [i] (if i (inc i) 0))))
 
 (defn modal-hide [app]
   (om/transact!
-   app [:show]
+   app :show
    (fn [_] false)))
 
-(defonce modal-id-seq (atom 0))
-(defn- modal-id- []
-  (str "modal-" (swap! modal-id-seq inc)))
 
-(defn modal [app owner {:keys [id
-                               label
+(defonce modals-ids (atom 0))
+(defn get-modal-id [] (swap! modals-ids inc))
+
+(defonce modals-status (atom #{}))
+(add-watch
+ modals-status :log
+ (fn [_ _ old new]
+   (when (not= old new)
+     (println "modals-status: " new)
+     (let[tag-body (aget (query "body") 0)]
+       (if (empty? new)
+         (goog.dom.classes/remove tag-body "modal-open")
+         (goog.dom.classes/add    tag-body "modal-open"))))))
+
+(defn modal [app owner {:keys [label
                                header
                                body
                                footer
                                class+]
-                        :or {id (modal-id-)
-                             label "Пустая пометка"
+                        :or {label "Пустая пометка"
                              header (dom/h4 #js {:className "modal-title"} "Пустой заголовок")
                              body (dom/p #js {:className "text-info"}
                                          "Пустое пространство диалога. Можно наполнить элементами")
@@ -48,32 +59,31 @@
                                                      :data-dismiss "modal"}
                                                 "Закрыть")
                              class+ ""}}]
-  (let [d-id  (name id)
-        qd-id (str "#" d-id)]
-    (reify
-      om/IDidUpdate
-      (did-update [this prev-props prev-state]
-        (if-let [show (get-in app [:show] false)]
-          (-> qd-id js/jQuery (.modal "show"))
-          (-> qd-id js/jQuery (.modal "hide"))))
-      om/IRender
-      (render [this]
-        (dom/div
-         nil
-         (dom/div #js {:id d-id
-                       :aria-hidden "true"
-                       :aria-labelledby label
-                       :className "modal fade "
-                       :role "dialog"
-                       :tabIndex "-1"}
-                  (dom/div #js {:className (str "modal-dialog " class+)}
-                           (dom/div #js {:className "modal-content"}
-                                    (dom/div #js {:className "modal-header"} header)
-                                    (dom/div #js {:className "modal-body"} body)
-                                    (dom/div #js {:className "modal-footer"} footer)))))))))
-
-
-
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:id (get-modal-id)})
+    om/IWillUnmount
+    (will-unmount [_]
+      (swap! modals-status disj (om/get-state owner :id)))
+    om/IRenderState
+    (render-state [this {id :id}]
+      (println "modal id:" id)
+      (let [show? (:show app)]
+        (swap! modals-status (if show? conj disj) id)
+        (dom/div #js {:aria-hidden "true"
+                      :aria-labelledby label
+                      :style (if show?
+                               #js {:display "block" :paddingLeft 0}
+                               #js {:display "none" })
+                      :className (if show? "modal in" "modal")
+                      :role "dialog"
+                      :tabIndex "-1"}
+                 (dom/div #js {:className (str "modal-dialog " class+)}
+                          (dom/div #js {:className "modal-content"}
+                                   (dom/div #js {:className "modal-header"} header)
+                                   (dom/div #js {:className "modal-body"}   body)
+                                   (dom/div #js {:className "modal-footer"} footer))))))))
 
 
 
