@@ -22,7 +22,7 @@
 (defn modal-show [app]
   (om/transact!
    app :show
-   (fn [i] (if i (inc i) 0))))
+   (fn [i] (if i (inc i) 1))))
 
 (defn modal-hide [app]
   (om/transact!
@@ -31,7 +31,7 @@
 
 
 (defonce modals-ids (atom 0))
-(defn get-modal-id [] (swap! modals-ids inc))
+(defn get-modal-id [] (str "modal-" (swap! modals-ids inc)))
 
 (defonce modals-status (atom #{}))
 (add-watch
@@ -42,7 +42,12 @@
      (let[tag-body (aget (query "body") 0)]
        (if (empty? new)
          (goog.dom.classes/remove tag-body "modal-open")
-         (goog.dom.classes/add    tag-body "modal-open"))))))
+         (goog.dom.classes/add    tag-body "modal-open")))
+
+     (let [d (clojure.set/difference new old)]
+       (when (not (empty? d))
+         (let [new-dialog-id (first d)]
+           (println "Открылся " new-dialog-id)))))))
 
 (defn modal [app owner {:keys [label
                                header
@@ -66,12 +71,30 @@
     om/IWillUnmount
     (will-unmount [_]
       (swap! modals-status disj (om/get-state owner :id)))
+    ;; om/IDidUpdate
+    ;; (did-update [_ next-props _]
+    ;;   (println "IDidUpdate" (om/get-state owner :id) (:show next-props) "->" (:show app))
+    ;;   (when (< 1 (count @modals-status))
+    ;;     (let [id (om/get-state owner :id)
+    ;;           e (.getElementById js/document id)
+    ;;           scrollTop (.-scrollTop e)
+    ;;           itop (.-innerWidth js/top)
+    ;;           ]
+    ;;       ;;(.setAttribute e "style" (str "margin-top:"  (.-scrollTop e) "px"))
+    ;;       ))
+    ;;   )
+    om/IWillUpdate
+    (will-update [_ next-props _]
+      ;;(println "IWillUpdate" (:show next-props) "->" (:show app))
+      (when (not (:show next-props))
+        (set! (.-scrollTop (.getElementById js/document (om/get-state owner :id))) 0)))
     om/IRenderState
     (render-state [this {id :id}]
       (println "modal id:" id)
       (let [show? (:show app)]
         (swap! modals-status (if show? conj disj) id)
-        (dom/div #js {:aria-hidden "true"
+        (dom/div #js {:id id
+                      :aria-hidden "true"
                       :aria-labelledby label
                       :style (if show?
                                #js {:display "block" :paddingLeft 0}
@@ -330,7 +353,8 @@
 
 (defn search-view [app owner
                    {:keys [data-update-fn
-                           data-rendering-fn]
+                           data-rendering-fn
+                           add-button-fn]
                     :or {data-update-fn (fn [app]
                                           (println "Неопределена функция запроса обновления данных (data-update-fn [app] ...)")
                                           (println "параметр на входе: " (str app)))
@@ -388,13 +412,23 @@
                                           }})
 
                         (dom/span #js {:className "input-group-btn"}
-                                  (dom/button #js {:className "btn btn-default" :type "button"
+                                  (dom/button #js {:className "btn btn-success" :type "button"
                                                    :onClick (fn [_]
                                                               (om/update! app :page 1)
                                                               (put! chan-update 1)
                                                               1)}
                                               (dom/span #js {:className "glyphicon glyphicon-search"
-                                                             :aria-hidden "true"})))
+                                                             :aria-hidden "true"}))
+
+                                  (when add-button-fn
+                                    (dom/button #js {:className "btn btn-danger" :type "button"
+                                                     :onClick (fn [_]
+                                                                (add-button-fn)
+                                                                1)}
+                                                (dom/span #js {:className "glyphicon glyphicon-plus"
+                                                               :aria-hidden "true"})))
+
+                                  )
 
                         )
                (dom/br nil)
