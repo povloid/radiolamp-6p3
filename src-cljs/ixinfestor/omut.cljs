@@ -90,7 +90,7 @@
         (set! (.-scrollTop (.getElementById js/document (om/get-state owner :id))) 0)))
     om/IRenderState
     (render-state [this {id :id}]
-      (println "modal id:" id)
+      ;;(println "modal id:" id)
       (let [show? (:show app)]
         (swap! modals-status (if show? conj disj) id)
         (dom/div #js {:id id
@@ -187,9 +187,9 @@
   (om/transact! app
                 (fn [app]
                   (dissoc app
-                          :has-success
-                          :has-warning
-                          :has-error))))
+                          :has-success?
+                          :has-warning?
+                          :has-error?))))
 
 
 ;; (defn input-0 [app owner]
@@ -237,8 +237,6 @@
                       :placeholder placeholder
                       :className (str "form-control " class+)}))))
 
-
-
 (defn input-form-group  [app owner {:keys [label
                                            class+
                                            type
@@ -251,8 +249,135 @@
     (render [this]
       (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
                (dom/label #js {:className (str "control-label " class+)} label)
-               (om/build input app spec-input)
+               (om/build input app {:opts spec-input})
                (om/build helper-p app {}) ))))
+
+
+
+
+(defn input-vldfn-not-empty [app v]
+  (helper-p-clean app)
+  (input-css-string-has?-clean app)
+  (when (= (count (.trim v)) 0)
+    (om/transact! app #(assoc % :has-warning? true :text-warning "Пустое поле")))
+  true)
+
+
+
+
+
+
+
+(def textarea-app-init
+  {:value ""})
+
+
+(defn textarea [app owner {:keys [class+
+                                  onChange-valid?-fn
+                                  onKeyPress-fn
+                                  placeholder
+                                  readonly
+                                  required
+                                  maxlength
+                                  rows
+                                  wrap
+                                  cols]
+                           :or {class+ ""
+                                onChange-valid?-fn (fn [_ _] true)
+                                onKeyPress-fn (fn [_] nil)
+                                placeholder ""
+                                readonly ""
+                                required ""
+                                maxlength 1000
+                                rows "5"
+                                wrap ""
+                                cols "40"}}]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/textarea #js {:value (:value app)
+                         :onChange (fn [e]
+                                     (let [v (.. e -target -value)]
+                                       (when (onChange-valid?-fn app v)
+                                         (om/update! app :value v))))
+                         :onKeyPress onKeyPress-fn
+                         :placeholder placeholder
+                         :className (str "form-control " class+)
+                         :readOnly readonly
+                         :required required
+                         :maxLength maxlength
+                         :rows rows
+                         :wrap wrap
+                         :cols cols
+                         }))))
+
+(defn textarea-form-group  [app owner {:keys [label
+                                              class+
+                                              type
+                                              spec-textarea]
+                                       :or {label "Метка"
+                                            class+ ""
+                                            spec-textarea {}}}]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className (str "control-label " class+)} label)
+               (om/build textarea app {:opts spec-textarea})
+               (om/build helper-p app {}) ))))
+
+
+
+
+
+
+
+(def toggle-button-app-init
+  {:value false})
+
+(defn toggle-button [app _ {:keys [bs-type
+                                   class+]
+                            :or {bs-type :default
+                                 class+ ""}}]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/button #js {:type "button"
+                       :className (str "btn"
+                                       (condp = bs-type
+                                         :default " btn-default"
+                                         :primary " btn-primary"
+                                         :success " btn-success"
+                                         :info    " btn-info"
+                                         :warning " btn-warning"
+                                         :danger  " btn-danger"
+                                         " btn-default")
+                                       " "
+                                       class+
+                                       (if (app :value) " active" "")
+                                       )
+                       :onClick (fn [_]
+                                  (om/transact! app :value not)
+                                  1)
+                       }
+                  (if (app :value) "Вкл." "Выкл.")))))
+
+
+(defn toggle-button-form-group [app owner {:keys [label
+                                                  class+
+                                                  type
+                                                  spec-toggle-button]
+                                           :or {label "Метка"
+                                                class+ ""
+                                                spec-toggle-button {}}}]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className (str "control-label " class+)} (str label " "))
+               (dom/div {:className "input-group"}
+                        (om/build toggle-button app {:opts spec-toggle-button})
+                        (om/build helper-p app {}) )))))
 
 
 
@@ -311,7 +436,8 @@
                          (dom/button #js {:className "btn btn-default" :type "button"
                                           :onClick (fn [_]
                                                      (om/update! app :page 1)
-                                                     (put! chan-update 1)
+                                                     (when chan-update
+                                                       (put! chan-update 1))
                                                      1)}
                                      (dom/span #js {:className "glyphicon glyphicon-fast-backward"
                                                     :aria-hidden "true"}))
@@ -320,7 +446,8 @@
                                           :onClick (fn [_]
                                                      (om/transact! app :page
                                                                    #(if (= 1 %) % (dec %)))
-                                                     (put! chan-update 1)
+                                                     (when chan-update
+                                                       (put! chan-update 1))
                                                      1)}
                                      (dom/span #js {:className "glyphicon glyphicon-step-backward"
                                                     :aria-hidden "true"})
@@ -333,7 +460,8 @@
                          (dom/button #js {:className "btn btn-default" :type "button"
                                           :onClick (fn [_]
                                                      (om/transact! app :page inc)
-                                                     (put! chan-update 1)
+                                                     (when chan-update
+                                                       (put! chan-update 1))
                                                      1)}
                                      "Вперед "
                                      (dom/span #js {:className "glyphicon glyphicon-step-forward"
@@ -591,3 +719,53 @@
                     (apply ui-ul-navbar-nav-right
                            (map f1 menus)))
                   ))))))
+
+
+
+
+
+
+
+
+
+
+
+
+(def nav-tabs-app-state
+  {:active-tab 0
+   :tabs [;; {:text "item 1"}
+          ]})
+
+(defn nav-tabs [app _ {:keys [justified?
+                              type
+                              chan-update]
+                       :or {type "nav-pills"}}]
+  (reify
+    om/IRender
+    (render [_]
+      (apply dom/ul #js {:className (str "nav"
+                                         (condp = type
+                                           :tabs  " nav-tabs"
+                                           :pills " nav-pills"
+                                           " nav-pills")
+                                         (if justified? " nav-justified" ""))}
+
+             (map
+
+              (fn [{:keys [glyphicon text href disabled?]} i]
+                (dom/li #js {:className (if disabled? "disabled"
+                                            (if (= i (app :active-tab)) "active" ""))
+                             :role "presentation"}
+                        (dom/a #js {:href href
+                                    :onClick (fn [_]
+                                               (om/update! app :active-tab i)
+                                               (when chan-update
+                                                 (put! chan-update i))
+                                               1)}
+                               (when glyphicon
+                                 (dom/span #js {:style #js {:paddingRight 4}
+                                                :className (str "glyphicon " glyphicon)
+                                                :aria-hidden "true"}))
+                               text)))
+
+              (:tabs app) (range)) ))))
