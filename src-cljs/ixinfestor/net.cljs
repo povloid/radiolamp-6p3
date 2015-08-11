@@ -12,7 +12,12 @@
 
 (enable-console-print!)
 
-(def r (t/reader :json))
+(def r (t/reader :json
+                 {:handlers
+                  {"f" (fn [v] (new js/Number v))
+                   }}
+                 ))
+
 (def w (t/writer :json))
 (def transit-header (clj->js {:content-type "application/transit+json"}))
 

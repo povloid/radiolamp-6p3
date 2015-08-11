@@ -12,6 +12,8 @@
 
             [ixinfestor.net :as ixnet]
 
+            [clojure.set]
+
             ))
 
 
@@ -336,7 +338,8 @@
   {:value false})
 
 (defn toggle-button [app _ {:keys [bs-type
-                                   class+]
+                                   class+
+                                   onClick-fn]
                             :or {bs-type :default
                                  class+ ""}}]
   (reify
@@ -358,6 +361,7 @@
                                        )
                        :onClick (fn [_]
                                   (om/transact! app :value not)
+                                  (when onClick-fn (onClick-fn))
                                   1)
                        }
                   (if (app :value) "Вкл." "Выкл.")))))
@@ -769,3 +773,12 @@
                                text)))
 
               (:tabs app) (range)) ))))
+
+
+
+
+
+
+
+
+
