@@ -12,6 +12,7 @@
 
             [ixinfestor.net :as ixnet]
 
+            [clojure.string]
             [clojure.set]
 
             ))
@@ -52,11 +53,13 @@
            (println "Открылся " new-dialog-id)))))))
 
 (defn modal [app owner {:keys [label
+                               modal-size
                                header
                                body
                                footer
                                class+]
                         :or {label "Пустая пометка"
+                             modal-size :default
                              header (dom/h4 #js {:className "modal-title"} "Пустой заголовок")
                              body (dom/p #js {:className "text-info"}
                                          "Пустое пространство диалога. Можно наполнить элементами")
@@ -104,7 +107,12 @@
                       :className (if show? "modal in" "modal")
                       :role "dialog"
                       :tabIndex "-1"}
-                 (dom/div #js {:className (str "modal-dialog " class+)}
+                 (dom/div #js {:className (str "modal-dialog"
+                                               (condp = modal-size
+                                                 :sm " modal-sm"
+                                                 :lg " modal-lg"
+                                                 "")
+                                               " " class+)}
                           (dom/div #js {:className "modal-content"}
                                    (dom/div #js {:className "modal-header"} header)
                                    (dom/div #js {:className "modal-body"}   body)
@@ -778,7 +786,246 @@
 
 
 
+(def thumbnail-app-init
+  {:id nil
+   :path nil
+   :top_description nil
+   :description nil
+   :galleria false
+   })
+
+
+(defn thumbnail [app _ {:keys [class+
+                               onClick-fn]
+                        :or {class+ "col-xs-6 col-sm-4 col-md-4 col-lg-4"}}]
+  (reify
+    om/IRender
+    (render [_]
+      (let [{:keys [id path top_description description galleria] :as row} app]
+        (dom/div
+         #js {:className class+}
+         (dom/div
+          #js {:className "thumbnail"
+               :onClick (fn [e]
+                          (when onClick-fn (onClick-fn e id)))
+               :style #js {:cursor "pointer"}}
+          (when galleria
+            (dom/span #js {:className "glyphicon glyphicon-film"
+                           :style #js {:position "absolute"
+                                       :top 10 :left 5
+                                       :fontSize "2em"}
+                           :aria-hidden "true"}))
+          (dom/a nil (dom/img #js {:src path :alt "фото"}))
+          (dom/div #js {:className "caption"}
+                   (when (not (clojure.string/blank? top_description))
+                     (dom/h3 nil top_description))
+                   (dom/div nil
+                            (when (not (clojure.string/blank? description))
+                              (dom/p nil description))
+
+                            (dom/span #js {:className "label label-default"} "URL")
+                            " "
+                            (dom/input #js {:type "text"
+                                            :style #js {:width "70%" :fontSize "0.7em"}
+                                            :value path
+                                            :onMouseDown (fn [e] (.select (.-target e)))
+                                            }))
+                   )))))))
+
+
+
+(def thumbinal-edit-form-app-init
+  {:id nil
+   :top_description input-app-init
+   :description textarea-app-init
+   :galleria toggle-button-app-init
+   })
+
+(defn thumbnails-edit-form [app owner {:keys [chan-load-for-id
+                                              uri
+                                              chan-load-row
+                                              chan-save
+                                              uri-save
+                                              post-save-fn
+                                              ]
+                                       :or {}}]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:chan-init-row (chan)})
+    om/IWillMount
+    (will-mount [this]
+      (let [{:keys [chan-init-row]} (om/get-state owner)]
+
+        (when chan-load-for-id
+          (go
+            (while true
+              (let [id (<! chan-load-for-id)
+                    id (if (= id 0) nil id)]
+                (ixnet/get-data
+                 uri
+                 {:id id}
+                 (fn [row]
+                   (put! chan-init-row row) ))))))
+
+        (when chan-load-row
+          (go
+            (while true
+              (let [row (<! chan-load-row)]
+                (put! chan-init-row row) ))))
+
+        (when chan-init-row
+          (go
+            (while true
+              (let [{:keys [id
+                            top_description
+                            description
+                            galleria]} (<! chan-init-row)]
+                (om/transact! app
+                              (fn [app]
+                                (-> app
+                                    ;; Заполнение формы
+                                    (assoc :id id)
+                                    (assoc-in [:top_description :value] top_description)
+                                    (assoc-in [:description :value] description)
+                                    (assoc-in [:galleria :value] galleria))))
+                ))))
+
+        (when chan-save
+          (go
+            (while true
+              (let [_ (<! chan-save)]
+                (println "SAVE!")
+                (if uri-save
+                  ;; если указан то сохранять в сеть
+                  (ixnet/get-data
+                   uri-save
+                   (-> {}
+                       (assoc :id              (@app :id))
+                       (assoc :top_description (get-in @app [:top_description :value]))
+                       (assoc :description     (get-in @app [:description :value]))
+                       (assoc :galleria        (get-in @app [:galleria :value])))
+                   (fn [result]
+                     (when post-save-fn (post-save-fn result))))
+                  ;; иначе альтернитиваная функция
+                  (when post-save-fn (post-save-fn app)))))))
+
+        ))
+    om/IRender
+    (render [_]
+      (dom/div
+       #js {:className "row"}
+       (dom/form
+        #js {:className "form-horizontal col-sm-12 col-md-12 col-lg-12"}
+        (dom/fieldset
+         nil
+         (dom/legend nil "Основные данные")
+
+         (om/build input-form-group (get-in app [:top_description])
+                   {:opts {:label "Наименование"
+                           :spec-input {:onChange-valid?-fn
+                                        input-vldfn-not-empty}}})
+
+         (om/build toggle-button-form-group (get-in app [:galleria])
+                   {:opts{:label "Отображать в галерее"}})
+
+         (om/build textarea-form-group (get-in app [:description])
+                   {:opts {:label "Описание"}})
+         ))))))
+
+
+
+(def thumbnails-modal-edit-form-app-init
+  (merge modal-app-init thumbinal-edit-form-app-init))
+
+(defn thumbnails-modal-edit-form [app _ {:keys [opts-thumbnails-edit-form]
+                                         :or {}}]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:chan-save (chan)})
+    om/IRenderState
+    (render-state [_ {:keys[chan-save]}]
+      (om/build modal app
+                {:opts {:modal-size :sm
+                        :body
+                        (om/build thumbnails-edit-form app
+                                  {:opts (assoc opts-thumbnails-edit-form
+                                                :chan-save chan-save
+                                                :post-save-fn
+                                                (fn [r]
+                                                  (modal-hide app)
+                                                  (when-let [post-save-fn-2 (:post-save-fn opts-thumbnails-edit-form)]
+                                                    (post-save-fn-2 r))))})
+                        :footer
+                        (dom/div nil
+                                 (dom/button #js {:className "btn btn-primary"
+                                                  :onClick (fn [_]
+                                                             (put! chan-save 1)
+                                                             1)
+                                                  :type "button"}
+                                             "Принять")
+                                 (dom/button #js {:className "btn btn-default"
+                                                  :onClick (fn [_] (modal-hide app) 1)
+                                                  :type "button"}
+                                             "Отмена"))
+                        }}))))
 
 
 
 
+
+(def thumbnails-view-app-init
+  {:list []
+   :last-params {}
+   :modal thumbnails-modal-edit-form-app-init})
+
+(defn thumbnails-view [app owner {:keys [uri params
+                                         chan-update]
+                                  :or {params {}}}]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:last-params {}
+       :chan-thumbnails-modal-edit-form-open-for-id (chan)})
+    om/IWillMount
+    (will-mount [this]
+      (when chan-update
+        (go
+          (while true
+            (let [cparams (<! chan-update)
+                  p (if (map? cparams) cparams params)]
+              (ixnet/get-data
+               uri
+               p
+               (fn [list]
+                 (om/transact! app
+                               #(assoc % :list list :last-params p) ))))))))
+    om/IRenderState
+    (render-state [_ {:keys [chan-thumbnails-modal-edit-form-open-for-id]}]
+      (dom/div nil
+               (apply
+                dom/div #js {:className "row"
+                             :style #js {:margin 5}}
+                (map
+                 (fn [{:as row}]
+                   (om/build thumbnail row
+                             {:opts {:onClick-fn
+                                     (fn [_ id]
+                                       (println "id:" id)
+                                       (put! chan-thumbnails-modal-edit-form-open-for-id id)
+                                       (modal-show (:modal app))
+                                       1)}}))
+                 (:list app)))
+
+               (om/build thumbnails-modal-edit-form (:modal app)
+                         {:opts {:opts-thumbnails-edit-form
+                                 {:chan-load-for-id chan-thumbnails-modal-edit-form-open-for-id
+                                  :uri      "/files/find/transit"
+                                  :uri-save "/files/edit/transit"
+                                  :post-save-fn #(do
+                                                  (when chan-update
+                                                    (put! chan-update (:last-params @app)))
+                                                  1)}}})
+
+               ))))

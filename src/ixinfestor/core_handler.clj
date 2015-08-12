@@ -15,6 +15,8 @@
             [ixinfestor.core-web :as cw]
             [ixinfestor.core-web-bootstrap :as cwb]
 
+            [ixinfestor.transit :as transit]
+
             [cemerick.friend :as friend]
             (cemerick.friend [workflows :as workflows]
                              [credentials :as creds])
@@ -71,8 +73,6 @@
 
    ))
 
-
-
 ;; END
 ;;..................................................................................................
 
@@ -83,23 +83,55 @@
 ;; description: Маршруты для файлового аплоадера
 ;;------------------------------------------------------------------------------
 
+
+(defn rest-files-list [{{:keys [page page-size fts-query]
+                         :or {page 1 page-size 10 fts-query ""}} :params}]
+  (-> ix/files-select*
+      (ix/com-pred-page* (dec page) page-size)
+
+      (as-> query
+          (let [fts-query (clojure.string/trim fts-query)]
+            (if (empty? fts-query)
+              query
+              (ix/files-pred-search? query fts-query))))
+
+      (korma.core/order :id :desc)
+      ix/com-exec))
+
+
+(defn rest-file-find [request]
+  (->> request
+       :params
+       :id
+       (ix/com-find ix/files)))
+
+(defn rest-file-edit [request]
+  (-> request
+      :params
+      ix/files-save))
+
+(defn rest-file-delete [request]
+  (-> request
+      :params
+      ix/files-delete
+      ((fn [_] {:result "OK"}))))
+
+
 (defn routes-file* [edit-roles-set {:keys [save-file-fn-options]}]
   (routes
 
-   (POST "/files/list" {{:keys [page page-size fts-query]
-                         :or {page 1 page-size 10 fts-query ""}} :params}
-         (-> ix/files-select*
-             (ix/com-pred-page* (dec page) page-size)
 
-             (as-> query
-                 (let [fts-query (clojure.string/trim fts-query)]
-                   (if (empty? fts-query)
-                     query
-                     (ix/files-pred-search? query fts-query))))
-
-             (korma.core/order :id :desc)
-             ix/com-exec
+   ;; JSON
+   (POST "/files/list" request
+         (-> request
+             rest-files-list
              ring.util.response/response))
+   ;; TRANSIT
+   (POST "/files/list/transit" request
+         (-> request
+             rest-files-list
+             transit/response-transit))
+
 
 
    (multipart/wrap-multipart-params
@@ -108,30 +140,67 @@
            edit-roles-set
            (do
              (web-file-upload
-              (fn [a b] 
+              (fn [a b]
                 (ix/file-upload-o a b
-                                  ;TODO: ДОбавить выбор варианта от типа контента
+                                        ;TODO: ДОбавить выбор варианта от типа контента
                                   (merge {:path-prefix "/image/"} save-file-fn-options)))
               (-> request :params :image-uploader))
              (ring.util.response/response "OK") ))))
 
+
+   ;; JSON
+   (POST "/files/find" request
+         (friend/authorize
+          edit-roles-set
+          (-> request
+              rest-file-find
+              ring.util.response/response)))
+
+   ;; TRANSIT
+   (POST "/files/find/transit" request
+         (friend/authorize
+          edit-roles-set
+          (-> request
+              rest-file-find
+              transit/response-transit)))
+
+
+
+   ;; JSON
    (POST "/files/edit" request
          (friend/authorize
           edit-roles-set
           (-> request
-              :params
-              ix/files-save
+              rest-file-edit
               ring.util.response/response)))
 
+   ;; TRANSIT
+   (POST "/files/edit/transit" request
+         (friend/authorize
+          edit-roles-set
+          (-> request
+              rest-file-edit
+              transit/response-transit)))
+
+
+   ;; JSON
    (POST "/files/delete" request
          (friend/authorize
           edit-roles-set
           (-> request
-              :params
-              ix/files-delete
-              ((fn [_] {:result "OK"}))
+              rest-file-delete
               ring.util.response/response
               cw/error-response-json)))
+
+   ;; TRANSIT
+   (POST "/files/delete/transit" request
+         (friend/authorize
+          edit-roles-set
+          (-> request
+              rest-file-delete
+              transit/response-transit)))
+
+
 
    ;; Кэшированный источник файлов для картинок
    (GET "/image/*" {{path :*} :params :as request}
@@ -148,6 +217,9 @@
           (throw (Exception. "Значение пути в переменной files-root-directory еще не задано"))))
 
    ))
+
+
+
 ;; -----------------------------------------------------------------------------
 
 ;;**************************************************************************************************
