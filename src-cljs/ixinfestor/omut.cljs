@@ -248,19 +248,19 @@
                       :className (str "form-control " class+)}))))
 
 (defn input-form-group  [app owner {:keys [label
-                                           class+
                                            type
                                            spec-input]
                                     :or {label "Метка"
-                                         class+ ""
                                          spec-input {}}}]
   (reify
     om/IRender
     (render [this]
       (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className (str "control-label " class+)} label)
-               (om/build input app {:opts spec-input})
-               (om/build helper-p app {}) ))))
+               (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} label)
+               (dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
+                        (om/build input app {:opts spec-input})
+                        (om/build helper-p app {})
+                        )))))
 
 
 
@@ -322,19 +322,18 @@
                          }))))
 
 (defn textarea-form-group  [app owner {:keys [label
-                                              class+
                                               type
                                               spec-textarea]
                                        :or {label "Метка"
-                                            class+ ""
                                             spec-textarea {}}}]
   (reify
     om/IRender
     (render [this]
       (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className (str "control-label " class+)} label)
-               (om/build textarea app {:opts spec-textarea})
-               (om/build helper-p app {}) ))))
+               (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} label)
+               (dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
+                        (om/build textarea app {:opts spec-textarea})
+                        (om/build helper-p app {}) )))))
 
 
 
@@ -376,18 +375,16 @@
 
 
 (defn toggle-button-form-group [app owner {:keys [label
-                                                  class+
                                                   type
                                                   spec-toggle-button]
                                            :or {label "Метка"
-                                                class+ ""
                                                 spec-toggle-button {}}}]
   (reify
     om/IRender
     (render [this]
       (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className (str "control-label " class+)} (str label " "))
-               (dom/div {:className "input-group"}
+               (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} label)
+               (dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
                         (om/build toggle-button app {:opts spec-toggle-button})
                         (om/build helper-p app {}) )))))
 
@@ -834,21 +831,29 @@
 
 
 
-(def thumbinal-edit-form-app-init
-  {:id nil
-   :top_description input-app-init
-   :description textarea-app-init
-   :galleria toggle-button-app-init
-   })
 
-(defn thumbnails-edit-form [app owner {:keys [chan-load-for-id
-                                              uri
-                                              chan-load-row
-                                              chan-save
-                                              uri-save
-                                              post-save-fn
-                                              ]
-                                       :or {}}]
+(def edit-form-for-id-app-init
+  {:id nil})
+
+(defn edit-form-for-id [app owner {:keys [chan-load-for-id
+                                          uri
+                                          chan-load-row
+                                          chan-save
+                                          uri-save
+                                          post-save-fn
+                                          form-body
+                                          fill-app-fn
+                                          app-to-row-fn
+                                          ]
+                                   :or {fill-app-fn
+                                        (fn [row]
+                                          (println "Функция (fill-app-fn) формирования зароса не определена!"
+                                                   " Пришел ответ вида: " row))
+                                        app-to-row-fn
+                                        (fn []
+                                          (println "Функция (app-to-row-fn) формирования зароса не определена!")
+                                          {})
+                                        }}]
   (reify
     om/IInitState
     (init-state [_]
@@ -877,19 +882,9 @@
         (when chan-init-row
           (go
             (while true
-              (let [{:keys [id
-                            top_description
-                            description
-                            galleria]} (<! chan-init-row)]
-                (om/transact! app
-                              (fn [app]
-                                (-> app
-                                    ;; Заполнение формы
-                                    (assoc :id id)
-                                    (assoc-in [:top_description :value] top_description)
-                                    (assoc-in [:description :value] description)
-                                    (assoc-in [:galleria :value] galleria))))
-                ))))
+              (let [row (<! chan-init-row)]
+                (om/update! app :id (:id row))
+                (fill-app-fn row)))))
 
         (when chan-save
           (go
@@ -900,11 +895,7 @@
                   ;; если указан то сохранять в сеть
                   (ixnet/get-data
                    uri-save
-                   (-> {}
-                       (assoc :id              (@app :id))
-                       (assoc :top_description (get-in @app [:top_description :value]))
-                       (assoc :description     (get-in @app [:description :value]))
-                       (assoc :galleria        (get-in @app [:galleria :value])))
+                   (assoc (app-to-row-fn) :id (@app :id))
                    (fn [result]
                      (when post-save-fn (post-save-fn result))))
                   ;; иначе альтернитиваная функция
@@ -917,29 +908,23 @@
        #js {:className "row"}
        (dom/form
         #js {:className "form-horizontal col-sm-12 col-md-12 col-lg-12"}
-        (dom/fieldset
-         nil
-         (dom/legend nil "Основные данные")
-
-         (om/build input-form-group (get-in app [:top_description])
-                   {:opts {:label "Наименование"
-                           :spec-input {:onChange-valid?-fn
-                                        input-vldfn-not-empty}}})
-
-         (om/build toggle-button-form-group (get-in app [:galleria])
-                   {:opts{:label "Отображать в галерее"}})
-
-         (om/build textarea-form-group (get-in app [:description])
-                   {:opts {:label "Описание"}})
-         ))))))
+        (if form-body
+          form-body
+          (dom/h1 nil "Элементы формы еще не определены")))))))
 
 
+(def modal-edit-form-for-id--YN--app-init
+  (merge modal-app-init edit-form-for-id-app-init))
 
-(def thumbnails-modal-edit-form-app-init
-  (merge modal-app-init thumbinal-edit-form-app-init))
-
-(defn thumbnails-modal-edit-form [app _ {:keys [opts-thumbnails-edit-form]
-                                         :or {}}]
+(defn modal-edit-form-for-id--YN- [app _ {:keys [edit-form-for-id]
+                                          :or {edit-form-for-id
+                                               (fn [_ _]
+                                                 (reify
+                                                   om/IRender
+                                                   (render [_]
+                                                     (dom/h1 nil "Форма диалога еще не указана"))))
+                                               }
+                                          :as opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -947,15 +932,15 @@
     om/IRenderState
     (render-state [_ {:keys[chan-save]}]
       (om/build modal app
-                {:opts {:modal-size :sm
+                {:opts {;;:modal-size :lg
                         :body
-                        (om/build thumbnails-edit-form app
-                                  {:opts (assoc opts-thumbnails-edit-form
+                        (om/build edit-form-for-id app
+                                  {:opts (assoc opts
                                                 :chan-save chan-save
                                                 :post-save-fn
                                                 (fn [r]
                                                   (modal-hide app)
-                                                  (when-let [post-save-fn-2 (:post-save-fn opts-thumbnails-edit-form)]
+                                                  (when-let [post-save-fn-2 (:post-save-fn opts)]
                                                     (post-save-fn-2 r))))})
                         :footer
                         (dom/div nil
@@ -973,6 +958,81 @@
 
 
 
+
+
+
+
+
+
+
+
+(def thumbinal-edit-form-app-init
+  (merge edit-form-for-id-app-init
+         {:top_description input-app-init
+          :description textarea-app-init
+          :galleria toggle-button-app-init
+          }))
+
+
+(defn thumbnails-edit-form [app owner {:keys [chan-load-for-id
+                                              uri
+                                              chan-load-row
+                                              chan-save
+                                              uri-save
+                                              post-save-fn
+                                              ]
+                                       :as opts}]
+  (reify
+    om/IRender
+    (render [_]
+      (om/build
+       edit-form-for-id app
+       {:opts
+        (merge opts {:fill-app-fn
+                     (fn [{:keys [top_description
+                                  description
+                                  galleria]}]
+                       (om/transact!
+                        app
+                        (fn [app]
+                          (-> app
+                              ;; Заполнение формы
+                              (assoc-in [:top_description :value] top_description)
+                              (assoc-in [:description :value] description)
+                              (assoc-in [:galleria :value] galleria)))))
+                     :app-to-row-fn
+                     (fn []
+                       {:id              (get @app :id)
+                        :top_description (get-in @app [:top_description :value])
+                        :description     (get-in @app [:description :value])
+                        :galleria        (get-in @app [:galleria :value])})
+                     :form-body
+                     (dom/fieldset
+                      nil
+                      (dom/legend nil "Основные данные")
+
+                      (om/build input-form-group (get-in app [:top_description])
+                                {:opts {:label "Наименование"}})
+
+                      (om/build toggle-button-form-group (get-in app [:galleria])
+                                {:opts{:label "Отображать в галерее"}})
+
+                      (om/build textarea-form-group (get-in app [:description])
+                                {:opts {:label "Описание"}})
+                      )
+                     })
+        }))))
+
+
+(def thumbnails-modal-edit-form-app-init
+  (merge modal-edit-form-for-id--YN--app-init thumbinal-edit-form-app-init))
+
+(defn thumbnails-modal-edit-form [app _ opts]
+  (reify
+    om/IRender
+    (render [_]
+      (om/build modal-edit-form-for-id--YN- app
+                {:opts (assoc opts :edit-form-for-id thumbnails-edit-form)}))))
 
 
 (def thumbnails-view-app-init
@@ -1019,13 +1079,12 @@
                  (:list app)))
 
                (om/build thumbnails-modal-edit-form (:modal app)
-                         {:opts {:opts-thumbnails-edit-form
-                                 {:chan-load-for-id chan-thumbnails-modal-edit-form-open-for-id
-                                  :uri      "/files/find/transit"
-                                  :uri-save "/files/edit/transit"
-                                  :post-save-fn #(do
+                         {:opts {:chan-load-for-id chan-thumbnails-modal-edit-form-open-for-id
+                                 :uri      "/files/find/transit"
+                                 :uri-save "/files/edit/transit"
+                                 :post-save-fn #(do
                                                   (when chan-update
                                                     (put! chan-update (:last-params @app)))
-                                                  1)}}})
+                                                  1)}})
 
                ))))
