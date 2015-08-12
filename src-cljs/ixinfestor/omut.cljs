@@ -18,6 +18,13 @@
             ))
 
 
+;;**************************************************************************************************
+;;* BEGIN modal
+;;* tag: <modal>
+;;*
+;;* description: Модальные диалоги
+;;*
+;;**************************************************************************************************
 
 (def modal-app-init
   {:show false})
@@ -119,10 +126,20 @@
                                    (dom/div #js {:className "modal-footer"} footer))))))))
 
 
+;; END modal
+;;..................................................................................................
 
 
 
 
+
+;;**************************************************************************************************
+;;* BEGIN helper
+;;* tag: <helper>
+;;*
+;;* description: Текстовые подсказки
+;;*
+;;**************************************************************************************************
 
 (def helper-p-app-init
   {:text-muted nil
@@ -169,14 +186,17 @@
                           :text-warning
                           :text-danger))))
 
+;; END helper
+;;..................................................................................................
 
 
-
-
-
-
-
-
+;;**************************************************************************************************
+;;* BEGIN has
+;;* tag: <has>
+;;*
+;;* description: Подсветка элементов
+;;*
+;;**************************************************************************************************
 
 (def input-css-string-has?-app-init
   {:has-success? nil
@@ -219,6 +239,19 @@
 ;;                                 (om/set-state! owner :value value)
 ;;                                 (om/set-state! owner :value new-value)))})))))
 
+
+
+
+;; END has
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN input
+;;* tag: <input>
+;;*
+;;* description: поле ввода
+;;*
+;;**************************************************************************************************
 
 (def input-app-init
   {:value ""})
@@ -272,11 +305,17 @@
     (om/transact! app #(assoc % :has-warning? true :text-warning "Пустое поле")))
   true)
 
+;; END input
+;;..................................................................................................
 
 
-
-
-
+;;**************************************************************************************************
+;;* BEGIN textarea
+;;* tag: <textarea>
+;;*
+;;* description: Многострочное поле ввода
+;;*
+;;**************************************************************************************************
 
 (def textarea-app-init
   {:value ""})
@@ -336,10 +375,16 @@
                         (om/build helper-p app {}) )))))
 
 
+;; END textarea
+;;..................................................................................................
 
-
-
-
+;;**************************************************************************************************
+;;* BEGIN toggle batton
+;;* tag: <toggle batton>
+;;*
+;;* description: кнопка включения и выключения
+;;*
+;;**************************************************************************************************
 
 (def toggle-button-app-init
   {:value false})
@@ -388,13 +433,17 @@
                         (om/build toggle-button app {:opts spec-toggle-button})
                         (om/build helper-p app {}) )))))
 
+;; END toggle batton
+;;..................................................................................................
 
 
-
-
-
-
-
+;;**************************************************************************************************
+;;* BEGIN table
+;;* tag: <table>
+;;*
+;;* description: Табличные элементы
+;;*
+;;**************************************************************************************************
 
 (defn ui-table [{:keys [striped?
                         bordered?
@@ -427,8 +476,59 @@
   (apply dom/tbody nil trs))
 
 
+(defn tr-sel [app owner {:keys [app-to-tds-seq-fn
+                                clear-selections-fn]
+                         :or {app-to-tds-seq-fn
+                              (fn [row]
+                                (map
+                                 #(dom/td nil %)
+                                 (-> row
+                                     (select-keys [:id :keyname :description])
+                                     vals)))}}]
+  (reify
+    om/IRender
+    (render [_]
+      (apply dom/tr #js {:className (if (:tr-selected app) "info" "")
+                         :onClick (fn [_]
+                                    (when clear-selections-fn
+                                      (clear-selections-fn))
+                                    (om/transact! app :tr-selected not)
+                                    1)}
+             (app-to-tds-seq-fn app) ))))
 
 
+
+
+(defn tbody-trs-sel [app owner {:keys [selection-type]
+                                :or {selection-type :one}
+                                :as opts}]
+  (reify
+    om/IRender
+    (render [_]
+      (apply dom/tbody nil
+             (om/build-all tr-sel app
+                           {:opts (if (= selection-type :one)
+                                    (assoc opts
+                                           :clear-selections-fn
+                                           (fn [_]
+                                             (om/transact! app
+                                                           (fn [data]
+                                                             (vec (map #(assoc % :tr-selected false) data))))))
+                                    opts)})))))
+
+
+;; END table
+;;..................................................................................................
+
+
+
+;;**************************************************************************************************
+;;* BEGIN paginator
+;;* tag: <paginator>
+;;*
+;;* description: Постраничный переключатель
+;;*
+;;**************************************************************************************************
 
 
 
@@ -478,9 +578,17 @@
 
                          )))))
 
+;; END paginator
+;;..................................................................................................
 
 
-
+;;**************************************************************************************************
+;;* BEGIN Search view
+;;* tag: <search view>
+;;*
+;;* description: Поисковый въювер
+;;*
+;;**************************************************************************************************
 
 
 (def search-view-app-init
@@ -593,54 +701,18 @@
                ))))
 
 
+;; END Search view
+;;..................................................................................................
 
 
 
-(defn tr-sel [app owner {:keys [app-to-tds-seq-fn
-                                clear-selections-fn]
-                         :or {app-to-tds-seq-fn
-                              (fn [row]
-                                (map
-                                 #(dom/td nil %)
-                                 (-> row
-                                     (select-keys [:id :keyname :description])
-                                     vals)))}}]
-  (reify
-    om/IRender
-    (render [_]
-      (apply dom/tr #js {:className (if (:tr-selected app) "info" "")
-                         :onClick (fn [_]
-                                    (when clear-selections-fn
-                                      (clear-selections-fn))
-                                    (om/transact! app :tr-selected not)
-                                    1)}
-             (app-to-tds-seq-fn app) ))))
-
-
-
-
-(defn tbody-trs-sel [app owner {:keys [selection-type]
-                                :or {selection-type :one}
-                                :as opts}]
-  (reify
-    om/IRender
-    (render [_]
-      (apply dom/tbody nil
-             (om/build-all tr-sel app
-                           {:opts (if (= selection-type :one)
-                                    (assoc opts
-                                           :clear-selections-fn
-                                           (fn [_]
-                                             (om/transact! app
-                                                           (fn [data]
-                                                             (vec (map #(assoc % :tr-selected false) data))))))
-                                    opts)})))))
-
-
-
-
-
-
+;;**************************************************************************************************
+;;* BEGIN Navigation elements
+;;* tag: <nav>
+;;*
+;;* description: Элементы для навигации
+;;*
+;;**************************************************************************************************
 
 (defn ui-nav [{:keys [brand
                       brand-href]
@@ -733,13 +805,6 @@
 
 
 
-
-
-
-
-
-
-
 (def nav-tabs-app-state
   {:active-tab 0
    :tabs [;; {:text "item 1"}
@@ -779,57 +844,17 @@
 
               (:tabs app) (range)) ))))
 
+;; END Navigation elements
+;;..................................................................................................
 
 
-
-
-(def thumbnail-app-init
-  {:id nil
-   :path nil
-   :top_description nil
-   :description nil
-   :galleria false
-   })
-
-
-(defn thumbnail [app _ {:keys [class+
-                               onClick-fn]
-                        :or {class+ "col-xs-6 col-sm-4 col-md-4 col-lg-4"}}]
-  (reify
-    om/IRender
-    (render [_]
-      (let [{:keys [id path top_description description galleria] :as row} app]
-        (dom/div
-         #js {:className class+}
-         (dom/div
-          #js {:className "thumbnail"
-               :onClick (fn [e]
-                          (when onClick-fn (onClick-fn e id)))
-               :style #js {:cursor "pointer"}}
-          (when galleria
-            (dom/span #js {:className "glyphicon glyphicon-film"
-                           :style #js {:position "absolute"
-                                       :top 10 :left 5
-                                       :fontSize "2em"}
-                           :aria-hidden "true"}))
-          (dom/a nil (dom/img #js {:src path :alt "фото"}))
-          (dom/div #js {:className "caption"}
-                   (when (not (clojure.string/blank? top_description))
-                     (dom/h3 nil top_description))
-                   (dom/div nil
-                            (when (not (clojure.string/blank? description))
-                              (dom/p nil description))
-
-                            (dom/span #js {:className "label label-default"} "URL")
-                            " "
-                            (dom/input #js {:type "text"
-                                            :style #js {:width "70%" :fontSize "0.7em"}
-                                            :value path
-                                            :onMouseDown (fn [e] (.select (.-target e)))
-                                            }))
-                   )))))))
-
-
+;;**************************************************************************************************
+;;* BEGIN Edit form functional
+;;* tag: <edit form for id>
+;;*
+;;* description: Базовые элементы для создания форм и диалогов для редактирования по id
+;;*
+;;**************************************************************************************************
 
 
 (def edit-form-for-id-app-init
@@ -957,16 +982,66 @@
                         }}))))
 
 
+;; END Edit form functional
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN Thumbs
+;;* tag: <thumbs>
+;;*
+;;* description: Функционал работы с тумбами и картинками
+;;*
+;;**************************************************************************************************
 
 
+(def thumbnail-app-init
+  {:id nil
+   :path nil
+   :top_description nil
+   :description nil
+   :galleria false
+   })
 
 
+(defn thumbnail [app _ {:keys [class+
+                               onClick-fn]
+                        :or {class+ "col-xs-6 col-sm-4 col-md-4 col-lg-4"}}]
+  (reify
+    om/IRender
+    (render [_]
+      (let [{:keys [id path top_description description galleria] :as row} app]
+        (dom/div
+         #js {:className class+}
+         (dom/div
+          #js {:className "thumbnail"
+               :onClick (fn [e]
+                          (when onClick-fn (onClick-fn e id)))
+               :style #js {:cursor "pointer"}}
+          (when galleria
+            (dom/span #js {:className "glyphicon glyphicon-film"
+                           :style #js {:position "absolute"
+                                       :top 10 :left 5
+                                       :fontSize "2em"}
+                           :aria-hidden "true"}))
+          (dom/a nil (dom/img #js {:src path :alt "фото"}))
+          (dom/div #js {:className "caption"}
+                   (when (not (clojure.string/blank? top_description))
+                     (dom/h3 nil top_description))
+                   (dom/div nil
+                            (when (not (clojure.string/blank? description))
+                              (dom/p nil description))
+
+                            (dom/span #js {:className "label label-default"} "URL")
+                            " "
+                            (dom/input #js {:type "text"
+                                            :style #js {:width "70%" :fontSize "0.7em"}
+                                            :value path
+                                            :onMouseDown (fn [e] (.select (.-target e)))
+                                            }))
+                   )))))))
 
 
-
-
-
-(def thumbinal-edit-form-app-init
+(def thumbnails-edit-form-app-init
   (merge edit-form-for-id-app-init
          {:top_description input-app-init
           :description textarea-app-init
@@ -1025,7 +1100,7 @@
 
 
 (def thumbnails-modal-edit-form-app-init
-  (merge modal-edit-form-for-id--YN--app-init thumbinal-edit-form-app-init))
+  (merge modal-edit-form-for-id--YN--app-init thumbnails-edit-form-app-init))
 
 (defn thumbnails-modal-edit-form [app _ opts]
   (reify
@@ -1088,3 +1163,185 @@
                                                   1)}})
 
                ))))
+
+;; END Thumbs
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN files
+;;* tag: <files>
+;;*
+;;* description: Компоненты работы с файлами
+;;*
+;;**************************************************************************************************
+
+(def file-thumb-app-init
+  {:id nil
+   :path nil
+   :top_description nil
+   :description nil
+   :galleria false
+   })
+
+
+(defn file-thumb [app _ {:keys [class+
+                                onClick-fn]
+                         :or {class+ "col-xs-12 col-sm-6 col-md-6 col-lg-6"}}]
+  (reify
+    om/IRender
+    (render [_]
+      (let [{:keys [id path top_description description galleria] :as row} app]
+        (dom/div
+         #js {:className class+}
+         (dom/div
+          #js {:className "thumbnail"
+               :onClick (fn [e]
+                          (when onClick-fn (onClick-fn e id)))
+               :style #js {:cursor "pointer"
+                           :minHeight 75 }}
+
+          (dom/span #js {:className "glyphicon glyphicon-file"
+                         :style #js {:fontSize "5em"
+                                     :float "left"
+                                     :ariaHidden "true"}})
+
+          (dom/div #js {:className "caption"}
+                   (when (not (clojure.string/blank? top_description))
+                     (dom/h3 nil top_description))
+                   (dom/div nil
+                            (when (not (clojure.string/blank? description))
+                              (dom/p nil description))
+
+                            (dom/span #js {:className "label label-default"} "URL")
+                            " "
+                            (dom/input #js {:type "text"
+                                            :style #js {:width "70%" :fontSize "0.7em"}
+                                            :value path
+                                            :onMouseDown (fn [e] (.select (.-target e)))
+                                            }))
+                   )))))))
+
+
+
+
+(def files-edit-form-app-init
+  (merge edit-form-for-id-app-init
+         {:top_description input-app-init
+          :description textarea-app-init
+          :galleria toggle-button-app-init
+          }))
+
+
+(defn files-edit-form [app owner {:keys [chan-load-for-id
+                                         uri
+                                         chan-load-row
+                                         chan-save
+                                         uri-save
+                                         post-save-fn
+                                         ]
+                                  :as opts}]
+  (reify
+    om/IRender
+    (render [_]
+      (om/build
+       edit-form-for-id app
+       {:opts
+        (merge opts {:fill-app-fn
+                     (fn [{:keys [top_description
+                                  description
+                                  galleria]}]
+                       (om/transact!
+                        app
+                        (fn [app]
+                          (-> app
+                              ;; Заполнение формы
+                              (assoc-in [:top_description :value] top_description)
+                              (assoc-in [:description :value] description) ))))
+                     :app-to-row-fn
+                     (fn []
+                       {:id              (get @app :id)
+                        :top_description (get-in @app [:top_description :value])
+                        :description     (get-in @app [:description :value])})
+                     :form-body
+                     (dom/fieldset
+                      nil
+                      (dom/legend nil "Основные данные")
+
+                      (om/build input-form-group (get-in app [:top_description])
+                                {:opts {:label "Наименование"}})
+
+                      (om/build textarea-form-group (get-in app [:description])
+                                {:opts {:label "Описание"}})
+                      )
+                     })
+        }))))
+
+
+(def files-modal-edit-form-app-init
+  (merge modal-edit-form-for-id--YN--app-init files-edit-form-app-init))
+
+(defn files-modal-edit-form [app _ opts]
+  (reify
+    om/IRender
+    (render [_]
+      (om/build modal-edit-form-for-id--YN- app
+                {:opts (assoc opts :edit-form-for-id files-edit-form)}))))
+
+
+(def files-view-app-init
+  {:list []
+   :last-params {}
+   :modal files-modal-edit-form-app-init})
+
+(defn files-view [app owner {:keys [uri params
+                                    chan-update]
+                             :or {params {}}}]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:last-params {}
+       :chan-files-modal-edit-form-open-for-id (chan)})
+    om/IWillMount
+    (will-mount [this]
+      (when chan-update
+        (go
+          (while true
+            (let [cparams (<! chan-update)
+                  p (if (map? cparams) cparams params)]
+              (ixnet/get-data
+               uri
+               p
+               (fn [list]
+                 (om/transact! app
+                               #(assoc % :list list :last-params p) ))))))))
+    om/IRenderState
+    (render-state [_ {:keys [chan-files-modal-edit-form-open-for-id]}]
+      (dom/div nil
+               (apply
+                dom/div #js {:className "row"
+                             :style #js {:margin 5}}
+                (map
+                 (fn [{:as row}]
+                   (om/build file-thumb row
+                             {:opts {:onClick-fn
+                                     (fn [_ id]
+                                       (println "id:" id)
+                                       (put! chan-files-modal-edit-form-open-for-id id)
+                                       (modal-show (:modal app))
+                                       1)}}))
+                 (:list app)))
+
+               (om/build files-modal-edit-form (:modal app)
+                         {:opts {:chan-load-for-id chan-files-modal-edit-form-open-for-id
+                                 :uri      "/files/find/transit"
+                                 :uri-save "/files/edit/transit"
+                                 :post-save-fn #(do
+                                                  (when chan-update
+                                                    (put! chan-update (:last-params @app)))
+                                                  1)}})
+
+               ))))
+
+
+;; END files
+;;..................................................................................................
