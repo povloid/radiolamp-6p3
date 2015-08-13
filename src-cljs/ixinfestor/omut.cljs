@@ -126,6 +126,86 @@
                                    (dom/div #js {:className "modal-footer"} footer))))))))
 
 
+;;------------------------------------------------------------------------------
+;; BEGIN: buttons modal for select actions variants
+;; tag: <buttons modal for select actions variants>
+;; description: Диалог для выбора вариантов действия
+;;------------------------------------------------------------------------------
+
+(defn actions-modal-button [app _ {:keys [text
+                                          btn-type
+                                          act-fn]
+                                   :or {text "Метка события"
+                                        btn-type :default}}]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/button #js {:className (str "btn btn-block "
+                                       ({:default "btn-default"
+                                         :primary "btn-primary"
+                                         :success "btn-success"
+                                         :info    "btn-info"
+                                         :warning "btn-warning"
+                                         :danger  "btn-danger"
+                                         :link    "btn-link"} btn-type))
+                       :type "button"
+                       :onClick (fn [_]
+                                  (modal-hide app)
+                                  (if act-fn
+                                    (act-fn)
+                                    (println "Действие для '" text "' еще не определено"))
+                                  1)
+                       :data-dismiss "modal"}
+                  text))))
+
+
+
+(def actions-modal-app-init modal-app-init)
+
+
+(defn actions-modal [app owner {:keys [chan-open]}]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:actions
+       {:label "Пусто"
+        :acts []}})
+    om/IWillMount
+    (will-mount [this]
+      (when chan-open
+        (go
+          (while true
+            (let [actions (<! chan-open)]
+              (om/set-state! owner :actions actions)
+              (modal-show app))))))
+    om/IRenderState
+    (render-state [_ {{:keys [label acts]} :actions}]
+      (om/build modal app
+                {:opts {:label label
+                        :modal-size :sm
+                        :body (let [buttons (map
+                                             (fn [opts]
+                                               (om/build actions-modal-button app {:opts opts}))
+                                             acts)]
+                                (if (empty? buttons)
+                                  (dom/h2 nil "Действий нет")
+                                  (apply dom/div nil buttons)))
+                        }}
+                ))))
+
+
+
+
+
+
+;; END buttons modal for select actions variants
+;;..............................................................................
+
+
+
+
+
+
 ;; END modal
 ;;..................................................................................................
 
@@ -221,7 +301,19 @@
                           :has-warning?
                           :has-error?))))
 
+;; END has
+;;..................................................................................................
 
+;;**************************************************************************************************
+;;* BEGIN input
+;;* tag: <input>
+;;*
+;;* description: поле ввода
+;;*
+;;**************************************************************************************************
+
+
+;; Пример от Девида Нолена, полезен для ввода чиселj...
 ;; (defn input-0 [app owner]
 ;;   (reify
 ;;     om/IInitState
@@ -239,19 +331,6 @@
 ;;                                 (om/set-state! owner :value value)
 ;;                                 (om/set-state! owner :value new-value)))})))))
 
-
-
-
-;; END has
-;;..................................................................................................
-
-;;**************************************************************************************************
-;;* BEGIN input
-;;* tag: <input>
-;;*
-;;* description: поле ввода
-;;*
-;;**************************************************************************************************
 
 (def input-app-init
   {:value ""})
@@ -1113,6 +1192,7 @@
 (def thumbnails-view-app-init
   {:list []
    :last-params {}
+   :modal-act actions-modal-app-init
    :modal thumbnails-modal-edit-form-app-init})
 
 (defn thumbnails-view [app owner {:keys [uri params
@@ -1122,6 +1202,7 @@
     om/IInitState
     (init-state [_]
       {:last-params {}
+       :chan-modal-act (chan)
        :chan-thumbnails-modal-edit-form-open-for-id (chan)})
     om/IWillMount
     (will-mount [this]
@@ -1137,7 +1218,8 @@
                  (om/transact! app
                                #(assoc % :list list :last-params p) ))))))))
     om/IRenderState
-    (render-state [_ {:keys [chan-thumbnails-modal-edit-form-open-for-id]}]
+    (render-state [_ {:keys [chan-modal-act
+                             chan-thumbnails-modal-edit-form-open-for-id]}]
       (dom/div nil
                (apply
                 dom/div #js {:className "row"
@@ -1148,10 +1230,21 @@
                              {:opts {:onClick-fn
                                      (fn [_ id]
                                        (println "id:" id)
-                                       (put! chan-thumbnails-modal-edit-form-open-for-id id)
-                                       (modal-show (:modal app))
+                                       (put! chan-modal-act
+                                             {:label (str "Выбор действий над записью №" id)
+                                              :acts
+                                              [{:text "Редактировать" :btn-type :primary
+                                                :act-fn (fn []
+                                                          (put! chan-thumbnails-modal-edit-form-open-for-id id)
+                                                          (modal-show (:modal app))
+                                                          )}
+                                               {:text "Удалить" :btn-type :danger
+                                                :act-fn #(js/alert "Не определено.")}]
+                                              })
                                        1)}}))
                  (:list app)))
+
+               (om/build actions-modal (:modal-act app) {:opts {:chan-open chan-modal-act}})
 
                (om/build thumbnails-modal-edit-form (:modal app)
                          {:opts {:chan-load-for-id chan-thumbnails-modal-edit-form-open-for-id
@@ -1291,6 +1384,7 @@
 (def files-view-app-init
   {:list []
    :last-params {}
+   :modal-act actions-modal-app-init
    :modal files-modal-edit-form-app-init})
 
 (defn files-view [app owner {:keys [uri params
