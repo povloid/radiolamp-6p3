@@ -704,7 +704,8 @@
          paginator-app-init))
 
 (defn search-view [app owner
-                   {:keys [data-update-fn
+                   {:keys [chan-update
+                           data-update-fn
                            data-rendering-fn
                            add-button-fn]
                     :or {data-update-fn (fn [app]
@@ -717,8 +718,7 @@
   (reify
     om/IInitState
     (init-state [_]
-      {:chan-update (chan)})
-
+      {:chan-update (or chan-update (chan))})
     om/IWillMount
     (will-mount [this]
       (let [chan-update (om/get-state owner :chan-update)]
