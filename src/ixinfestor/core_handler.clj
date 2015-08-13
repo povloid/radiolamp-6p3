@@ -35,12 +35,6 @@
     (assoc-in params path (apply (partial f v) args))
     params))
 
-(defn web-file-upload [service-upload-fn uploader-params]
-  (letfn [(upload-one [{:keys [size tempfile content-type filename]}]
-            (service-upload-fn {:filename filename :size size :content_type content-type} tempfile))]
-    (if (map? uploader-params) (upload-one uploader-params)
-        (doall (map upload-one uploader-params)))))
-
 ;;**************************************************************************************************
 ;;* BEGIN
 ;;* tag: <>
@@ -139,7 +133,7 @@
           (friend/authorize
            edit-roles-set
            (do
-             (web-file-upload
+             (ix/web-file-upload
               (fn [a b]
                 (ix/file-upload-o a b
                                         ;TODO: ДОбавить выбор варианта от типа контента
@@ -541,7 +535,7 @@
                              (ring.util.response/response
                               (let [id (parseLong id)
                                     [{path :path} _]
-                                    (web-file-upload
+                                    (ix/web-file-upload
                                      (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id id}
                                               (merge {:path-prefix "/image/"} save-file-fn-options))
                                      (-> request :params :file-uploader))]
@@ -553,7 +547,7 @@
                             (friend/authorize
                              edit-roles-set
                              (ring.util.response/response
-                              (do (web-file-upload
+                              (do (ix/web-file-upload
                                    (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id (parseLong id)}
                                             (merge {:path-prefix "/image/"} save-file-fn-options))
                                    (-> request :params :image-uploader))
@@ -565,7 +559,7 @@
                              edit-roles-set
                              (ring.util.response/response
                               (do
-                                (web-file-upload
+                                (ix/web-file-upload
                                  (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id (parseLong id)}
                                           (merge {:path-prefix "/file/"} save-file-fn-options))
                                  (-> request :params :file-uploader))

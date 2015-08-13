@@ -10,13 +10,13 @@
             [goog.dom.classes :as aclasses]
             ;;[sablono.core :as html :refer-macros [html]]
 
+            [ixinfestor.io :as ix-io]
             [ixinfestor.net :as ixnet]
 
             [clojure.string]
             [clojure.set]
 
             ))
-
 
 ;;**************************************************************************************************
 ;;* BEGIN modal
@@ -67,7 +67,6 @@
                                class+]
                         :or {label "Пустая пометка"
                              modal-size :default
-                             header (dom/h4 #js {:className "modal-title"} "Пустой заголовок")
                              body (dom/p #js {:className "text-info"}
                                          "Пустое пространство диалога. Можно наполнить элементами")
                              footer (dom/button #js {:className "btn btn-default"
@@ -121,7 +120,10 @@
                                                  "")
                                                " " class+)}
                           (dom/div #js {:className "modal-content"}
-                                   (dom/div #js {:className "modal-header"} header)
+                                   (dom/div #js {:className "modal-header"}
+                                            (if header
+                                              header
+                                              (dom/h4 #js {:className "modal-title"} label)))
                                    (dom/div #js {:className "modal-body"}   body)
                                    (dom/div #js {:className "modal-footer"} footer))))))))
 
@@ -193,18 +195,44 @@
                         }}
                 ))))
 
-
-
-
-
-
 ;; END buttons modal for select actions variants
 ;;..............................................................................
 
+;;------------------------------------------------------------------------------
+;; BEGIN: Modal Yes or No
+;; tag: <modal yes no yn>
+;; description: Диалог зароса действия да или нет
+;;------------------------------------------------------------------------------
 
+(def modal-yes-no-app-init modal-app-init)
 
+(defn modal-yes-no [app owner {:keys [act-yes-fn]
+                               :or {act-yes-fn #(js/alert "Действие еще не реализовано")}
+                               :as opts}]
+  (reify
+    om/IRender
+    (render [_]
+      (om/build modal app
+                {:opts (assoc opts :footer
+                              (dom/div nil
+                                       (dom/button #js {:className "btn btn-primary"
+                                                        :type "button"
+                                                        :onClick (fn [_]
+                                                                   (act-yes-fn)
+                                                                   (modal-hide app) 1)
+                                                        :data-dismiss "modal"}
+                                                   "Да")
+                                       (dom/button #js {:className "btn btn-default"
+                                                        :type "button"
+                                                        :onClick (fn [_] (modal-hide app) 1)
+                                                        :data-dismiss "modal"}
+                                                   "Нет")
+                                       ))
+                 }
+                ))))
 
-
+;; END Modal Yes or No
+;;..............................................................................
 
 ;; END modal
 ;;..................................................................................................
@@ -1065,6 +1093,66 @@
 ;;..................................................................................................
 
 ;;**************************************************************************************************
+;;* BEGIN Uploader elements
+;;* tag: <uploader>
+;;*
+;;* description: Элементы для выгрузки файлов
+;;*
+;;**************************************************************************************************
+
+(def file-uploder-form-id-seq (atom 0))
+(defn file-uploder-form-id-seq-new []
+  (str "file-uploder-form-" (swap! file-uploder-form-id-seq inc)))
+
+
+(defn file-uploder [_ owner {:keys [uri
+                                    get-uri-fn
+                                    update-fn
+                                    accept]
+                             :or {uri "/file-uploder/uri"
+                                  accept "*.*"}}]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:chan-upload (chan)
+       :form-id (file-uploder-form-id-seq-new)})
+    om/IWillMount
+    (will-mount [this]
+      (let [{:keys[chan-upload form-id]} (om/get-state owner)]
+        (go
+          (while true
+            (let [_ (<! chan-upload)]
+              (ix-io/file-upload
+               (.getElementById js/document form-id)
+               (if get-uri-fn (get-uri-fn)
+                   uri)
+               {:success
+                #(do
+                   (when update-fn (update-fn))
+                   (println "UPLOAD SUCCES!!!"))})
+              )))))
+
+    om/IRenderState
+    (render-state [_ {:keys [chan-upload form-id]}]
+      (dom/form #js {:id form-id
+                     :encType "multipart/form-data"
+                     :method "POST"}
+                (dom/span #js {:className "btn btn-default btn-file btn-primary"}
+                          "Загрузить"
+                          (dom/input #js {:name "uploader"
+                                          :type "file"
+                                          :multiple true
+                                          :accept accept
+                                          :onChange #(put! chan-upload 1)
+                                          }))))))
+
+;; END Uploader elements
+;;..................................................................................................
+
+
+
+
+;;**************************************************************************************************
 ;;* BEGIN Thumbs
 ;;* tag: <thumbs>
 ;;*
@@ -1094,7 +1182,7 @@
          (dom/div
           #js {:className "thumbnail"
                :onClick (fn [e]
-                          (when onClick-fn (onClick-fn e id)))
+                          (when onClick-fn (onClick-fn e row)))
                :style #js {:cursor "pointer"}}
           (when galleria
             (dom/span #js {:className "glyphicon glyphicon-film"
@@ -1193,16 +1281,19 @@
   {:list []
    :last-params {}
    :modal-act actions-modal-app-init
+   :modal-yes-no (assoc modal-yes-no-app-init
+                        :row {})
    :modal thumbnails-modal-edit-form-app-init})
 
 (defn thumbnails-view [app owner {:keys [uri params
+                                         uri-upload
+                                         uri-delete
                                          chan-update]
                                   :or {params {}}}]
   (reify
     om/IInitState
     (init-state [_]
-      {:last-params {}
-       :chan-modal-act (chan)
+      {:chan-modal-act (chan)
        :chan-thumbnails-modal-edit-form-open-for-id (chan)})
     om/IWillMount
     (will-mount [this]
@@ -1211,16 +1302,24 @@
           (while true
             (let [cparams (<! chan-update)
                   p (if (map? cparams) cparams params)]
-              (ixnet/get-data
-               uri
-               p
-               (fn [list]
-                 (om/transact! app
-                               #(assoc % :list list :last-params p) ))))))))
+              (ixnet/get-data uri p
+                              (fn [list]
+                                (om/transact!
+                                 app #(assoc % :list list :last-params p) ))))))))
     om/IRenderState
     (render-state [_ {:keys [chan-modal-act
                              chan-thumbnails-modal-edit-form-open-for-id]}]
       (dom/div nil
+               (om/build file-uploder app
+                         {:opts {:accept "image/gif, image/jpeg, image/png, image/*"
+                                 :get-uri-fn
+                                 #(str
+                                   uri-upload
+                                   (get-in @app [:last-params :id])
+                                   "/image")
+                                 :update-fn
+                                 #(put! chan-update (:last-params @app))
+                                 }})
                (apply
                 dom/div #js {:className "row"
                              :style #js {:margin 5}}
@@ -1228,23 +1327,42 @@
                  (fn [{:as row}]
                    (om/build thumbnail row
                              {:opts {:onClick-fn
-                                     (fn [_ id]
-                                       (println "id:" id)
+                                     (fn [_ {:keys [id] :as r}]
                                        (put! chan-modal-act
                                              {:label (str "Выбор действий над записью №" id)
                                               :acts
                                               [{:text "Редактировать" :btn-type :primary
                                                 :act-fn (fn []
                                                           (put! chan-thumbnails-modal-edit-form-open-for-id id)
-                                                          (modal-show (:modal app))
-                                                          )}
+                                                          (modal-show (:modal app)))}
                                                {:text "Удалить" :btn-type :danger
-                                                :act-fn #(js/alert "Не определено.")}]
+                                                :act-fn #(do
+                                                           (om/update! app [:modal-yes-no :row] r)
+                                                           (modal-show (:modal-yes-no app)))}]
                                               })
                                        1)}}))
                  (:list app)))
 
                (om/build actions-modal (:modal-act app) {:opts {:chan-open chan-modal-act}})
+
+               (om/build modal-yes-no (:modal-yes-no app)
+                         {:opts {:modal-size :sm
+                                 :label "Желаете удалить изображение?"
+                                 :body
+                                 (dom/div
+                                  #js{:className "row"}
+                                  (dom/img #js{:className "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+                                               :src (get-in @app [:modal-yes-no :row :path])}))
+                                 :act-yes-fn
+                                 (fn []
+                                   (ixnet/get-data
+                                    uri-delete ;;"/tc/rb/product/files_rel/delete"
+                                    {:webdoc-id (get-in @app [:last-params :id])
+                                     :file-id (get-in @app [:modal-yes-no :row :id])}
+                                    (fn [_]
+                                      (when chan-update
+                                        (put! chan-update (:last-params @app))))))
+                                 }})
 
                (om/build thumbnails-modal-edit-form (:modal app)
                          {:opts {:chan-load-for-id chan-thumbnails-modal-edit-form-open-for-id
@@ -1289,7 +1407,7 @@
          (dom/div
           #js {:className "thumbnail"
                :onClick (fn [e]
-                          (when onClick-fn (onClick-fn e id)))
+                          (when onClick-fn (onClick-fn e row)))
                :style #js {:cursor "pointer"
                            :minHeight 75 }}
 
@@ -1385,15 +1503,19 @@
   {:list []
    :last-params {}
    :modal-act actions-modal-app-init
+   :modal-yes-no (assoc modal-yes-no-app-init
+                        :row {})
    :modal files-modal-edit-form-app-init})
 
 (defn files-view [app owner {:keys [uri params
+                                    uri-upload
+                                    uri-delete
                                     chan-update]
                              :or {params {}}}]
   (reify
     om/IInitState
     (init-state [_]
-      {:last-params {}
+      {:chan-modal-act (chan)
        :chan-files-modal-edit-form-open-for-id (chan)})
     om/IWillMount
     (will-mount [this]
@@ -1402,15 +1524,23 @@
           (while true
             (let [cparams (<! chan-update)
                   p (if (map? cparams) cparams params)]
-              (ixnet/get-data
-               uri
-               p
-               (fn [list]
-                 (om/transact! app
-                               #(assoc % :list list :last-params p) ))))))))
+              (ixnet/get-data uri p
+                              (fn [list]
+                                (om/transact!
+                                 app #(assoc % :list list :last-params p) ))))))))
     om/IRenderState
-    (render-state [_ {:keys [chan-files-modal-edit-form-open-for-id]}]
+    (render-state [_ {:keys [chan-modal-act
+                             chan-files-modal-edit-form-open-for-id]}]
       (dom/div nil
+               (om/build file-uploder app
+                         {:opts {:get-uri-fn
+                                 #(str
+                                   uri-upload
+                                   (get-in @app [:last-params :id])
+                                   "/file")
+                                 :update-fn
+                                 #(put! chan-update (:last-params @app))
+                                 }})
                (apply
                 dom/div #js {:className "row"
                              :style #js {:margin 5}}
@@ -1418,12 +1548,39 @@
                  (fn [{:as row}]
                    (om/build file-thumb row
                              {:opts {:onClick-fn
-                                     (fn [_ id]
-                                       (println "id:" id)
-                                       (put! chan-files-modal-edit-form-open-for-id id)
-                                       (modal-show (:modal app))
+                                     (fn [_ {:keys [id] :as r}]
+                                       (put! chan-modal-act
+                                             {:label (str "Выбор действий над записью №" id)
+                                              :acts
+                                              [{:text "Редактировать" :btn-type :primary
+                                                :act-fn (fn []
+                                                          (put! chan-files-modal-edit-form-open-for-id id)
+                                                          (modal-show (:modal app)))}
+                                               {:text "Удалить" :btn-type :danger
+                                                :act-fn #(do
+                                                           (om/update! app [:modal-yes-no :row] r)
+                                                           (modal-show (:modal-yes-no app)))}]
+                                              })
                                        1)}}))
                  (:list app)))
+
+               (om/build actions-modal (:modal-act app) {:opts {:chan-open chan-modal-act}})
+
+               (om/build modal-yes-no (:modal-yes-no app)
+                         {:opts {:modal-size :sm
+                                 :label "Желаете удалить Фаил?"
+                                 :body
+                                 (dom/h4 nil (get-in @app [:modal-yes-no :row :filename]))
+                                 :act-yes-fn
+                                 (fn []
+                                   (ixnet/get-data
+                                    uri-delete ;;"/tc/rb/product/files_rel/delete"
+                                    {:webdoc-id (get-in @app [:last-params :id])
+                                     :file-id (get-in @app [:modal-yes-no :row :id])}
+                                    (fn [_]
+                                      (when chan-update
+                                        (put! chan-update (:last-params @app))))))
+                                 }})
 
                (om/build files-modal-edit-form (:modal app)
                          {:opts {:chan-load-for-id chan-files-modal-edit-form-open-for-id
@@ -1435,7 +1592,6 @@
                                                   1)}})
 
                ))))
-
 
 ;; END files
 ;;..................................................................................................

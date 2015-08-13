@@ -832,6 +832,16 @@
    files-select* row))
 
 
+
+;; WEB TOOL
+(defn web-file-upload [service-upload-fn uploader-params]
+  (letfn [(upload-one [{:keys [size tempfile content-type filename]}]
+            (service-upload-fn {:filename filename :size size :content_type content-type} tempfile))]
+    (if (map? uploader-params) (upload-one uploader-params)
+        (doall (map upload-one uploader-params)))))
+
+
+
 ;; END files entity
 ;;..................................................................................................
 
