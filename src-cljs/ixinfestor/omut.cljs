@@ -108,7 +108,9 @@
                       :aria-hidden "true"
                       :aria-labelledby label
                       :style (if show?
-                               #js {:display "block" :paddingLeft 0}
+                               #js {:display "block"
+                                    :paddingLeft 0
+                                    :backgroundColor "#777"}
                                #js {:display "none" })
                       :className (if show? "modal in" "modal")
                       :role "dialog"
