@@ -1218,14 +1218,7 @@
           }))
 
 
-(defn thumbnails-edit-form [app owner {:keys [chan-load-for-id
-                                              uri
-                                              chan-load-row
-                                              chan-save
-                                              uri-save
-                                              post-save-fn
-                                              ]
-                                       :as opts}]
+(defn thumbnails-edit-form [app owner opts]
   (reify
     om/IRender
     (render [_]
@@ -1445,14 +1438,7 @@
           }))
 
 
-(defn files-edit-form [app owner {:keys [chan-load-for-id
-                                         uri
-                                         chan-load-row
-                                         chan-save
-                                         uri-save
-                                         post-save-fn
-                                         ]
-                                  :as opts}]
+(defn files-edit-form [app owner opts]
   (reify
     om/IRender
     (render [_]
