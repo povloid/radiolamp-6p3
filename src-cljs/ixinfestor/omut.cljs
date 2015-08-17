@@ -110,7 +110,7 @@
                       :style (if show?
                                #js {:display "block"
                                     :paddingLeft 0
-                                    :backgroundColor "#777"}
+                                    :backgroundColor "rgba(0, 0, 0, 0.8)"}
                                #js {:display "none" })
                       :className (if show? "modal in" "modal")
                       :role "dialog"
@@ -586,7 +586,8 @@
 
 
 (defn tr-sel [app owner {:keys [app-to-tds-seq-fn
-                                clear-selections-fn]
+                                clear-selections-fn
+                                on-select-fn]
                          :or {app-to-tds-seq-fn
                               (fn [row]
                                 (map
@@ -602,6 +603,8 @@
                                     (when clear-selections-fn
                                       (clear-selections-fn))
                                     (om/transact! app :tr-selected not)
+                                    (when on-select-fn
+                                      (on-select-fn @app))
                                     1)}
              (app-to-tds-seq-fn app) ))))
 
@@ -614,16 +617,20 @@
   (reify
     om/IRender
     (render [_]
-      (apply dom/tbody nil
-             (om/build-all tr-sel app
-                           {:opts (if (= selection-type :one)
-                                    (assoc opts
-                                           :clear-selections-fn
-                                           (fn [_]
-                                             (om/transact! app
-                                                           (fn [data]
-                                                             (vec (map #(assoc % :tr-selected false) data))))))
-                                    opts)})))))
+      (apply
+       dom/tbody nil
+       (om/build-all
+        tr-sel app
+        {:opts
+         (if (= selection-type :one)
+           (assoc opts
+                  :clear-selections-fn
+                  (fn [_]
+                    (om/transact!
+                     app
+                     (fn [data]
+                       (vec (map #(assoc % :tr-selected false) data))))))
+           opts)})))))
 
 
 ;; END table
@@ -1017,7 +1024,8 @@
           (go
             (while true
               (let [row (<! chan-init-row)]
-                (om/update! app :id (:id row))
+                (when-let [id (:id row)]
+                  (om/update! app :id id))
                 (fill-app-fn row)))))
 
         (when chan-save
@@ -1029,7 +1037,10 @@
                   ;; если указан то сохранять в сеть
                   (ixnet/get-data
                    uri-save
-                   (assoc (app-to-row-fn) :id (@app :id))
+                   (let [a (app-to-row-fn)]
+                     (if-let [id (@app :id)]
+                       (assoc a :id id)
+                       a))
                    (fn [result]
                      (when post-save-fn (post-save-fn result))))
                   ;; иначе альтернитиваная функция
