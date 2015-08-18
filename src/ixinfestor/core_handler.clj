@@ -247,9 +247,7 @@
             (dissoc :password)
             (as-> row
                 (assoc row :troles-set [(ix/webrole-list)
-                                        (ix/webuserwebrole-own-get-rels-set row)]))
-            )
-
+                                        (ix/webuserwebrole-own-get-rels-set row)])))
         (-> {} ;; new
             (assoc :troles-set [(ix/webrole-list) #{}])))))
 

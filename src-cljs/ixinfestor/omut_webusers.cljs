@@ -31,6 +31,7 @@
          {:username (assoc omut/input-app-init :has-warning? true)
           :password omut/input-change-password-app-init
           :description omut/textarea-app-init
+          :troles []
           }))
 
 
@@ -52,8 +53,12 @@
                          ;; Заполнение формы
                          ;;(assoc :id id) ;; Id идет сразу, будет работатьт автоматом
                          (assoc-in [:username :value]    (get-in row [:username] ""))
-                         (assoc-in [:description :value] (get-in row [:description] ""))                         
+                         (assoc-in [:description :value] (get-in row [:description] ""))
                          (update-in [:password] omut/input-change-password-clean)
+                         (assoc :troles (let [[roles-list user-roles-set] (row :troles-set)]
+                                          (reduce (fn [a {keyname :keyname :as row}]
+                                                    (conj a (assoc-in row [:user-role? :value] (contains? user-roles-set keyname))))
+                                                  [] roles-list)))
 
                          ))))
 
@@ -62,13 +67,17 @@
                 (fn []
 
                   (omut/input-change-password-check (@app :password))
-                  
+
                   {:row (-> (if-let [id (@app :id)] {:id id} {})
                             (assoc
                              :username      (get-in @app [:username :value])
                              :description   (get-in @app [:description :value])
-                             :password (omut/input-change-password-value (@app :password))))
-                   :user-roles-keys-set #{} ;; <- заполнить                   
+                             :password (omut/input-change-password-value (@app :password)) ))
+                   :user-roles-keys-set (->> @app
+                                             :troles
+                                             (filter #(get-in % [:user-role? :value]))
+                                             (map :keyname)
+                                             (reduce conj #{}))
                    })
 
                 :form-body
@@ -86,7 +95,17 @@
 
                  (om/build omut/textarea-form-group (get-in app [:description])
                            {:opts {:label "Описание"}})
-                 )
+
+                 (dom/div #js {:className "form-group"}
+                          (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} "Роли д")
+                          (apply dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
+                                 (map (fn [i {:keys [title]}]
+                                        (dom/div nil
+                                                 (om/build omut/toggle-button (get-in app [:troles i :user-role?]))
+                                                 title))
+                                      (range) (app :troles)))))
+
+
                 })
         }))))
 
