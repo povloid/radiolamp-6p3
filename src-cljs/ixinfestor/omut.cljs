@@ -300,6 +300,69 @@
 ;;..................................................................................................
 
 
+
+;;**************************************************************************************************
+;;* BEGIN alert
+;;* tag: <alert>
+;;*
+;;* description: Текстовые подсказки в цветных блоках
+;;*
+;;**************************************************************************************************
+
+(def alert-app-init
+  {:alert-muted nil
+   :alert-primary nil
+   :alert-success nil
+   :alert-info nil
+   :alert-warning nil
+   :alert-danger nil})
+
+
+(defn alert [app _]
+  (reify
+    om/IRender
+    (render [_]
+      (let [{:keys [alert-muted
+                    alert-primary
+                    alert-success
+                    alert-info
+                    alert-warning
+                    alert-danger]} app]
+        (dom/div nil
+                 (when alert-muted
+                   (dom/div #js {:className "alert alert-muted"} alert-muted))
+                 (when alert-primary
+                   (dom/div #js {:className "alert alert-primary"} alert-primary))
+                 (when alert-success
+                   (dom/div #js {:className "alert alert-success"} alert-success))
+                 (when alert-info
+                   (dom/div #js {:className "alert alert-info"} alert-info))
+                 (when alert-warning
+                   (dom/div #js {:className "alert alert-warning"} alert-warning))
+                 (when alert-danger
+                   (dom/div #js {:className "alert alert-danger"} alert-danger))  )))))
+
+
+(defn alert-clean [app]
+  (om/transact! app
+                (fn [app]
+                  (dissoc app
+                          :alert-muted
+                          :alert-primary
+                          :alert-success
+                          :alert-info
+                          :alert-warning
+                          :alert-danger))))
+
+;; END alert
+;;..................................................................................................
+
+
+
+
+
+
+
 ;;**************************************************************************************************
 ;;* BEGIN has
 ;;* tag: <has>
@@ -368,6 +431,7 @@
 (defn input [app owner {:keys [class+
                                type
                                onChange-valid?-fn
+                               onChange-updated-fn
                                onKeyPress-fn
                                placeholder]
                         :or {class+ ""
@@ -379,15 +443,20 @@
   (reify
     om/IRender
     (render [this]
-      (dom/input #js {:value (:value app)
-                      :onChange (fn [e]
-                                  (let [v (.. e -target -value)]
-                                    (when (onChange-valid?-fn app v)
-                                      (om/update! app :value v))))
-                      :onKeyPress onKeyPress-fn
-                      :type type
-                      :placeholder placeholder
-                      :className (str "form-control " class+)}))))
+      (let [value (:value @app)]
+        (dom/input #js {:value value
+                        :onChange (fn [e]
+                                    (let [new-value (.. e -target -value)]
+                                      (if (onChange-valid?-fn app new-value)
+                                        (om/update! app :value new-value)
+                                        (om/update! app :value value))
+                                      (when onChange-updated-fn
+                                        (onChange-updated-fn))
+                                      ))
+                        :onKeyPress onKeyPress-fn
+                        :type type
+                        :placeholder placeholder
+                        :className (str "form-control " class+)})))))
 
 (defn input-form-group  [app owner {:keys [label
                                            type
@@ -416,6 +485,67 @@
 
 ;; END input
 ;;..................................................................................................
+
+
+
+;;**************************************************************************************************
+;;* BEGIN Input change password
+;;* tag: <input change password>
+;;*
+;;* description: Элемент ввода пароля
+;;*
+;;**************************************************************************************************
+
+(def input-change-password-app-init
+  {:password-1 {:value ""} :password-2 {:value ""} })
+
+(defn input-change-password-clean [_]
+  {:password-1 {:value ""} :password-2 {:value ""} })
+  
+
+(defn input-change-password [app owner]
+  (letfn [(onChange-updated-fn []
+            (om/transact!
+             app (fn [app]
+                   (if (not (=
+                             (get-in app [:password-1 :value])
+                             (get-in app [:password-2 :value])))
+                     (assoc app :has-warning? true :text-warning "Пароли не совпадают")
+                     (dissoc app :text-warning :has-warning?))))
+            )]
+    (reify
+      om/IRender
+      (render [this]
+        (dom/div
+         nil
+
+         (om/build input (:password-1 app) {:opts {:type "password"
+                                                   :onChange-updated-fn onChange-updated-fn}})
+         (om/build input (:password-2 app) {:opts {:type "password"
+                                                   :onChange-updated-fn onChange-updated-fn}})
+         (om/build helper-p app {})
+
+         )))))
+
+(defn input-change-password-group  [app owner {:keys [label
+                                                      type
+                                                      spec-input]
+                                               :or {label "Пароль"
+                                                    spec-input {}}}]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} label)
+               (dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
+                        (om/build input-change-password app {:opts spec-input})
+                        )))))
+
+
+;; END Input password
+;;..................................................................................................
+
+
 
 
 ;;**************************************************************************************************
@@ -1008,6 +1138,7 @@
             (while true
               (let [id (<! chan-load-for-id)
                     id (if (= id 0) nil id)]
+                ;; TODO: сделать отлов ошибок на alert
                 (ixnet/get-data
                  uri
                  {:id id}
@@ -1024,33 +1155,53 @@
           (go
             (while true
               (let [row (<! chan-init-row)]
-                (when-let [id (:id row)]
-                  (om/update! app :id id))
-                (fill-app-fn row)))))
+                
+                (om/update! app :id (or (:id row) nil))
+                
+                (alert-clean app)
+                ;; TODO: сделать отлов ошибок на alert
+                (fill-app-fn row) ))))
 
         (when chan-save
           (go
             (while true
               (let [_ (<! chan-save)]
                 (println "SAVE!")
-                (if uri-save
-                  ;; если указан то сохранять в сеть
-                  (ixnet/get-data
-                   uri-save
-                   (let [a (app-to-row-fn)]
-                     (if-let [id (@app :id)]
-                       (assoc a :id id)
-                       a))
-                   (fn [result]
-                     (when post-save-fn (post-save-fn result))))
-                  ;; иначе альтернитиваная функция
-                  (when post-save-fn (post-save-fn app)))))))
+
+                (try
+                  (do
+                    (if uri-save
+                      ;; если указан то сохранять в сеть
+                      (ixnet/get-data
+                       uri-save
+                       (let [a (app-to-row-fn)]
+                         (if-let [id (@app :id)]
+                           (assoc a :id id)
+                           a))
+                       (fn [result]
+                         (when post-save-fn (post-save-fn result))))
+
+                      ;; иначе альтернитиваная функция
+                      (when post-save-fn (post-save-fn app)))
+
+                    ;; SUCCESS MESSAGE
+                    (om/transact! app #(assoc % :alert-danger nil :alert-success "Сохранено успешно")))
+
+                  (catch js/Error e
+                    (let [m (str "Ошибка сохранения: " e)]
+                      (println m)
+                      (om/update! app :alert-danger m))))))))
+
 
         ))
     om/IRender
     (render [_]
       (dom/div
        #js {:className "row"}
+
+       ;; HELPER FOR MESSAGES
+       (om/build alert app)
+
        (dom/form
         #js {:className "form-horizontal col-sm-12 col-md-12 col-lg-12"}
         (if form-body

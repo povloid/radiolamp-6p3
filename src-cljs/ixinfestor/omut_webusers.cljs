@@ -29,6 +29,7 @@
 (def webusers-edit-form-app-init
   (merge omut/edit-form-for-id-app-init
          {:username (assoc omut/input-app-init :has-warning? true)
+          :password omut/input-change-password-app-init
           :description omut/textarea-app-init
           }))
 
@@ -51,16 +52,22 @@
                          ;; Заполнение формы
                          ;;(assoc :id id) ;; Id идет сразу, будет работатьт автоматом
                          (assoc-in [:username :value]    (get-in row [:username] ""))
-                         (assoc-in [:description :value] (get-in row [:description] "")) ))))
+                         (assoc-in [:description :value] (get-in row [:description] ""))                         
+                         (update-in [:password] omut/input-change-password-clean)
+
+                         ))))
 
                 :uri-save "/tc/rb/webusers/save/transit"
                 :app-to-row-fn
                 (fn []
+
+                  ;;(throw (js/Error. "тестовая ошибка"))
+                  
                   {:row (-> (if-let [id (@app :id)] {:id id} {})
                             (assoc
                              :username      (get-in @app [:username :value])
                              :description   (get-in @app [:description :value])))
-                   :user-roles-keys-set #{} ;; <- заполнить
+                   :user-roles-keys-set #{} ;; <- заполнить                   
                    })
 
                 :form-body
@@ -72,6 +79,9 @@
                            {:opts {:label "Наименование"
                                    :spec-input {:onChange-valid?-fn
                                                 omut/input-vldfn-not-empty}}})
+
+
+                 (om/build omut/input-change-password-group (get-in app [:password]))
 
                  (om/build omut/textarea-form-group (get-in app [:description])
                            {:opts {:label "Описание"}})
