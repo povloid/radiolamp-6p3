@@ -501,15 +501,23 @@
 
 (defn input-change-password-clean [_]
   {:password-1 {:value ""} :password-2 {:value ""} })
-  
+
+(defn input-change-password-valid? [a]
+  (= (get-in a [:password-1 :value]) (get-in a [:password-2 :value])))
+
+(defn input-change-password-check [a]
+  (if (not (input-change-password-valid? a))
+    (throw (js/Error. "Пароли в полях не совпадают!"))
+    a))
+
+(defn input-change-password-value [a]
+  (get-in a [:password-1 :value]))
 
 (defn input-change-password [app owner]
   (letfn [(onChange-updated-fn []
             (om/transact!
              app (fn [app]
-                   (if (not (=
-                             (get-in app [:password-1 :value])
-                             (get-in app [:password-2 :value])))
+                   (if (not (input-change-password-valid? app))
                      (assoc app :has-warning? true :text-warning "Пароли не совпадают")
                      (dissoc app :text-warning :has-warning?))))
             )]
@@ -1155,9 +1163,9 @@
           (go
             (while true
               (let [row (<! chan-init-row)]
-                
+
                 (om/update! app :id (or (:id row) nil))
-                
+
                 (alert-clean app)
                 ;; TODO: сделать отлов ошибок на alert
                 (fill-app-fn row) ))))

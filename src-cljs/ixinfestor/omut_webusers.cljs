@@ -61,12 +61,13 @@
                 :app-to-row-fn
                 (fn []
 
-                  ;;(throw (js/Error. "тестовая ошибка"))
+                  (omut/input-change-password-check (@app :password))
                   
                   {:row (-> (if-let [id (@app :id)] {:id id} {})
                             (assoc
                              :username      (get-in @app [:username :value])
-                             :description   (get-in @app [:description :value])))
+                             :description   (get-in @app [:description :value])
+                             :password (omut/input-change-password-value (@app :password))))
                    :user-roles-keys-set #{} ;; <- заполнить                   
                    })
 
