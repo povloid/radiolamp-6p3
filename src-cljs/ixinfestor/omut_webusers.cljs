@@ -244,5 +244,54 @@
 
 ;; END Webusers search form
 ;;..............................................................................
+
+;;**************************************************************************************************
+;;* BEGIN webuser change password form
+;;* tag: <webuser change password form>
+;;*
+;;* description: Форма для изменения собственного пароля
+;;*
+;;**************************************************************************************************
+
+
+(def webusers-change-password-form-app-init
+  (merge omut/edit-form-for-id-app-init
+         {:password omut/input-change-password-app-init}))
+
+
+(defn webusers-change-password-form [app _ _]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:chan-save (chan)})
+    om/IRenderState
+    (render-state [_ {:keys [chan-save]}]
+      (om/build
+       omut/edit-form-for-id app
+       {:opts
+        {:uri-save "/tc/rb/webusers/change-password/transit"
+         :chan-save chan-save
+         :app-to-row-fn
+         (fn []
+           (omut/input-change-password-check (@app :password))
+           {:password (omut/input-change-password-value (@app :password))})
+         :form-body
+         (dom/fieldset
+          nil
+          (dom/legend nil "Сменить пароль пользователя")
+          (om/build omut/input-change-password-group (get-in app [:password]))
+
+          (dom/button #js {:className "btn btn-primary"
+                           :type "button"
+                           :onClick (fn [_]
+                                      (put! chan-save 1)
+                                      1)
+                           }
+                      "Сохранить пароль")
+          )
+         }}))))
+
+;; END webuser change password form
+;;..................................................................................................
 ;; END Webusers
 ;;..................................................................................................
