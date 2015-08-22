@@ -44,13 +44,13 @@
   :plugins [;;[lein-cljsbuild "1.0.6"]
             [lein-ancient "0.6.7"]]
 
-  ;; :aot [ixinfestor.core
-  ;;       ixinfestor.core-web
-  ;;       ixinfestor.core-web-bootstrap
-  ;;       ixinfestor.core-handler
-  ;;       ixinfestor.transit]
+  :aot [ixinfestor.core
+        ixinfestor.core-web
+        ixinfestor.core-web-bootstrap
+        ixinfestor.core-handler
+        ixinfestor.transit]
 
   ;;:omit-source true
-  ;;;;;;;;:jar-exclusions [#"(?:^|ixinfestor/)*.clj\z"]
+  :jar-exclusions [#"(?:^|ixinfestor/)*.clj\z"]
 
   )
