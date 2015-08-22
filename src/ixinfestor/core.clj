@@ -15,6 +15,11 @@
             [image-resizer.core :refer :all]
             [image-resizer.format :as format]
             [image-resizer.pad :as pad]
+
+
+            [cemerick.friend :as friend]
+            (cemerick.friend [workflows :as workflows]
+                             [credentials :as creds])
             )
   )
 
@@ -668,6 +673,17 @@
 (defn webuserwebrole-own-get-rels-set [webuser-row]
   ((com-defn-get-rels-set webrole :id :keyname webuserwebrole :webuser_id :webrole_id) webuser-row))
 
+
+
+;; дополнительный функционал
+(defn add-user [username password roles-keys-set]
+  (let [u (webuser-save {:username username
+                         :password (cemerick.friend.credentials/hash-bcrypt password)})]
+    (webuserwebrole-add-rels-for-keynames u roles-keys-set)))
+
+
+
+
 ;; END entity webuserwebrole
 ;;..................................................................................................
 
@@ -749,7 +765,7 @@
 
             ;;(format/as-file full-path-spec)
             (image-file_as_w_png file-src w)
-            
+
             println))
       (println "OK")
       )))

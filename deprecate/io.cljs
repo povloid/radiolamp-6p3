@@ -1,5 +1,6 @@
 (ns ixinfestor.io
-  (:require [goog.net.IframeIo]
+  (:require [ixinfestor.core :as ixs]
+            [goog.net.IframeIo]
             [goog.net.EventType]
             [goog.events :as events]))
 

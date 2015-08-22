@@ -1,22 +1,22 @@
 (ns ixinfestor.omut
 
-  (:import [goog.dom query])
-
   (:require-macros [cljs.core.async.macros :refer [go]])
+
   (:require [cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
 
-            [goog.dom.classes :as aclasses]
-            ;;[sablono.core :as html :refer-macros [html]]
+            [goog.dom.classes :as gdc]
 
             [ixinfestor.io :as ix-io]
             [ixinfestor.net :as ixnet]
 
-            [clojure.string]
-            [clojure.set]
+            [clojure.set :as clojset]
+            [clojure.string :as clojstr]
+            )
 
-            ))
+  (:import [goog.dom query]))
+
 
 ;;**************************************************************************************************
 ;;* BEGIN modal
@@ -51,8 +51,8 @@
      (println "modals-status: " new)
      (let[tag-body (aget (query "body") 0)]
        (if (empty? new)
-         (goog.dom.classes/remove tag-body "modal-open")
-         (goog.dom.classes/add    tag-body "modal-open")))
+         (gdc/remove tag-body "modal-open")
+         (gdc/add    tag-body "modal-open")))
 
      (let [d (clojure.set/difference new old)]
        (when (not (empty? d))
@@ -67,14 +67,8 @@
                                class+]
                         :or {label "Пустая пометка"
                              modal-size :default
-                             body (dom/p #js {:className "text-info"}
-                                         "Пустое пространство диалога. Можно наполнить элементами")
-                             footer (dom/button #js {:className "btn btn-default"
-                                                     :type "button"
-                                                     :onClick (fn [_] (om/update! app :show false) 1)
-                                                     :data-dismiss "modal"}
-                                                "Закрыть")
-                             class+ ""}}]
+                             class+ "" }
+                        }]
   (reify
     om/IInitState
     (init-state [_]
@@ -123,11 +117,16 @@
                                                " " class+)}
                           (dom/div #js {:className "modal-content"}
                                    (dom/div #js {:className "modal-header"}
-                                            (if header
-                                              header
-                                              (dom/h4 #js {:className "modal-title"} label)))
-                                   (dom/div #js {:className "modal-body"}   body)
-                                   (dom/div #js {:className "modal-footer"} footer))))))))
+                                            (or header (dom/h4 #js {:className "modal-title"} label)))
+                                   (dom/div #js {:className "modal-body"}
+                                            (or body (dom/p #js {:className "text-info"}
+                                                            "Пустое пространство диалога. Можно наполнить элементами")))
+                                   (dom/div #js {:className "modal-footer"}
+                                            (or footer (dom/button #js {:className "btn btn-default"
+                                                                        :type "button"
+                                                                        :onClick (fn [_] (om/update! app :show false) 1)
+                                                                        :data-dismiss "modal"}
+                                                                   "Закрыть"))))))))))
 
 
 ;;------------------------------------------------------------------------------
@@ -1364,10 +1363,10 @@
                            :aria-hidden "true"}))
           (dom/a nil (dom/img #js {:src path :alt "фото"}))
           (dom/div #js {:className "caption"}
-                   (when (not (clojure.string/blank? top_description))
+                   (when (not (clojstr/blank? top_description))
                      (dom/h3 nil top_description))
                    (dom/div nil
-                            (when (not (clojure.string/blank? description))
+                            (when (not (clojstr/blank? description))
                               (dom/p nil description))
 
                             (dom/span #js {:className "label label-default"} "URL")
