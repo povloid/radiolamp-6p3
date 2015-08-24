@@ -3,9 +3,6 @@
   (:require [cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-
-            ;;[sablono.core :as html :refer-macros [html]]
-
             [ixinfestor.net :as ixnet]
             [ixinfestor.omut :as omut]
 

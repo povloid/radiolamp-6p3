@@ -548,7 +548,6 @@
                         (om/build input-change-password app {:opts spec-input})
                         )))))
 
-
 ;; END Input password
 ;;..................................................................................................
 
@@ -691,6 +690,8 @@
 ;;*
 ;;**************************************************************************************************
 
+(def key-tr-selected :tr-selected)
+
 (defn ui-table [{:keys [striped?
                         bordered?
                         condensed?
@@ -735,11 +736,11 @@
   (reify
     om/IRender
     (render [_]
-      (apply dom/tr #js {:className (if (:tr-selected app) "info" "")
+      (apply dom/tr #js {:className (if (key-tr-selected app) "info" "")
                          :onClick (fn [_]
                                     (when clear-selections-fn
                                       (clear-selections-fn))
-                                    (om/transact! app :tr-selected not)
+                                    (om/transact! app key-tr-selected not)
                                     (when on-select-fn
                                       (on-select-fn @app))
                                     1)}
@@ -766,7 +767,7 @@
                     (om/transact!
                      app
                      (fn [data]
-                       (vec (map #(assoc % :tr-selected false) data))))))
+                       (vec (map #(assoc % key-tr-selected false) data))))))
            opts)})))))
 
 
@@ -848,6 +849,18 @@
   (merge {:fts-query input-app-init
           :data []}
          paginator-app-init))
+
+(defn search-view-app-data [app]
+  (@app :data))
+
+(defn search-view-app-data-selected [app]
+  (->> @app
+       :data
+       (filter key-tr-selected)))
+
+(defn search-view-app-data-selected-first [app]
+  (first (search-view-app-data-selected app)))
+
 
 (defn search-view [app owner
                    {:keys [chan-update
@@ -1063,6 +1076,7 @@
    :tabs [;; {:text "item 1"}
           ]})
 
+
 (defn nav-tabs [app _ {:keys [justified?
                               type
                               chan-update]
@@ -1096,6 +1110,15 @@
                                text)))
 
               (:tabs app) (range)) ))))
+
+
+(defn ui-nav-tab [app i body]
+  (dom/div #js {:style #js {:display
+                            (if (= (:active-tab app) i)
+                              "" "none") }}
+           body))
+
+
 
 ;; END Navigation elements
 ;;..................................................................................................
@@ -1176,23 +1199,29 @@
                 (println "SAVE!")
 
                 (try
-                  (do
-                    (if uri-save
-                      ;; если указан то сохранять в сеть
-                      (ixnet/get-data
-                       uri-save
-                       (let [a (app-to-row-fn)]
-                         (if-let [id (@app :id)]
-                           (assoc a :id id)
-                           a))
-                       (fn [result]
-                         (when post-save-fn (post-save-fn result))))
+                  (if uri-save
+                    ;; если указан то сохранять в сеть
+                    (ixnet/get-data
+                     uri-save
+                     (let [a (app-to-row-fn)]
+                       (if-let [id (@app :id)]
+                         (assoc a :id id)
+                         a))
+                     (fn [result]
+                       (when post-save-fn (post-save-fn result))
+                       ;; SUCCESS MESSAGE
+                       (om/transact! app #(assoc % :alert-danger nil :alert-success "Сохранено успешно")))
 
-                      ;; иначе альтернитиваная функция
-                      (when post-save-fn (post-save-fn app)))
+                     (fn [error-response]
+                       (om/transact! app #(assoc % :alert-danger
+                                                 (str "Ошибка сохранения: " error-response))))
+                     )
 
-                    ;; SUCCESS MESSAGE
-                    (om/transact! app #(assoc % :alert-danger nil :alert-success "Сохранено успешно")))
+                    ;; иначе альтернитиваная функция
+                    (when post-save-fn
+                      (do (post-save-fn app))
+                      ;; SUCCESS MESSAGE
+                      (om/transact! app #(assoc % :alert-danger nil :alert-success "Сохранено успешно"))))
 
                   (catch js/Error e
                     (let [m (str "Ошибка сохранения: " e)]
@@ -1219,7 +1248,8 @@
 (def modal-edit-form-for-id--YN--app-init
   (merge modal-app-init edit-form-for-id-app-init))
 
-(defn modal-edit-form-for-id--YN- [app _ {:keys [edit-form-for-id]
+(defn modal-edit-form-for-id--YN- [app _ {:keys [new-or-edit-fn?
+                                                 edit-form-for-id]
                                           :or {edit-form-for-id
                                                (fn [_ _]
                                                  (reify
@@ -1235,7 +1265,13 @@
     om/IRenderState
     (render-state [_ {:keys[chan-save]}]
       (om/build modal app
-                {:opts {;;:modal-size :lg
+                {:opts {:label (if new-or-edit-fn?
+                                 (condp = (new-or-edit-fn?)
+                                   :new "Создание новой записи"
+                                   :edit "Редактирование записи"
+                                   "???")
+                                 "Редактирование записи")
+                        ;;:modal-size :lg
                         :body
                         (om/build edit-form-for-id app
                                   {:opts (assoc opts
@@ -1260,7 +1296,87 @@
                         }}))))
 
 
+(def modal-edit-form-for-id--CLOSE--app-init
+  (merge modal-app-init edit-form-for-id-app-init))
+
+(defn modal-edit-form-for-id--CLOSE- [app _ {:keys [new-or-edit-fn?
+                                                    edit-form-for-id
+                                                    post-save-fn]
+                                             :or {edit-form-for-id
+                                                  (fn [_ _]
+                                                    (reify
+                                                      om/IRender
+                                                      (render [_]
+                                                        (dom/h1 nil "Форма диалога еще не указана"))))
+                                                  }
+                                             :as opts}]
+  (reify
+    om/IRender
+    (render [_]
+      (om/build modal app
+                {:opts {:label (if new-or-edit-fn?
+                                 (condp = (new-or-edit-fn?)
+                                   :new "Создание новой записи"
+                                   :edit "Редактирование записи"
+                                   "???")
+                                 "Редактирование записи")
+                        ;;:modal-size :lg
+                        :body
+                        (om/build edit-form-for-id app {:opts opts})
+                        :footer
+                        (dom/button #js {:className "btn btn-default"
+                                         :onClick (fn [_]
+                                                    (when post-save-fn
+                                                      (post-save-fn {}))
+                                                    (modal-hide app) 1)
+                                         :type "button"}
+                                    "Закрыть")
+                        }}))))
+
+
+
 ;; END Edit form functional
+;;..................................................................................................
+
+
+;;**************************************************************************************************
+;;* BEGIN Virtual pages
+;;* tag: <virtual pages>
+;;*
+;;* description: Виртуальные страници для нескольких связанных форм
+;;*
+;;**************************************************************************************************
+
+(def virtual-pages-app-init
+  {:current :main
+   })
+
+(defn virtual-pages-current [app]
+  (@app :current))
+
+(defn virtual-pages-go-to-page [app page]
+  (om/update! app :current page))
+
+(defn ui-virtual-page-<<
+  ([app page-key body]
+   (ui-virtual-page-<< app page-key nil body))
+  ([app page-key back-key body]
+   (dom/div #js {:style #js {:display
+                             (if (= (virtual-pages-current app) page-key)
+                               "" "none") }}
+            (when back-key
+              (dom/button #js {:className "btn btn-default" :type "button"
+                               :onClick (fn [_]
+                                          (virtual-pages-go-to-page app back-key)
+                                          1)}
+                          (dom/span #js {:className "glyphicon glyphicon-backward"
+                                         :aria-hidden "true"})
+                          " Назад"))
+
+            body)))
+
+
+;; END Virtual pages
 ;;..................................................................................................
 
 ;;**************************************************************************************************
@@ -1521,7 +1637,7 @@
                                  (fn []
                                    (ixnet/get-data
                                     uri-delete ;;"/tc/rb/product/files_rel/delete"
-                                    {:webdoc-id (get-in @app [:last-params :id])
+                                    {:id (get-in @app [:last-params :id])
                                      :file-id (get-in @app [:modal-yes-no :row :id])}
                                     (fn [_]
                                       (when chan-update
@@ -1732,7 +1848,7 @@
                                  (fn []
                                    (ixnet/get-data
                                     uri-delete ;;"/tc/rb/product/files_rel/delete"
-                                    {:webdoc-id (get-in @app [:last-params :id])
+                                    {:id (get-in @app [:last-params :id])
                                      :file-id (get-in @app [:modal-yes-no :row :id])}
                                     (fn [_]
                                       (when chan-update
