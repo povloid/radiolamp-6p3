@@ -1076,6 +1076,27 @@
    :tabs [;; {:text "item 1"}
           ]})
 
+(defn nav-tabs-active-tab [app]
+  (get-in @app [:active-tab] 0))
+
+(defn nav-tabs-enable-inly-one [app i]
+  (om/transact!
+   app (fn [app]
+         (-> app
+             (update-in [:tabs] #(->> %
+                                      (map
+                                       (fn [i t]
+                                         (if (= 0 i) t (assoc t :disabled? true)))
+                                       (range))
+                                      vec))
+             (assoc :active-tab i)))))
+
+(defn nav-tabs-enable-all [app]
+  (om/transact!
+   app :tabs
+   (fn [tabs] (map #(dissoc % :disabled?) tabs))))
+
+
 
 (defn nav-tabs [app _ {:keys [justified?
                               type
