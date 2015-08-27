@@ -17,6 +17,59 @@
 
   (:import [goog.dom query]))
 
+;;**************************************************************************************************
+;;* BEGIN Common functions and tools
+;;* tag: <com>
+;;*
+;;* description: Общие функции и инструменты
+;;*
+;;**************************************************************************************************
+
+(defn uniq-id [s]
+  (str (gensym (str s "-"))))
+
+;; END Common functions and tools
+;;..................................................................................................
+
+
+
+;;**************************************************************************************************
+;;* BEGIN buttons
+;;* tag: <buttons>
+;;*
+;;* description: Кнопки
+;;*
+;;**************************************************************************************************
+
+(defn ui-button [{:keys [text
+                         type
+                         lg?
+                         block?
+                         disabled?
+                         on-click]
+                  :or {text "Кнопка"
+                       type :default}}]
+  (dom/button #js {:className (str "btn btn-block "
+                                   ({:default "btn-default"
+                                     :primary "btn-primary"
+                                     :success "btn-success"
+                                     :info    "btn-info"
+                                     :warning "btn-warning"
+                                     :danger  "btn-danger"
+                                     :link    "btn-link"} type)
+                                   (if lg? " btn-lg" "")
+                                   (if block? " btn-block" "")
+                                   )
+                   :type "button"
+                   :disabled (if disabled? "disabled" "")
+                   :onClick on-click
+                   }
+              text))
+
+
+;; END buttons
+;;..................................................................................................
+
 
 ;;**************************************************************************************************
 ;;* BEGIN modal
@@ -39,9 +92,6 @@
    app :show
    (fn [_] false)))
 
-
-(defonce modals-ids (atom 0))
-(defn get-modal-id [] (str "modal-" (swap! modals-ids inc)))
 
 (defonce modals-status (atom #{}))
 (add-watch
@@ -72,7 +122,7 @@
   (reify
     om/IInitState
     (init-state [_]
-      {:id (get-modal-id)})
+      {:id (uniq-id "modal")})
     om/IWillUnmount
     (will-unmount [_]
       (swap! modals-status disj (om/get-state owner :id)))
@@ -1068,34 +1118,44 @@
                   ))))))
 
 
-
-
+;;------------------------------------------------------------------------------
+;; BEGIN: nav tabs page splitter
+;; tag: <nav tabs page splitter>
+;; description: Табы
+;;------------------------------------------------------------------------------
 
 (def nav-tabs-app-state
   {:active-tab 0
    :tabs [;; {:text "item 1"}
           ]})
 
+
+(defn nav-tabs-app-state-i-maker [tabs]
+  (reduce
+   (fn [a [k v]]
+     (assoc a k v))
+   (vec (range (count tabs)))
+   (seq tabs)))
+
 (defn nav-tabs-active-tab [app]
   (get-in @app [:active-tab] 0))
 
-(defn nav-tabs-enable-inly-one [app i]
+(defn nav-tabs-enable-inly-one [app ii]
   (om/transact!
    app (fn [app]
          (-> app
              (update-in [:tabs] #(->> %
                                       (map
                                        (fn [i t]
-                                         (if (= 0 i) t (assoc t :disabled? true)))
+                                         (if (= ii i) t (assoc t :disabled? true)))
                                        (range))
                                       vec))
-             (assoc :active-tab i)))))
+             (assoc :active-tab ii)))))
 
 (defn nav-tabs-enable-all [app]
   (om/transact!
    app :tabs
    (fn [tabs] (map #(dissoc % :disabled?) tabs))))
-
 
 
 (defn nav-tabs [app _ {:keys [justified?
@@ -1138,6 +1198,10 @@
                             (if (= (:active-tab app) i)
                               "" "none") }}
            body))
+
+
+;; END nav tabs page splitter
+;;..............................................................................
 
 
 
@@ -1408,11 +1472,6 @@
 ;;*
 ;;**************************************************************************************************
 
-(def file-uploder-form-id-seq (atom 0))
-(defn file-uploder-form-id-seq-new []
-  (str "file-uploder-form-" (swap! file-uploder-form-id-seq inc)))
-
-
 (defn file-uploder [_ owner {:keys [uri
                                     get-uri-fn
                                     update-fn
@@ -1423,7 +1482,7 @@
     om/IInitState
     (init-state [_]
       {:chan-upload (chan)
-       :form-id (file-uploder-form-id-seq-new)})
+       :form-id (uniq-id "file-uploder-form")})
     om/IWillMount
     (will-mount [this]
       (let [{:keys[chan-upload form-id]} (om/get-state owner)]
