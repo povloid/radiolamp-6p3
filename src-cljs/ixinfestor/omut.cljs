@@ -25,6 +25,11 @@
 ;;*
 ;;**************************************************************************************************
 
+(defn by-id
+  "Short-hand for document.getElementById(id)"
+  [id]
+  (.getElementById js/document (name id)))
+
 (defn uniq-id [s]
   (str (gensym (str s "-"))))
 
@@ -32,6 +37,22 @@
 ;;..................................................................................................
 
 
+
+;;**************************************************************************************************
+;;* BEGIN icons
+;;* tag: <icons>
+;;*
+;;* description: Иконки
+;;*
+;;**************************************************************************************************
+
+(defn ui-glyphicon [name & [class+ size]]
+  (dom/span #js {:className (str "glyphicon glyphicon-" name " " (or class+ ""))
+                 :style #js {:fontSize size}
+                 :aria-hidden "true"}))
+
+;; END icons
+;;..................................................................................................
 
 ;;**************************************************************************************************
 ;;* BEGIN buttons
@@ -284,6 +305,81 @@
 
 ;; END Modal Yes or No
 ;;..............................................................................
+
+;;------------------------------------------------------------------------------
+;; BEGIN: Function for showing modal for error or warning mesage
+;; tag: <modal error warning message>
+;; description: Диалог для выведения сообщений об ошибках
+;;------------------------------------------------------------------------------
+
+(defonce message-modal-app
+  (atom (assoc modal-app-init
+               :title
+               :message "")))
+
+(defn- cursor-message-root [] (om/root-cursor message-modal-app))
+
+(def message-modal-id "message-modal")
+
+(defn message-modal [app _]
+  (reify
+    om/IRender
+    (render [_]
+      (let [[type-class+ title-default icon]
+            (get-in {:muted   ["text-muted"   "Текстовое сообщение"
+                               nil]
+                     :primary ["text-primary" "Предложение"
+                               nil]
+                     :success ["text-success" "Операция проведени успешно"
+                               "ok"]
+                     :info    ["text-info"    "Информация"
+                               "info"]
+                     :warning ["text-warning" "Внимание!"
+                               "alert"]
+                     :danger  ["text-danger"  "Ошибка!!!"
+                               "exclamation-sign"]
+                     } [(get-in @app [:type] :muted)])]
+
+        (om/build modal app
+                  {:opts {:header (dom/h1 #js {:className type-class+}
+                                          (when icon (ui-glyphicon icon "1em"))
+                                          (or (@app :title) title-default))
+                          :body (dom/p #js {:className type-class+}
+                                       " " (@app :message))}})))))
+
+
+(defn show-in-message-modal [type {:keys [title error]}]
+  (let [_ (or (by-id message-modal-id)
+              (let [error-div (.createElement js/document "div")
+                    tag-body (aget (query "body") 0)]
+                (set! (.-id error-div) message-modal-id)
+                (.appendChild tag-body error-div)
+
+                (om/root message-modal
+                         message-modal-app
+                         {:target (by-id message-modal-id)})
+
+                error-div))]
+
+    (om/transact! (cursor-message-root)
+                  (fn [app]
+                    (assoc app
+                           :title title
+                           :message (str error)
+                           :type type)))
+    (modal-show (cursor-message-root))))
+
+(def show-in-message-modal-muted   (partial show-in-message-modal :muted))
+(def show-in-message-modal-primary (partial show-in-message-modal :primary))
+(def show-in-message-modal-success (partial show-in-message-modal :success))
+(def show-in-message-modal-info    (partial show-in-message-modal :info))
+(def show-in-message-modal-warning (partial show-in-message-modal :warning))
+(def show-in-message-modal-danger  (partial show-in-message-modal :danger))
+
+
+;; END Function for showing modal for error or warning mesage
+;;..............................................................................
+
 
 ;; END modal
 ;;..................................................................................................
@@ -686,7 +782,8 @@
 
 (defn toggle-button [app _ {:keys [bs-type
                                    class+
-                                   onClick-fn]
+                                   onClick-fn
+                                   disabled?]
                             :or {bs-type :default
                                  class+ ""}}]
   (reify
@@ -706,6 +803,7 @@
                                        class+
                                        (if (app :value) " active" "")
                                        )
+                       :disabled (if disabled? "disabled" "")
                        :onClick (fn [_]
                                   (om/transact! app :value not)
                                   (when onClick-fn (onClick-fn))
