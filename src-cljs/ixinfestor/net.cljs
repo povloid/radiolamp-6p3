@@ -34,7 +34,7 @@
                    (fn [e]
                      (let [response (t/read r (.getResponseText (.-target e)))]
                        (println "REQUEST COMPLETE")
-                       (if error-fn (error-fn response)))))
+                       (if complete-fn (complete-fn response)))))
 
 
     (events/listen req goog.net.EventType.SUCCESS

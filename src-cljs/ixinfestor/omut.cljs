@@ -348,7 +348,7 @@
                                        " " (@app :message))}})))))
 
 
-(defn show-in-message-modal [type {:keys [title error]}]
+(defn show-in-message-modal [type {:keys [title message] :as message-row}]
   (let [_ (or (by-id message-modal-id)
               (let [error-div (.createElement js/document "div")
                     tag-body (aget (query "body") 0)]
@@ -365,7 +365,7 @@
                   (fn [app]
                     (assoc app
                            :title title
-                           :message (str error)
+                           :message (or message (str message-row))
                            :type type)))
     (modal-show (cursor-message-root))))
 
