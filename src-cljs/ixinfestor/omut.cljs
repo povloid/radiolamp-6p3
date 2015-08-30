@@ -35,6 +35,12 @@
 (defn uniq-id [s]
   (str (gensym (str s "-"))))
 
+
+(defn parse-int-or-nil [v]
+  (let [i (js/parseInt v)]
+    (if (js/isNaN i) nil i)))
+        
+
 ;; END Common functions and tools
 ;;..................................................................................................
 
@@ -727,7 +733,9 @@
 
 (defn select-app-selected [app]
   (let [sv (app :selected)]
-    (if (= sv no-select-v) nil sv)))
+    (if (or (nil? sv)
+            (empty? sv)
+            (= sv no-select-v)) nil sv)))
 
 
 (defn select [app _ {:keys [on-change-fn]}]
