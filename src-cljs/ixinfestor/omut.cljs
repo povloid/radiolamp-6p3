@@ -13,6 +13,8 @@
 
             [clojure.set :as clojset]
             [clojure.string :as clojstr]
+
+            [goog.i18n.DateTimeFormat :as dtf]
             )
 
   (:import [goog.dom query]))
@@ -36,7 +38,78 @@
 ;; END Common functions and tools
 ;;..................................................................................................
 
+;;**************************************************************************************************
+;;* BEGIN Dates and Times
+;;* tag: <date time timestamp>
+;;*
+;;* description: функции работы со временем
+;;*
+;;**************************************************************************************************
 
+;; (defn convert-to-array [js-col]
+;;   (-> (clj->js [])
+;;       (.-slice)
+;;       (.call js-col)
+;;       (js->clj)))
+
+;;**************************************************************************************************
+;;* BEGIN date and time functions
+;;* tag: <date and time functions>
+;;*
+;;* description: Работа с датами и временем
+;;* примеры
+;; 1 форматирование
+;;(.format (goog.i18n.DateTimeFormat. (.-LONG_DATE goog.i18n.DateTimeFormat.Format)) (js/Date.))
+;; 2 получение из стороки и форматирование
+;;(.format (goog.i18n.DateTimeFormat. (.-LONG_DATE goog.i18n.DateTimeFormat.Format))
+;;  (new js/Date (.parse js/Date (get-in row [:webdoc-row :udate]))))
+;;**************************************************************************************************
+
+(def date-formats
+  (let [f goog.i18n.DateTimeFormat.Format]
+    {:FULL_DATE (.-FULL_DATE f)
+     :FULL_DATETIME (.-FULL_DATETIME f)
+     :FULL_TIME (.-FULL_TIME f)
+     :LONG_DATE (.-LONG_DATE f)
+     :LONG_DATETIME (.-LONG_DATETIME f)
+     :LONG_TIME (.-LONG_TIME f)
+     :MEDIUM_DATE (.-MEDIUM_DATE f)
+     :MEDIUM_DATETIME (.-MEDIUM_DATETIME f)
+     :MEDIUM_TIME (.-MEDIUM_TIME f)
+     :SHORT_DATE (.-SHORT_DATE f)
+     :SHORT_DATETIME (.-SHORT_DATETIME f)
+     :SHORT_TIME (.-SHORT_TIME f)
+     }))
+
+
+(defn str-to-date [date-string]
+  (new js/Date (.parse js/Date date-string)))
+
+(defn format-date
+  "Format a date using either the built-in goog.i18n.DateTimeFormat.Format enum
+  or a formatting string like \"dd MMMM yyyy\"
+  examples:
+  > (format-date-generic :LONG_DATE (js/Date.))
+  > \"July 14, 2012\"
+  > (format-date-generic \"dd MMMM yyyy\" (js/Date.))
+  > \"14 July 2012\"
+  > (format-date-generic \"MMMM\" (js/Date.))
+  > \"July\"
+  "
+  [date-format date]
+  (.format (goog.i18n.DateTimeFormat. (or (date-formats date-format) date-format))  date))
+
+(defn str-to-date-and-format [date-format alt-string s]
+  (if (nil? s) alt-string
+      (format-date date-format (str-to-date s))))
+
+;; END date and time functions
+;;..................................................................................................
+
+
+
+;; END Dates and Times
+;;..................................................................................................
 
 ;;**************************************************************************************************
 ;;* BEGIN icons
@@ -629,6 +702,70 @@
   true)
 
 ;; END input
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN input select
+;;* tag: <input select>
+;;*
+;;* description: Выбор из списка
+;;*
+;;**************************************************************************************************
+
+(def select-app-init
+  {:selected nil
+   :list []})
+
+(def no-select-v "NO-SELECT")
+
+(defn select-app-list-set! [app new-list]
+  (assoc app :list new-list))
+
+(defn select-app-selected-set! [app selected]
+  (assoc app :selected (str selected)))
+
+(defn select-app-selected [app]
+  (let [sv (app :selected)]
+    (if (= sv no-select-v) nil sv)))
+
+
+(defn select [app _ {:keys [on-change-fn]}]
+  (reify
+    om/IRender
+    (render [_]
+      (println "SELECT APP:" @app)
+      (dom/select
+       #js {:value (@app :selected)
+            :className "form-control"
+            :onChange
+            (fn [e]
+              (let [v (-> e .-target .-value)]
+                (om/update! app :selected v)
+                (when on-change-fn (on-change-fn v))))}
+
+       (doall
+        (map (fn [{:keys [id title keyname]}]
+               (println id title keyname)
+               (dom/option #js {:value (str id)} keyname " " title))
+             (into [{:id no-select-v :title "Выбрать..."}] (@app :list)))) ))))
+
+(defn select-form-group  [app _ {:keys [label
+                                        type
+                                        spec-select]
+                                 :or {label "Метка"
+                                      spec-select {}}}]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} label)
+               (dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
+                        (om/build select app {:opts spec-select})
+                        (om/build helper-p app {})
+                        )))))
+
+
+;; END input select
 ;;..................................................................................................
 
 
