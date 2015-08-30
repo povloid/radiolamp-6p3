@@ -262,9 +262,10 @@
                           (dom/div #js {:className "modal-content"}
                                    (dom/div #js {:className "modal-header"}
                                             (or header (dom/h4 #js {:className "modal-title"} label)))
-                                   (dom/div #js {:className "modal-body"}
-                                            (or body (dom/p #js {:className "text-info"}
-                                                            "Пустое пространство диалога. Можно наполнить элементами")))
+                                   (dom/div #js {:className "modal-body"
+                                                 :style #js {:marginRight 40}}
+                                                     (or body (dom/p #js {:className "text-info"}
+                                                                     "Пустое пространство диалога. Можно наполнить элементами")))
                                    (dom/div #js {:className "modal-footer"}
                                             (or footer (dom/button #js {:className "btn btn-default"
                                                                         :type "button"
@@ -733,7 +734,7 @@
   (reify
     om/IRender
     (render [_]
-      (println "SELECT APP:" @app)
+      ;;(println "SELECT APP:" @app)
       (dom/select
        #js {:value (@app :selected)
             :className "form-control"
