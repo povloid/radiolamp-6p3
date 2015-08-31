@@ -36,10 +36,17 @@
   (str (gensym (str s "-"))))
 
 
+(defn is-numeric? [n] 
+  (and (not (js/isNaN (js/parseFloat n))) (js/isFinite n)))
+
+
 (defn parse-int-or-nil [v]
-  (let [i (js/parseInt v)]
-    (if (js/isNaN i) nil i)))
+  (if (is-numeric? v)
+    (js/parseInt v)
+    nil))
         
+
+
 
 ;; END Common functions and tools
 ;;..................................................................................................
