@@ -52,12 +52,24 @@
                          (assoc-in [:username :value]    (get-in row [:username] ""))
                          (assoc-in [:description :value] (get-in row [:description] ""))
                          (update-in [:password] omut/input-change-password-clean)
-                         (assoc :troles (let [[roles-list user-roles-set] (row :troles-set)]
-                                          (reduce (fn [a {keyname :keyname :as row}]
-                                                    (conj a (assoc-in row [:user-role? :value] (contains? user-roles-set keyname))))
-                                                  [] roles-list)))
-
+                         (assoc :troles (let [[roles-list user-roles-set] (row :troles-set)
+                                              roles-list (seq (group-by :id_2 roles-list))]
+                                          {:groups (reduce
+                                                    (fn [a [id_2 r]]
+                                                      (assoc a id_2 (-> r first :title_2)))
+                                                    {} roles-list)
+                                           :roles (->> roles-list
+                                                       (reduce
+                                                        (fn [a [g-id groups]]
+                                                          (assoc a g-id
+                                                                 (vec
+                                                                  (map
+                                                                   #(assoc-in % [:user-role? :value] (contains? user-roles-set (% :keyname)))
+                                                                   groups))))
+                                                        {}))}
+                                          ))
                          ))))
+
 
                 :uri-save "/tc/rb/webusers/save/transit"
                 :app-to-row-fn
@@ -72,6 +84,9 @@
                              :password (omut/input-change-password-value (@app :password)) ))
                    :user-roles-keys-set (->> @app
                                              :troles
+                                             :roles
+                                             vals
+                                             (mapcat conj)
                                              (filter #(get-in % [:user-role? :value]))
                                              (map :keyname)
                                              (reduce conj #{}))
@@ -94,13 +109,26 @@
                            {:opts {:label "Описание"}})
 
                  (dom/div #js {:className "form-group"}
-                          (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} "Роли д")
+                          (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} "Роли")
+
                           (apply dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
-                                 (map (fn [i {:keys [title]}]
-                                        (dom/div nil
-                                                 (om/build omut/toggle-button (get-in app [:troles i :user-role?]))
-                                                 title))
-                                      (range) (app :troles)))))
+
+                                 (let [roles (get-in @app [:troles :roles])
+                                       groups (get-in @app [:troles :groups])]
+                                   (map
+                                    (fn [[g-id title]]
+                                      (dom/div
+                                       nil (dom/hr nil) (dom/h5 nil title)
+                                       (->> g-id
+                                            roles
+                                            (map
+                                             (fn [i {:keys [title]}]
+                                               (dom/div nil
+                                                        (om/build omut/toggle-button (get-in app [:troles :roles g-id i :user-role?]))
+                                                        title))
+                                             (range))
+                                            (apply dom/div nil)) ))
+                                    (seq groups)) ))))
 
 
                 })

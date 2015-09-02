@@ -618,23 +618,38 @@
 ;;*
 ;;**************************************************************************************************
 
-(defentity webrole
+
+(defentity webrolesgroup
   (pk :id)
+
   (prepare (fn [row] (-> row
                          ((partial prepare-as-string :keyname)))))
   (transform (fn [row] (-> row
                            ((partial transform-as-keyword :keyname))))))
 
-(defn webrole-init [keyname title description]
-  (com-save-for-field webrole :keyname
-                      {:keyname (name keyname)
-                       :title title
-                       :description description}))
 
 
-;; В принципе можно закэшировать !!!
-(defn webrole-list [] (select webrole))
+(defn webrolesgroup-init [row]
+  (com-save-for-field webrolesgroup :keyname (update-in row [:keyname] name)))
 
+
+(defentity webrole
+  (pk :id)
+  (belongs-to webrolesgroup)
+  (prepare (fn [row] (-> row
+                         ((partial prepare-as-string :keyname)))))
+  (transform (fn [row] (-> row
+                           ((partial transform-as-keyword :keyname))))))
+
+(defn webrole-init [row]
+  (com-save-for-field webrole :keyname (update-in row [:keyname] name)))
+
+(defn webrole-list
+  ([] (webrole-list false))
+  ([with-webrolesgroup]
+   (if with-webrolesgroup     
+     (select webrole (with webrolesgroup))
+     (select webrole))))
 
 
 ;; END entity webrole

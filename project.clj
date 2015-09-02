@@ -23,16 +23,16 @@
                  [org.postgresql/postgresql "9.3-1102-jdbc41"]
                  [korma "0.4.2"]
 
-                 [net.sourceforge.htmlcleaner/htmlcleaner "2.13"]
+                 [net.sourceforge.htmlcleaner/htmlcleaner "2.14"]
 
                  [com.draines/postal "1.11.3"]
                  [image-resizer "0.1.7"]
 
 
                  ;; CLOJURESCRIPT LIBRARIES
-                 [org.clojure/clojurescript "1.7.107"]
+                 [org.clojure/clojurescript "1.7.48"]
                  
-                 [com.cognitect/transit-cljs "0.8.220"]
+                 [com.cognitect/transit-cljs "0.8.225"]
                  [org.omcljs/om "0.8.8"]
                  ;;[sablono "0.3.4"]
                  [secretary "1.2.3"]
@@ -42,7 +42,7 @@
   :source-paths ["src" "src-cljs"]
 
   :plugins [;;[lein-cljsbuild "1.0.6"]
-            [lein-ancient "0.6.7"]]
+	    ]
 
   :aot [ixinfestor.core
         ixinfestor.core-web

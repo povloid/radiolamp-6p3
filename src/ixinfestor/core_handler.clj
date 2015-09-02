@@ -241,15 +241,17 @@
       ((partial map #(dissoc % :password)))))
 
 (defn rest-webusers-find [{{id :id} :params}]
-  (-> (if id
-        (-> id
-            ((partial ix/com-find ix/webuser))
-            (dissoc :password)
-            (as-> row
-                (assoc row :troles-set [(ix/webrole-list)
-                                        (ix/webuserwebrole-own-get-rels-set row)])))
-        (-> {} ;; new
-            (assoc :troles-set [(ix/webrole-list) #{}])))))
+  (let [webroles (ix/webrole-list true)]
+    (-> (if id
+          (-> id
+              ((partial ix/com-find ix/webuser))
+              (dissoc :password)
+              (as-> row
+                  (assoc row :troles-set
+                         [webroles (ix/webuserwebrole-own-get-rels-set row)])))
+          (-> {} ;; new
+              (assoc :troles-set
+                     [webroles #{}]))))))
 
 (defn rest-webusers-save [request]
   (let [{:keys [row user-roles-keys-set]} (request :params)
@@ -285,7 +287,7 @@
    (context "/tc/rb/webusers" []
 
 
-            
+
             ;; JSON
             (POST "/list" request
                   (friend/authorize
@@ -304,7 +306,7 @@
                        transit/response-transit)))
 
 
-            
+
             ;; JSON
             (POST "/find" request
                   (friend/authorize
@@ -323,7 +325,7 @@
                        transit/response-transit)))
 
 
-            
+
             ;; JSON
             (POST "/save" request
                   (friend/authorize
@@ -342,7 +344,7 @@
                        transit/response-transit)))
 
 
-            
+
             ;; JSON
             (POST "/delete" request
                   (friend/authorize
@@ -361,7 +363,7 @@
                        transit/response-transit)))
 
 
-            
+
             ;; JSON
             (POST "/change-password" request
                   (-> request
