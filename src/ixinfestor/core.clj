@@ -647,7 +647,7 @@
 (defn webrole-list
   ([] (webrole-list false))
   ([with-webrolesgroup]
-   (if with-webrolesgroup     
+   (if with-webrolesgroup
      (select webrole (with webrolesgroup))
      (select webrole))))
 
@@ -687,6 +687,33 @@
 
 (defn webuserwebrole-own-get-rels-set [webuser-row]
   ((com-defn-get-rels-set webrole :id :keyname webuserwebrole :webuser_id :webrole_id) webuser-row))
+
+(defn webuserwebrole-get-rels-set-for-username [username]
+  (-> username
+      webuser-find-by-username
+      webuserwebrole-own-get-rels-set
+      transaction))
+
+(defn webuserwebrole-get-rels-set-from-request [request]
+  (-> request
+      :session
+      :cemerick.friend/identity
+      :current
+      webuserwebrole-get-rels-set-for-username ))
+
+(defn keys-for-roles [row roles-set role ks]
+  (if (contains? roles-set (:keyname role))
+    row (reduce dissoc
+                (update-in row [:disabled-keys]
+                           #(if (empty? %)
+                              (set ks)
+                              (reduce conj % ks)))
+                ks)))
+
+(defn throw-when-no-roles [roles-keys-set role]
+  (when (not (contains? roles-keys-set (:keyname role)))
+    (throw (Exception. "У вас нет прав доступа для данной функции!"))))
+    
 
 
 
