@@ -701,19 +701,20 @@
       :current
       webuserwebrole-get-rels-set-for-username ))
 
-(defn keys-for-roles [row roles-set role ks]
-  (if (contains? roles-set (:keyname role))
-    row (reduce dissoc
-                (update-in row [:disabled-keys]
-                           #(if (empty? %)
-                              (set ks)
-                              (reduce conj % ks)))
-                ks)))
+(defn contains-webroles? [roles-keys-set roles]
+  (reduce #(or % (contains? roles-keys-set (:keyname %2))) false roles))
 
-(defn throw-when-no-roles [roles-keys-set role]
+(defn keys-for-roles [row roles-keys-set roles ks]
+  (if (contains-webroles? roles-keys-set roles)
+    row (reduce dissoc row ks)))
+
+(defn throw-when-no-role [roles-keys-set role]
   (when (not (contains? roles-keys-set (:keyname role)))
     (throw (Exception. "У вас нет прав доступа для данной функции!"))))
-    
+
+(defn throw-when-no-roles [roles-keys-set roles]
+  (when (not (contains-webroles? roles-keys-set roles))
+    (throw (Exception. "У вас нет прав доступа для данной функции!"))))
 
 
 
