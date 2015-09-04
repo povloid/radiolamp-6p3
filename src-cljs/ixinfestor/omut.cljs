@@ -36,7 +36,7 @@
   (str (gensym (str s "-"))))
 
 
-(defn is-numeric? [n] 
+(defn is-numeric? [n]
   (and (not (js/isNaN (js/parseFloat n))) (js/isFinite n)))
 
 
@@ -44,7 +44,7 @@
   (if (is-numeric? v)
     (js/parseInt v)
     nil))
-        
+
 
 
 
@@ -153,25 +153,33 @@
                          lg?
                          block?
                          disabled?
+                         active?
                          on-click]
                   :or {text "Кнопка"
                        type :default}}]
-  (dom/button #js {:className (str "btn btn-block "
-                                   ({:default "btn-default"
-                                     :primary "btn-primary"
-                                     :success "btn-success"
-                                     :info    "btn-info"
-                                     :warning "btn-warning"
-                                     :danger  "btn-danger"
-                                     :link    "btn-link"} type)
-                                   (if lg? " btn-lg" "")
-                                   (if block? " btn-block" "")
-                                   )
-                   :type "button"
-                   :disabled (if disabled? "disabled" "")
-                   :onClick on-click
-                   }
-              text))
+  (letfn [(on-click-2 [e]
+            (.preventDefault e)
+            (.stopPropagation e)
+            (on-click))]
+
+    (dom/button #js {:className (str "btn "
+                                     ({:default "btn-default"
+                                       :primary "btn-primary"
+                                       :success "btn-success"
+                                       :info    "btn-info"
+                                       :warning "btn-warning"
+                                       :danger  "btn-danger"
+                                       :link    "btn-link"} type)
+                                     (if lg? " btn-lg" "")
+                                     (if block? " btn-block" "")
+                                     (if active? " active" "")
+                                     )
+                     :type "button"
+                     :disabled (if disabled? "disabled" "")
+                     :onClick on-click-2
+                     :on-touch-end on-click-2
+                     }
+                text)))
 
 
 ;; END buttons
@@ -261,7 +269,7 @@
                       :style (if show?
                                #js {:display "block"
                                     :paddingLeft 0
-                                    :backgroundColor "rgba(0, 0, 0, 0.8)"}
+                                    :backgroundColor "rgba(0, 0, 0, 0.2)"}
                                #js {:display "none" })
                       :className (if show? "modal in" "modal")
                       :role "dialog"
@@ -277,14 +285,12 @@
                                             (or header (dom/h4 #js {:className "modal-title"} label)))
                                    (dom/div #js {:className "modal-body"
                                                  :style #js {:marginRight 40}}
-                                                     (or body (dom/p #js {:className "text-info"}
-                                                                     "Пустое пространство диалога. Можно наполнить элементами")))
+                                            (or body (dom/p #js {:className "text-info"}
+                                                            "Пустое пространство диалога. Можно наполнить элементами")))
                                    (dom/div #js {:className "modal-footer"}
-                                            (or footer (dom/button #js {:className "btn btn-default"
-                                                                        :type "button"
-                                                                        :onClick (fn [_] (om/update! app :show false) 1)
-                                                                        :data-dismiss "modal"}
-                                                                   "Закрыть"))))))))))
+                                            (or footer (ui-button {:type :default
+                                                                   :on-click (fn [_] (om/update! app :show false) 1)
+                                                                   :text "Закрыть"}))))))))))
 
 
 ;;------------------------------------------------------------------------------
@@ -301,23 +307,17 @@
   (reify
     om/IRender
     (render [_]
-      (dom/button #js {:className (str "btn btn-block "
-                                       ({:default "btn-default"
-                                         :primary "btn-primary"
-                                         :success "btn-success"
-                                         :info    "btn-info"
-                                         :warning "btn-warning"
-                                         :danger  "btn-danger"
-                                         :link    "btn-link"} btn-type))
-                       :type "button"
-                       :onClick (fn [_]
-                                  (modal-hide app)
-                                  (if act-fn
-                                    (act-fn)
-                                    (println "Действие для '" text "' еще не определено"))
-                                  1)
-                       :data-dismiss "modal"}
-                  text))))
+      (ui-button {:text text
+                  :type btn-type
+                  :block? true
+                  :on-click (fn [_]
+                              (modal-hide app)
+                              (if act-fn
+                                (act-fn)
+                                (println "Действие для '" text "' еще не определено"))
+                              1)
+                  }))))
+
 
 
 
@@ -374,21 +374,19 @@
       (om/build modal app
                 {:opts (assoc opts :footer
                               (dom/div nil
-                                       (dom/button #js {:className "btn btn-primary"
-                                                        :type "button"
-                                                        :onClick (fn [_]
-                                                                   (act-yes-fn)
-                                                                   (modal-hide app) 1)
-                                                        :data-dismiss "modal"}
-                                                   "Да")
-                                       (dom/button #js {:className "btn btn-default"
-                                                        :type "button"
-                                                        :onClick (fn [_] (modal-hide app) 1)
-                                                        :data-dismiss "modal"}
-                                                   "Нет")
+
+                                       (ui-button {:type :primary
+                                                   :on-click (fn [_]
+                                                               (act-yes-fn)
+                                                               (modal-hide app) 1)
+                                                   :text "Да"})
+
+                                       (ui-button {:type "btn btn-default"
+                                                   :on-click (fn [_] (modal-hide app) 1)
+                                                   :text  "Нет"})
+
                                        ))
-                 }
-                ))))
+                 } ))))
 
 ;; END Modal Yes or No
 ;;..............................................................................
@@ -942,27 +940,15 @@
   (reify
     om/IRender
     (render [_]
-      (dom/button #js {:type "button"
-                       :className (str "btn"
-                                       (condp = bs-type
-                                         :default " btn-default"
-                                         :primary " btn-primary"
-                                         :success " btn-success"
-                                         :info    " btn-info"
-                                         :warning " btn-warning"
-                                         :danger  " btn-danger"
-                                         " btn-default")
-                                       " "
-                                       class+
-                                       (if (app :value) " active" "")
-                                       )
-                       :disabled (if disabled? "disabled" "")
-                       :onClick (fn [_]
-                                  (om/transact! app :value not)
-                                  (when onClick-fn (onClick-fn))
-                                  1)
-                       }
-                  (if (app :value) "Вкл." "Выкл.")))))
+      (ui-button {:type bs-type
+                  :active? (app :value)
+                  :disabled? disabled?
+                  :on-click (fn [_]
+                              (om/transact! app :value not)
+                              (when onClick-fn (onClick-fn))
+                              1)
+                  :text (if (app :value) "Вкл." "Выкл.")}
+                 ))))
 
 
 (defn toggle-button-form-group [app owner {:keys [label
@@ -1097,39 +1083,43 @@
       (dom/div #js {:className "input-group"
                     :style #js {:textAlign "center"}}
                (dom/span #js {:className "input-group-btn"}
-                         (dom/button #js {:className "btn btn-default" :type "button"
-                                          :onClick (fn [_]
-                                                     (om/update! app :page 1)
-                                                     (when chan-update
-                                                       (put! chan-update 1))
-                                                     1)}
-                                     (dom/span #js {:className "glyphicon glyphicon-fast-backward"
-                                                    :aria-hidden "true"}))
+                         (ui-button {:type :default
+                                     :on-click (fn [_]
+                                                 (om/update! app :page 1)
+                                                 (when chan-update
+                                                   (put! chan-update 1))
+                                                 1)
+                                     :text (dom/span #js {:className "glyphicon glyphicon-fast-backward"
+                                                          :aria-hidden "true"})
+                                     })
 
-                         (dom/button #js {:className "btn btn-default" :type "button"
-                                          :onClick (fn [_]
-                                                     (om/transact! app :page
-                                                                   #(if (= 1 %) % (dec %)))
-                                                     (when chan-update
-                                                       (put! chan-update 1))
-                                                     1)}
-                                     (dom/span #js {:className "glyphicon glyphicon-step-backward"
-                                                    :aria-hidden "true"})
-                                     " Назад")
+                         (ui-button {:type :default
+                                     :on-click (fn [_]
+                                                 (om/transact! app :page
+                                                               #(if (= 1 %) % (dec %)))
+                                                 (when chan-update
+                                                   (put! chan-update 1))
+                                                 1)
+                                     :text (dom/span nil
+                                                     (dom/span #js {:className "glyphicon glyphicon-step-backward"
+                                                                    :aria-hidden "true"})
+                                                     " Назад")
+                                     })
                          )
 
                (dom/h4 nil (str "страница " (@app :page)))
 
                (dom/span #js {:className "input-group-btn"}
-                         (dom/button #js {:className "btn btn-default" :type "button"
-                                          :onClick (fn [_]
-                                                     (om/transact! app :page inc)
-                                                     (when chan-update
-                                                       (put! chan-update 1))
-                                                     1)}
-                                     "Вперед "
-                                     (dom/span #js {:className "glyphicon glyphicon-step-forward"
-                                                    :aria-hidden "true"}))
+                         (ui-button {:type :default
+                                     :on-click (fn [_]
+                                                 (om/transact! app :page inc)
+                                                 (when chan-update
+                                                   (put! chan-update 1))
+                                                 1)
+                                     :text (dom/span nil "Вперед "
+                                                     (dom/span #js {:className "glyphicon glyphicon-step-forward"
+                                                                    :aria-hidden "true"}))
+                                     })
 
                          )))))
 
@@ -1202,14 +1192,15 @@
       (dom/div nil
                (dom/div #js {:className "input-group"}
                         (dom/span #js {:className "input-group-btn"}
-                                  (dom/button #js {:className "btn btn-default" :type "button"
-                                                   :onClick (fn [_]
-                                                              (om/update! app :page 1)
-                                                              (om/update! app [:fts-query :value] "")
-                                                              (put! chan-update 1)
-                                                              1)}
-                                              (dom/span #js {:className "glyphicon glyphicon-remove"
-                                                             :aria-hidden "true"})))
+                                  (ui-button {:type :default
+                                              :on-click (fn [_]
+                                                          (om/update! app :page 1)
+                                                          (om/update! app [:fts-query :value] "")
+                                                          (put! chan-update 1)
+                                                          1)
+                                              :text (dom/span #js {:className "glyphicon glyphicon-remove"
+                                                                   :aria-hidden "true"})
+                                              }))
                         (om/build input (:fts-query app)
                                   {:opts {:onKeyPress-fn #(do #_(println
                                                                  (.-type %)
@@ -1224,21 +1215,23 @@
                                           }})
 
                         (dom/span #js {:className "input-group-btn"}
-                                  (dom/button #js {:className "btn btn-success" :type "button"
-                                                   :onClick (fn [_]
-                                                              (om/update! app :page 1)
-                                                              (put! chan-update 1)
-                                                              1)}
-                                              (dom/span #js {:className "glyphicon glyphicon-search"
-                                                             :aria-hidden "true"}))
+                                  (ui-button {:type :success
+                                              :on-click (fn [_]
+                                                          (om/update! app :page 1)
+                                                          (put! chan-update 1)
+                                                          1)
+                                              :text (dom/span #js {:className "glyphicon glyphicon-search"
+                                                                   :aria-hidden "true"})
+                                              })
 
                                   (when add-button-fn
-                                    (dom/button #js {:className "btn btn-danger" :type "button"
-                                                     :onClick (fn [_]
-                                                                (add-button-fn)
-                                                                1)}
-                                                (dom/span #js {:className "glyphicon glyphicon-plus"
-                                                               :aria-hidden "true"})))
+                                    (ui-button {:type :danger
+                                                :on-click (fn [_]
+                                                            (add-button-fn)
+                                                            1)
+                                                :text (dom/span #js {:className "glyphicon glyphicon-plus"
+                                                                     :aria-hidden "true"})
+                                                }))
 
                                   )
 
@@ -1619,16 +1612,15 @@
                                                     (post-save-fn-2 r))))})
                         :footer
                         (dom/div nil
-                                 (dom/button #js {:className "btn btn-primary"
-                                                  :onClick (fn [_]
-                                                             (put! chan-save 1)
-                                                             1)
-                                                  :type "button"}
-                                             "Принять")
-                                 (dom/button #js {:className "btn btn-default"
-                                                  :onClick (fn [_] (modal-hide app) 1)
-                                                  :type "button"}
-                                             "Отмена"))
+                                 (ui-button {:type :primary
+                                             :on-click (fn [_]
+                                                         (put! chan-save 1)
+                                                         1)
+                                             :text "Принять"})
+                                 (ui-button {:type :default
+                                             :on-click (fn [_] (modal-hide app) 1)
+                                             :text "Отмена"})
+                                 )
                         }}))))
 
 
@@ -1660,13 +1652,12 @@
                         :body
                         (om/build edit-form-for-id app {:opts opts})
                         :footer
-                        (dom/button #js {:className "btn btn-default"
-                                         :onClick (fn [_]
-                                                    (when post-save-fn
-                                                      (post-save-fn {}))
-                                                    (modal-hide app) 1)
-                                         :type "button"}
-                                    "Закрыть")
+                        (ui-button {:type :default
+                                    :on-click (fn [_]
+                                                (when post-save-fn
+                                                  (post-save-fn {}))
+                                                (modal-hide app) 1)
+                                    :text "Закрыть"})
                         }}))))
 
 
@@ -1701,14 +1692,15 @@
                              (if (= (virtual-pages-current app) page-key)
                                "" "none") }}
             (when back-key
-              (dom/button #js {:className "btn btn-default" :type "button"
-                               :onClick (fn [_]
-                                          (virtual-pages-go-to-page app back-key)
-                                          1)}
-                          (dom/span #js {:className "glyphicon glyphicon-backward"
-                                         :aria-hidden "true"})
-                          " Назад"))
-
+              (ui-button {:type :default
+                          :on-click (fn [_]
+                                      (virtual-pages-go-to-page app back-key)
+                                      1)
+                          :text (dom/span nil
+                                          (dom/span #js {:className "glyphicon glyphicon-backward"
+                                                         :aria-hidden "true"})
+                                          " Назад")
+                          }))
             body)))
 
 

@@ -621,12 +621,8 @@
 
 (defentity webrolesgroup
   (pk :id)
-
-  (prepare (fn [row] (-> row
-                         ((partial prepare-as-string :keyname)))))
-  (transform (fn [row] (-> row
-                           ((partial transform-as-keyword :keyname))))))
-
+  (prepare (partial prepare-as-string :keyname))  
+  (transform (partial transform-as-keyword :keyname)))
 
 
 (defn webrolesgroup-init [row]
@@ -636,10 +632,8 @@
 (defentity webrole
   (pk :id)
   (belongs-to webrolesgroup)
-  (prepare (fn [row] (-> row
-                         ((partial prepare-as-string :keyname)))))
-  (transform (fn [row] (-> row
-                           ((partial transform-as-keyword :keyname))))))
+  (prepare (partial prepare-as-string :keyname))
+  (transform (partial transform-as-keyword :keyname)))
 
 (defn webrole-init [row]
   (com-save-for-field webrole :keyname (update-in row [:keyname] name)))
