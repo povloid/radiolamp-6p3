@@ -2317,7 +2317,7 @@
                       (dom/div
                        #js {:className "col-sm-9 col-md-10 col-lg-11" :style #js {:padding 0}}
                        (dom/div
-                        #js {:className (str "panel panel-primary "
+                        #js {:className (str "panel "
                                              ({:muted   "panel-muted"
                                                :primary "panel-primary"
                                                :success "panel-success"
@@ -2386,31 +2386,33 @@
                    {:opts {:body (om/build search-view (get-in app [:modal :search-view])
                                            {:opts {:selection-type selection-type}})
                            :footer (dom/div #js {:className "btn-toolbar  pull-right"}
-                                            (ui-button {:type :primary
-                                                        :on-click (fn [_]
-                                                                    (let [selected (->> @app
-                                                                                        :modal
-                                                                                        :search-view
-                                                                                        :data
-                                                                                        (filter key-tr-selected))]
+                                            (ui-button
+                                             {:type :primary
+                                              :on-click
+                                              (fn [_]
+                                                (let [selected (->> @app
+                                                                    :modal
+                                                                    :search-view
+                                                                    :data
+                                                                    (filter key-tr-selected))]
 
-                                                                      (condp = selection-type
-                                                                        :multi (om/transact!
-                                                                                app :sel
-                                                                                (fn [app]
-                                                                                  (->> selected
-                                                                                       (into app)
-                                                                                       (map #(dissoc % key-tr-selected))
-                                                                                       set
-                                                                                       vec)))
-                                                                        :one   (om/update! app :sel (vec selected)))
+                                                  (condp = selection-type
+                                                    :multi (om/transact!
+                                                            app :sel
+                                                            (fn [app]
+                                                              (->> selected
+                                                                   (into app)
+                                                                   (map #(dissoc % key-tr-selected))
+                                                                   set
+                                                                   vec)))
+                                                    :one   (om/update! app :sel (vec selected)))
 
-                                                                      (modal-hide (:modal app))
+                                                  (modal-hide (:modal app))
 
-                                                                      (when on-selected-fn (on-selected-fn))
+                                                  (when on-selected-fn (on-selected-fn))
 
-                                                                      1))
-                                                        :text "Выбрать"})
+                                                  1))
+                                              :text "Выбрать"})
 
                                             (ui-button {:on-click (fn [_] (modal-hide (:modal app)) 1)
                                                         :text "Закрыть"})
