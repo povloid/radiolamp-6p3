@@ -2204,3 +2204,184 @@
 
 ;; END files
 ;;..................................................................................................
+
+
+
+
+;;**************************************************************************************************
+;;* BEGIN Ввод элементов из справочника
+;;* tag: <input rb>
+;;*
+;;* description: Элементы выбора из справочной таблици
+;;*
+;;**************************************************************************************************
+
+(defn input-form-search-view-app-init [search-view-app-init]
+  {:modal (assoc modal-app-init
+                 :search-view search-view-app-init)
+   :sel []
+   })
+
+(defn input-form-search-view-get-selected [app]
+  (:sel app))
+
+
+(defn input-from-search-view [search-view
+                              {:keys [label
+                                      placeholder
+                                      class+
+                                      on-selected-fn
+                                      ui-type
+                                      ui-type--add-button--type
+                                      ui-type--add-button--text
+                                      selection-type
+                                      disabled?
+                                      multiselect-row-render-fn]
+                               :or {class+ ""
+                                    selection-type :one
+                                    label "Выбрать"
+                                    placeholder "Выберите...."
+                                    ui-type :input-select
+                                    ui-type--add-button--type :default
+                                    ui-type--add-button--text "Выбрать..."
+                                    }}]
+  (fn [app _ {:keys [selection-type
+                     ui-type
+                     ui-type--add-button--type
+                     ui-type--add-button--text]
+              :or {selection-type selection-type
+                   ui-type ui-type
+                   ui-type--add-button--type ui-type--add-button--type
+                   ui-type--add-button--text ui-type--add-button--text
+                   }}]
+    (reify
+      om/IRender
+      (render [_]
+        (dom/div
+         nil
+
+         ;;(dom/p nil (str (@app :sel)))
+
+         (condp = ui-type
+
+           :add-button
+           (ui-button {:type ui-type--add-button--type
+                       :on-click (fn [_] (modal-show (:modal app)) 1)
+                       :text ui-type--add-button--text })
+
+           :input-select
+           (dom/div #js {:className (str "form-group " class+ " "(input-css-string-has? app))}
+                    (dom/label #js {:className "control-label "} label)
+
+                    (condp = selection-type
+
+                      :one (dom/div #js {:className "input-group"}
+                                    (dom/input #js {:value (get-in @app [:sel 0 :keyname])
+                                                    :placeholder placeholder
+                                                    :className "form-control"})
+                                    (dom/span #js {:className "input-group-btn"}
+                                              (ui-button {:type :default
+                                                          :on-click (fn [_] (modal-show (:modal app)) 1)
+                                                          :text (dom/span #js {:className "glyphicon glyphicon-list-alt"
+                                                                               :aria-hidden "true"})})))
+
+                      :multi (dom/div
+                              nil ;;#js {:className "input-group"}
+                              (ui-table
+                               {:hover? true
+                                :bordered? true
+                                :striped? true
+                                ;;:responsive? true
+                                :thead (ui-thead-tr [(dom/th nil "Выбрано") (dom/th nil "Действие")])
+                                :tbody (om/build tbody-trs-sel (app :sel)
+                                                 {:opts
+                                                  {
+                                                   :app-to-tds-seq-fn
+                                                   (fn [row]
+                                                     [
+                                                      (if multiselect-row-render-fn
+                                                        (multiselect-row-render-fn row)
+                                                        (dom/td nil (str @row)))
+                                                      (dom/td
+                                                       nil
+                                                       (ui-button
+                                                        {:text "Удалить"
+                                                         :on-click
+                                                         (fn [_]
+                                                           (om/transact!
+                                                            app :sel
+                                                            (fn [selected]
+                                                              (let [row (dissoc @row :tr-selected)]
+                                                                (->> selected
+                                                                     (filter #(not
+                                                                               (= (dissoc % :tr-selected)
+                                                                                  row)))
+                                                                     vec))))
+
+                                                           1)}))]
+                                                     )
+                                                   }})
+
+                                })
+
+
+
+
+                              (ui-button {:type ui-type--add-button--type
+                                          :on-click (fn [_] (modal-show (:modal app)) 1)
+                                          :text ui-type--add-button--text }))
+
+                      (str "Непонятный selection-type: " selection-type))
+
+
+
+
+                    )
+
+           (str "непонятный тип отображения: " ui-type))
+
+         (om/build helper-p app)
+
+
+         (om/build modal (:modal app)
+                   {:opts {:body (om/build search-view (get-in app [:modal :search-view])
+                                           {:opts {:selection-type selection-type}})
+                           :footer (dom/div #js {:className "btn-toolbar  pull-right"}
+                                            (ui-button {:type :primary
+                                                        :on-click (fn [_]
+                                                                    (let [selected (->> @app
+                                                                                        :modal
+                                                                                        :search-view
+                                                                                        :data
+                                                                                        (filter :tr-selected))]
+
+                                                                      (condp = selection-type
+                                                                        :multi (om/transact!
+                                                                                app :sel
+                                                                                (fn [app]
+                                                                                  (->> selected
+                                                                                       (into app)
+                                                                                       (map #(dissoc % :tr-selected))
+                                                                                       set
+                                                                                       vec)))
+                                                                        :one   (om/update! app :sel (vec selected)))
+
+                                                                      (modal-hide (:modal app))
+
+                                                                      (when on-selected-fn (on-selected-fn))
+                                                                      1))
+                                                        :text "Выбрать"})
+
+                                            (ui-button {:on-click (fn [_] (modal-hide (:modal app)) 1)
+                                                        :text "Закрыть"})
+                                            )
+                           }})
+         )))))
+
+
+
+
+
+
+;; END Ввод элементов из справочника
+;;..................................................................................................
