@@ -692,15 +692,19 @@
 
 (defn input-form-group  [app owner {:keys [label
                                            type
+                                           label-class+
+                                           input-class+
                                            spec-input]
                                     :or {label "Метка"
+                                         label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                         input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                          spec-input {}}}]
   (reify
     om/IRender
     (render [this]
       (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} label)
-               (dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
+               (dom/label #js {:className label-class+ } label)
+               (dom/div #js {:className input-class+ :style #js {:padding 0}}
                         (om/build input app {:opts spec-input})
                         (om/build helper-p app {})
                         )))))
@@ -767,15 +771,19 @@
 
 (defn select-form-group  [app _ {:keys [label
                                         type
+                                        label-class+
+                                        input-class+
                                         spec-select]
                                  :or {label "Метка"
+                                      label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                      input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                       spec-select {}}}]
   (reify
     om/IRender
     (render [_]
       (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} label)
-               (dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
+               (dom/label #js {:className label-class+ } label)
+               (dom/div #js {:className input-class+ :style #js {:padding 0}}
                         (om/build select app {:opts spec-select})
                         (om/build helper-p app {})
                         )))))
@@ -835,15 +843,19 @@
 
 (defn input-change-password-group  [app owner {:keys [label
                                                       type
+                                                      label-class+
+                                                      input-class+
                                                       spec-input]
                                                :or {label "Пароль"
+                                                    label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                                    input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                                     spec-input {}}}]
   (reify
     om/IRender
     (render [this]
       (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} label)
-               (dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
+               (dom/label #js {:className label-class+ } label)
+               (dom/div #js {:className input-class+ :style #js {:padding 0}}
                         (om/build input-change-password app {:opts spec-input})
                         )))))
 
@@ -906,15 +918,19 @@
 
 (defn textarea-form-group  [app owner {:keys [label
                                               type
+                                              label-class+
+                                              input-class+
                                               spec-textarea]
                                        :or {label "Метка"
+                                            label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                            input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                             spec-textarea {}}}]
   (reify
     om/IRender
     (render [this]
       (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} label)
-               (dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
+               (dom/label #js {:className label-class+ } label)
+               (dom/div #js {:className input-class+ :style #js {:padding 0}}
                         (om/build textarea app {:opts spec-textarea})
                         (om/build helper-p app {}) )))))
 
@@ -954,15 +970,19 @@
 
 (defn toggle-button-form-group [app owner {:keys [label
                                                   type
+                                                  label-class+
+                                                  input-class+
                                                   spec-toggle-button]
                                            :or {label "Метка"
+                                                label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                                input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                                 spec-toggle-button {}}}]
   (reify
     om/IRender
     (render [this]
       (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} label)
-               (dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
+               (dom/label #js {:className label-class+ } label)
+               (dom/div #js {:className input-class+ :style #js {:padding 0}}
                         (om/build toggle-button app {:opts spec-toggle-button})
                         (om/build helper-p app {}) )))))
 
@@ -987,6 +1007,7 @@
                         responsive?
                         responsive-class+
                         class+
+                        style+
                         thead
                         tbody]
                  :or {responsive-class+ ""
@@ -996,7 +1017,8 @@
                                               (if bordered? "table-bordered " "")
                                               (if condensed? "table-condensed " "")
                                               (if hover? "table-hover " "")
-                                              class+)}
+                                              class+)
+                              :style style+}
                          thead
                          tbody)]
     (if responsive?
@@ -2227,7 +2249,8 @@
 
 
 (defn input-from-search-view [search-view
-                              {:keys [label
+                              {:keys [label-one
+                                      label-multi
                                       placeholder
                                       class+
                                       on-selected-fn
@@ -2239,7 +2262,8 @@
                                       multiselect-row-render-fn]
                                :or {class+ ""
                                     selection-type :one
-                                    label "Выбрать"
+                                    label-one   "Выбрать ???"
+                                    label-multi "Выбрано ???"
                                     placeholder "Выберите...."
                                     ui-type :input-select
                                     ui-type--add-button--type :default
@@ -2248,12 +2272,16 @@
   (fn [app _ {:keys [selection-type
                      ui-type
                      ui-type--add-button--type
-                     ui-type--add-button--text]
+                     ui-type--add-button--text
+                     on-selected-fn]
               :or {selection-type selection-type
                    ui-type ui-type
                    ui-type--add-button--type ui-type--add-button--type
                    ui-type--add-button--text ui-type--add-button--text
+                   on-selected-fn on-selected-fn
                    }}]
+
+
     (reify
       om/IRender
       (render [_]
@@ -2266,70 +2294,81 @@
 
            :add-button
            (ui-button {:type ui-type--add-button--type
-                       :on-click (fn [_] (modal-show (:modal app)) 1)
+                       :on-click #(modal-show (:modal app))
                        :text ui-type--add-button--text })
 
            :input-select
            (dom/div #js {:className (str "form-group " class+ " "(input-css-string-has? app))}
-                    (dom/label #js {:className "control-label "} label)
+                    (dom/label #js {:className "control-label col-sm-3 col-md-2 col-lg-1"} ({:one label-one :multi label-multi} selection-type))
 
                     (condp = selection-type
 
-                      :one (dom/div #js {:className "input-group"}
+                      :one (dom/div #js {:className "input-group col-sm-9 col-md-10 col-lg-11"}
                                     (dom/input #js {:value (get-in @app [:sel 0 :keyname])
                                                     :placeholder placeholder
                                                     :className "form-control"})
                                     (dom/span #js {:className "input-group-btn"}
                                               (ui-button {:type :default
-                                                          :on-click (fn [_] (modal-show (:modal app)) 1)
+                                                          :on-click #(modal-show (:modal app))
                                                           :text (dom/span #js {:className "glyphicon glyphicon-list-alt"
                                                                                :aria-hidden "true"})})))
 
-                      :multi (dom/div
-                              nil ;;#js {:className "input-group"}
-                              (ui-table
-                               {:hover? true
-                                :bordered? true
-                                :striped? true
-                                ;;:responsive? true
-                                :thead (ui-thead-tr [(dom/th nil "Выбрано") (dom/th nil "Действие")])
-                                :tbody (om/build tbody-trs-sel (app :sel)
-                                                 {:opts
-                                                  {
-                                                   :app-to-tds-seq-fn
-                                                   (fn [row]
-                                                     [
-                                                      (if multiselect-row-render-fn
-                                                        (multiselect-row-render-fn row)
-                                                        (dom/td nil (str @row)))
-                                                      (dom/td
-                                                       nil
-                                                       (ui-button
-                                                        {:text "Удалить"
-                                                         :on-click
-                                                         (fn [_]
-                                                           (om/transact!
-                                                            app :sel
-                                                            (fn [selected]
-                                                              (let [row (dissoc @row :tr-selected)]
-                                                                (->> selected
-                                                                     (filter #(not
-                                                                               (= (dissoc % :tr-selected)
-                                                                                  row)))
-                                                                     vec))))
+                      :multi
+                      (dom/div
+                       #js {:className "col-sm-9 col-md-10 col-lg-11" :style #js {:padding 0}}
+                       (dom/div
+                        #js {:className (str "panel panel-primary "
+                                             ({:muted   "panel-muted"
+                                               :primary "panel-primary"
+                                               :success "panel-success"
+                                               :info    "panel-info"
+                                               :warning "panel-warning"
+                                               :danger  "panel-danger"}
+                                              ui-type--add-button--type))}
+                        (dom/div #js {:className "panel-heading"} (dom/b nil "Выбрано (" (count (@app :sel)) ")"))
+                        (dom/div #js {:className "panel-body" :style #js {:padding 2}}
+                                 (ui-table
+                                  {:hover? true
+                                   :bordered? true
+                                   :striped? true
+                                   ;;:responsive? true
+                                   :style+ #js {:marginBottom 0}
+                                   :thead (ui-thead-tr [(dom/th nil "Наименование") (dom/th nil "Действие")])
+                                   :tbody (om/build tbody-trs-sel (app :sel)
+                                                    {:opts
+                                                     {:app-to-tds-seq-fn
+                                                      (fn [row]
+                                                        (list
+                                                         (if multiselect-row-render-fn
+                                                           (multiselect-row-render-fn row)
+                                                           (dom/td nil (str @row)))
+                                                         (dom/td
+                                                          #js {:style #js {:width "15%"}}
+                                                          (ui-button
+                                                           {:text "Удалить"
+                                                            :on-click
+                                                            (fn [_]
+                                                              (om/transact!
+                                                               app :sel
+                                                               (fn [selected]
+                                                                 (let [row (dissoc @row key-tr-selected)]
+                                                                   (->> selected
+                                                                        (filter
+                                                                         #(not
+                                                                           (= (dissoc % key-tr-selected)
+                                                                              row)))
+                                                                        vec))))
 
-                                                           1)}))]
-                                                     )
-                                                   }})
+                                                              1)}))))
+                                                      }})
+                                   }))
 
-                                })
+                        (dom/div #js {:className "panel-footer"}
+                                 (ui-button {:type ui-type--add-button--type
+                                             :on-click #(modal-show (:modal app))
+                                             :text ui-type--add-button--text }))))
 
 
-
-
-                              (ui-button {:type ui-type--add-button--type
-                                          :on-click (fn [_] (modal-show (:modal app)) 1)
-                                          :text ui-type--add-button--text }))
 
                       (str "Непонятный selection-type: " selection-type))
 
@@ -2353,7 +2392,7 @@
                                                                                         :modal
                                                                                         :search-view
                                                                                         :data
-                                                                                        (filter :tr-selected))]
+                                                                                        (filter key-tr-selected))]
 
                                                                       (condp = selection-type
                                                                         :multi (om/transact!
@@ -2361,7 +2400,7 @@
                                                                                 (fn [app]
                                                                                   (->> selected
                                                                                        (into app)
-                                                                                       (map #(dissoc % :tr-selected))
+                                                                                       (map #(dissoc % key-tr-selected))
                                                                                        set
                                                                                        vec)))
                                                                         :one   (om/update! app :sel (vec selected)))
@@ -2369,6 +2408,7 @@
                                                                       (modal-hide (:modal app))
 
                                                                       (when on-selected-fn (on-selected-fn))
+
                                                                       1))
                                                         :text "Выбрать"})
 
