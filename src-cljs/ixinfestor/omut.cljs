@@ -47,6 +47,13 @@
 
 
 
+(defn on-click-com-fn [f]
+  (fn [e]
+    (.preventDefault e)
+    (.stopPropagation e)
+    (f)
+    1))
+
 
 ;; END Common functions and tools
 ;;..................................................................................................
@@ -157,29 +164,24 @@
                          on-click]
                   :or {text "Кнопка"
                        type :default}}]
-  (letfn [(on-click-2 [e]
-            (.preventDefault e)
-            (.stopPropagation e)
-            (on-click))]
-
-    (dom/button #js {:className (str "btn "
-                                     ({:default "btn-default"
-                                       :primary "btn-primary"
-                                       :success "btn-success"
-                                       :info    "btn-info"
-                                       :warning "btn-warning"
-                                       :danger  "btn-danger"
-                                       :link    "btn-link"} type)
-                                     (if lg? " btn-lg" "")
-                                     (if block? " btn-block" "")
-                                     (if active? " active" "")
-                                     )
-                     :type "button"
-                     :disabled (if disabled? "disabled" "")
-                     :onClick on-click-2
-                     :on-touch-end on-click-2
-                     }
-                text)))
+  (dom/button #js {:className (str "btn "
+                                   ({:default "btn-default"
+                                     :primary "btn-primary"
+                                     :success "btn-success"
+                                     :info    "btn-info"
+                                     :warning "btn-warning"
+                                     :danger  "btn-danger"
+                                     :link    "btn-link"} type)
+                                   (if lg? " btn-lg" "")
+                                   (if block? " btn-block" "")
+                                   (if active? " active" "")
+                                   )
+                   :type "button"
+                   :disabled (if disabled? "disabled" "")
+                   :onClick    (on-click-com-fn on-click)
+                   :onTouchEnd (on-click-com-fn on-click)
+                   }
+              text))
 
 
 ;; END buttons
@@ -945,8 +947,7 @@
                   :disabled? disabled?
                   :on-click (fn [_]
                               (om/transact! app :value not)
-                              (when onClick-fn (onClick-fn))
-                              1)
+                              (when onClick-fn (onClick-fn)))
                   :text (if (app :value) "Вкл." "Выкл.")}
                  ))))
 
@@ -1020,18 +1021,27 @@
                                  (-> row
                                      (select-keys [:id :keyname :description])
                                      vals)))}}]
-  (reify
-    om/IRender
-    (render [_]
-      (apply dom/tr #js {:className (if (key-tr-selected app) "info" "")
-                         :onClick (fn [_]
-                                    (when clear-selections-fn
-                                      (clear-selections-fn))
-                                    (om/transact! app key-tr-selected not)
-                                    (when on-select-fn
-                                      (on-select-fn @app))
-                                    1)}
-             (app-to-tds-seq-fn app) ))))
+  (letfn [(on-click [app e]
+            (.preventDefault e)
+            (.stopPropagation e)
+
+            (when clear-selections-fn
+              (clear-selections-fn))
+
+            (om/transact! app key-tr-selected not)
+
+            (when on-select-fn
+              (on-select-fn @app))
+
+            1)]
+
+    (reify
+      om/IRender
+      (render [_]
+        (apply dom/tr #js {:className  (if (key-tr-selected @app) "info" "")
+                           :onClick    (partial on-click app)
+                           :onTouchEnd (partial on-click app)}
+               (app-to-tds-seq-fn app) )))))
 
 
 
@@ -1406,35 +1416,39 @@
                               type
                               chan-update]
                        :or {type "nav-pills"}}]
-  (reify
-    om/IRender
-    (render [_]
-      (apply dom/ul #js {:className (str "nav"
-                                         (condp = type
-                                           :tabs  " nav-tabs"
-                                           :pills " nav-pills"
-                                           " nav-pills")
-                                         (if justified? " nav-justified" ""))}
+  (letfn [(on-click [i]
+            (on-click-com-fn
+             (fn []
+               (om/update! app :active-tab i)
+               (when chan-update
+                 (put! chan-update i)))))]
+    (reify
+      om/IRender
+      (render [_]
+        (apply dom/ul #js {:className (str "nav"
+                                           (condp = type
+                                             :tabs  " nav-tabs"
+                                             :pills " nav-pills"
+                                             " nav-pills")
+                                           (if justified? " nav-justified" ""))}
 
-             (map
+               (map
 
-              (fn [{:keys [glyphicon text href disabled?]} i]
-                (dom/li #js {:className (if disabled? "disabled"
-                                            (if (= i (app :active-tab)) "active" ""))
-                             :role "presentation"}
-                        (dom/a #js {:href href
-                                    :onClick (fn [_]
-                                               (om/update! app :active-tab i)
-                                               (when chan-update
-                                                 (put! chan-update i))
-                                               1)}
-                               (when glyphicon
-                                 (dom/span #js {:style #js {:paddingRight 4}
-                                                :className (str "glyphicon " glyphicon)
-                                                :aria-hidden "true"}))
-                               text)))
+                (fn [{:keys [glyphicon text href disabled?]} i]
+                  (dom/li #js {:className (if disabled? "disabled"
+                                              (if (= i (app :active-tab)) "active" ""))
+                               :role "presentation"}
+                          (dom/a #js {:href href
+                                      :onClick    (on-click i)
+                                      :onTouchEnd (on-click i)
+                                      }
+                                 (when glyphicon
+                                   (dom/span #js {:style #js {:paddingRight 4}
+                                                  :className (str "glyphicon " glyphicon)
+                                                  :aria-hidden "true"}))
+                                 text)))
 
-              (:tabs app) (range)) ))))
+                (:tabs app) (range)) )))))
 
 
 (defn ui-nav-tab [app i body]
@@ -1780,19 +1794,19 @@
    })
 
 
-(defn thumbnail [app _ {:keys [class+
-                               onClick-fn]
+(defn thumbnail [app _ {:keys [class+ onClick-fn]
                         :or {class+ "col-xs-6 col-sm-4 col-md-4 col-lg-4"}}]
   (reify
     om/IRender
     (render [_]
-      (let [{:keys [id path top_description description galleria] :as row} app]
+      (let [{:keys [id path top_description description galleria] :as row} app
+            on-click (on-click-com-fn #(when onClick-fn (onClick-fn row)))]
         (dom/div
          #js {:className class+}
          (dom/div
           #js {:className "thumbnail"
-               :onClick (fn [e]
-                          (when onClick-fn (onClick-fn e row)))
+               :onClick    on-click
+               :onTouchEnd on-click
                :style #js {:cursor "pointer"}}
           (when galleria
             (dom/span #js {:className "glyphicon glyphicon-film"
@@ -1930,7 +1944,7 @@
                  (fn [{:as row}]
                    (om/build thumbnail row
                              {:opts {:onClick-fn
-                                     (fn [_ {:keys [id] :as r}]
+                                     (fn [{:keys [id] :as r}]
                                        (put! chan-modal-act
                                              {:label (str "Выбор действий над записью №" id)
                                               :acts
@@ -1942,8 +1956,7 @@
                                                 :act-fn #(do
                                                            (om/update! app [:modal-yes-no :row] r)
                                                            (modal-show (:modal-yes-no app)))}]
-                                              })
-                                       1)}}))
+                                              }))}}))
                  (:list app)))
 
                (om/build actions-modal (:modal-act app) {:opts {:chan-open chan-modal-act}})
@@ -2004,13 +2017,14 @@
   (reify
     om/IRender
     (render [_]
-      (let [{:keys [id path top_description description galleria] :as row} app]
+      (let [{:keys [id path top_description description galleria] :as row} app
+            on-click (on-click-com-fn #(when onClick-fn (onClick-fn row)))]
         (dom/div
          #js {:className class+}
          (dom/div
           #js {:className "thumbnail"
-               :onClick (fn [e]
-                          (when onClick-fn (onClick-fn e row)))
+               :onClick    on-click
+               :onTouchEnd on-click
                :style #js {:cursor "pointer"
                            :minHeight 75 }}
 
@@ -2144,7 +2158,7 @@
                  (fn [{:as row}]
                    (om/build file-thumb row
                              {:opts {:onClick-fn
-                                     (fn [_ {:keys [id] :as r}]
+                                     (fn [{:keys [id] :as r}]
                                        (put! chan-modal-act
                                              {:label (str "Выбор действий над записью №" id)
                                               :acts
@@ -2156,8 +2170,7 @@
                                                 :act-fn #(do
                                                            (om/update! app [:modal-yes-no :row] r)
                                                            (modal-show (:modal-yes-no app)))}]
-                                              })
-                                       1)}}))
+                                              }))}}))
                  (:list app)))
 
                (om/build actions-modal (:modal-act app) {:opts {:chan-open chan-modal-act}})

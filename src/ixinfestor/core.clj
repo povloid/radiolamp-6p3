@@ -606,6 +606,12 @@
   (com-pred-full-text-search* select*-1 :fts fts-query))
 
 
+(defn webuser-get-username-from-request [request]
+  (-> request
+      :session
+      :cemerick.friend/identity
+      :current))
+
 ;; END entity webuser
 ;;..................................................................................................
 
@@ -621,7 +627,7 @@
 
 (defentity webrolesgroup
   (pk :id)
-  (prepare (partial prepare-as-string :keyname))  
+  (prepare (partial prepare-as-string :keyname))
   (transform (partial transform-as-keyword :keyname)))
 
 
