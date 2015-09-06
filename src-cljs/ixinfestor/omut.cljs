@@ -59,6 +59,65 @@
 ;;..................................................................................................
 
 ;;**************************************************************************************************
+;;* BEGIN omut row spec
+;;* tag: <omut row spec>
+;;*
+;;* description: Данные для отображения строк
+;;*
+;;**************************************************************************************************
+
+
+(def omut-row-key :omut-row)
+
+(def omut-row-app-state {:selected false :collapsed {}})
+
+
+(defn omut-row-init [row]
+  (assoc row omut-row-key omut-row-app-state))
+
+(defn omut-row-if-not-init-init!! [app]
+  (om/transact! app omut-row-key
+                (fn [app]
+                  (if (omut-row-key app)
+                    app
+                    (omut-row-init app)))))
+
+(defn omut-row-row [row]
+  (dissoc row omut-row-key))
+
+
+
+(defn omut-row-set-selected! [app-row v]
+  (assoc-in app-row [omut-row-key :selected] v))
+
+(defn omut-row-set-selected!! [app-row v]
+  (om/update! app-row [omut-row-key :selected] v))
+
+(defn omut-row-set-selected-not!! [app-row]
+  (om/transact! app-row [omut-row-key :selected] not))
+
+(defn omut-row-selected? [app-row]
+  (get-in app-row [omut-row-key :selected] false))
+
+
+
+(defn omut-row-set-collapsed!! [app-row k v]
+  (om/update! app-row [omut-row-key :collapsed k] v))
+
+(defn omut-row-set-collapsed-not!! [app-row k]
+  (om/transact! app-row [omut-row-key :collapsed]
+                (fn [app-row]
+                  (if app-row (update-in app-row [k] not) {k false}))))
+
+(defn omut-row-collapsed? [app-row k]
+  (get-in app-row [omut-row-key :collapsed k] true))
+
+
+
+;; END omut-row
+;;..................................................................................................
+
+;;**************************************************************************************************
 ;;* BEGIN Dates and Times
 ;;* tag: <date time timestamp>
 ;;*
@@ -157,7 +216,7 @@
 
 (defn ui-button [{:keys [text
                          type
-                         lg?
+                         size
                          block?
                          disabled?
                          active?
@@ -172,7 +231,10 @@
                                      :warning "btn-warning"
                                      :danger  "btn-danger"
                                      :link    "btn-link"} type)
-                                   (if lg? " btn-lg" "")
+                                   (if size ({:lg " btn-lg"
+                                              :sm " btn-sm"
+                                              :xs " btn-xs"} size)
+                                       "")
                                    (if block? " btn-block" "")
                                    (if active? " active" "")
                                    )
@@ -471,6 +533,37 @@
 ;; END modal
 ;;..................................................................................................
 
+
+;;**************************************************************************************************
+;;* BEGIN Long text collapser
+;;* tag: <long text collapser>
+;;*
+;;* description: Компонент для отображение длянного текста
+;;*
+;;**************************************************************************************************
+
+
+(defn text-collapser [app owner {k :k}]
+  (reify
+    om/IWillMount
+    (will-mount [_]
+      (omut-row-if-not-init-init!! app))
+    om/IRender
+    (render [_]
+      (let [text (app k "")
+            text-count (count text)]
+        (dom/p nil
+               (ui-button {:text "..."
+                           :size :xs
+                           :active? (not (omut-row-collapsed? @app k))
+                           :on-click #(omut-row-set-collapsed-not!! app k)})
+
+               (if (and (omut-row-collapsed? @app k) (> text-count 90))
+                 (str (.substring text 0 89) "...")
+                 text))))))
+
+;; END Long text collapser
+;;..................................................................................................
 
 
 
@@ -998,7 +1091,7 @@
 ;;*
 ;;**************************************************************************************************
 
-(def key-tr-selected :tr-selected)
+
 
 (defn ui-table [{:keys [striped?
                         bordered?
@@ -1050,7 +1143,7 @@
             (when clear-selections-fn
               (clear-selections-fn))
 
-            (om/transact! app key-tr-selected not)
+            (omut-row-set-selected-not!! app)
 
             (when on-select-fn
               (on-select-fn @app))
@@ -1058,9 +1151,12 @@
             1)]
 
     (reify
+      om/IWillMount
+      (will-mount [_]
+        (omut-row-if-not-init-init!! app))
       om/IRender
       (render [_]
-        (apply dom/tr #js {:className  (if (key-tr-selected @app) "info" "")
+        (apply dom/tr #js {:className  (if (omut-row-selected? @app) "info" "")
                            :onClick    (partial on-click app)
                            :onTouchEnd (partial on-click app)}
                (app-to-tds-seq-fn app) )))))
@@ -1086,7 +1182,8 @@
                     (om/transact!
                      app
                      (fn [data]
-                       (vec (map #(assoc % key-tr-selected false) data))))))
+                       (println (map omut-row-key data))
+                       (vec (map #(omut-row-set-selected! % false) data))))))
            opts)})))))
 
 
@@ -1179,7 +1276,7 @@
 (defn search-view-app-data-selected [app]
   (->> @app
        :data
-       (filter key-tr-selected)))
+       (filter omut-row-selected?)))
 
 (defn search-view-app-data-selected-first [app]
   (first (search-view-app-data-selected app)))
@@ -1463,6 +1560,7 @@
                           (dom/a #js {:href href
                                       :onClick    (on-click i)
                                       :onTouchEnd (on-click i)
+                                      :data-toggle "dropdown"
                                       }
                                  (when glyphicon
                                    (dom/span #js {:style #js {:paddingRight 4}
@@ -1476,7 +1574,8 @@
 (defn ui-nav-tab [app i body]
   (dom/div #js {:style #js {:display
                             (if (= (:active-tab app) i)
-                              "" "none") }}
+                              "" "none") }
+                :data-toggle "dropdown"}
            body))
 
 
@@ -2259,7 +2358,9 @@
                                       ui-type--add-button--text
                                       selection-type
                                       disabled?
-                                      multiselect-row-render-fn]
+                                      multiselect-row-render-fn
+                                      row-pk-fiels
+                                      ]
                                :or {class+ ""
                                     selection-type :one
                                     label-one   "Выбрать ???"
@@ -2268,6 +2369,7 @@
                                     ui-type :input-select
                                     ui-type--add-button--type :default
                                     ui-type--add-button--text "Выбрать..."
+                                    row-pk-fiels [:id]
                                     }}]
   (fn [app _ {:keys [selection-type
                      ui-type
@@ -2343,7 +2445,7 @@
                                                            (multiselect-row-render-fn row)
                                                            (dom/td nil (str @row)))
                                                          (dom/td
-                                                          #js {:style #js {:width "15%"}}
+                                                          #js {:style #js {:width "5%"}}
                                                           (ui-button
                                                            {:text "Удалить"
                                                             :on-click
@@ -2351,12 +2453,12 @@
                                                               (om/transact!
                                                                app :sel
                                                                (fn [selected]
-                                                                 (let [row (dissoc @row key-tr-selected)]
+                                                                 (let [pk (select-keys @row row-pk-fiels)]
                                                                    (->> selected
                                                                         (filter
                                                                          #(not
-                                                                           (= (dissoc % key-tr-selected)
-                                                                              row)))
+                                                                           (= (select-keys % row-pk-fiels)
+                                                                              pk)))
                                                                         vec))))
 
                                                               1)}))))
@@ -2394,17 +2496,28 @@
                                                                     :modal
                                                                     :search-view
                                                                     :data
-                                                                    (filter key-tr-selected))]
+                                                                    (filter omut-row-selected?))]
 
                                                   (condp = selection-type
                                                     :multi (om/transact!
                                                             app :sel
                                                             (fn [app]
-                                                              (->> selected
-                                                                   (into app)
-                                                                   (map #(dissoc % key-tr-selected))
-                                                                   set
+                                                              (->> app
+                                                                   (map #(omut-row-set-selected! % false))
+                                                                   (into selected)
+                                                                   (reduce
+                                                                    #(assoc %1
+                                                                            (select-keys %2 row-pk-fiels)
+                                                                            %2)
+                                                                    {})
+                                                                   vals
+                                                                   (sort-by #(-> (select-keys % row-pk-fiels)
+                                                                                 vals
+                                                                                 sort
+                                                                                 vec))
+                                                                   reverse
                                                                    vec)))
+
                                                     :one   (om/update! app :sel (vec selected)))
 
                                                   (modal-hide (:modal app))
