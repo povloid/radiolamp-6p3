@@ -445,8 +445,7 @@
                                                                (modal-hide app) 1)
                                                    :text "Да"})
 
-                                       (ui-button {:type "btn btn-default"
-                                                   :on-click (fn [_] (modal-hide app) 1)
+                                       (ui-button {:on-click (fn [_] (modal-hide app) 1)
                                                    :text  "Нет"})
 
                                        ))
@@ -1560,7 +1559,6 @@
                           (dom/a #js {:href href
                                       :onClick    (on-click i)
                                       :onTouchEnd (on-click i)
-                                      :data-toggle "dropdown"
                                       }
                                  (when glyphicon
                                    (dom/span #js {:style #js {:paddingRight 4}
@@ -1575,7 +1573,9 @@
   (dom/div #js {:style #js {:display
                             (if (= (:active-tab app) i)
                               "" "none") }
-                :data-toggle "dropdown"}
+                ;;:data-toggle "dropdown" ;;<- !!! Перестает работать выгрузка файлов, неработает file uploader
+                }
+           (dom/br nil)
            body))
 
 
@@ -1698,15 +1698,17 @@
     (render [_]
       (dom/div
        #js {:className "row"}
+       (dom/div
+        #js {:className "col-sm-12 col-md-12 col-lg-12"}
 
-       ;; HELPER FOR MESSAGES
-       (om/build alert app)
+        ;; HELPER FOR MESSAGES
+        (om/build alert app)
 
-       (dom/form
-        #js {:className "form-horizontal col-sm-12 col-md-12 col-lg-12"}
-        (if form-body
-          form-body
-          (dom/h1 nil "Элементы формы еще не определены")))))))
+        (dom/form
+         #js {:className "form-horizontal col-sm-12 col-md-12 col-lg-12"}
+         (if form-body
+           form-body
+           (dom/h1 nil "Элементы формы еще не определены"))))))))
 
 
 (def modal-edit-form-for-id--YN--app-init
@@ -1860,7 +1862,8 @@
     om/IInitState
     (init-state [_]
       {:chan-upload (chan)
-       :form-id (uniq-id "file-uploder-form")})
+       :form-id (uniq-id "file-uploder-form")
+       :uploader-id (uniq-id "uploder")})
     om/IWillMount
     (will-mount [this]
       (let [{:keys[chan-upload form-id]} (om/get-state owner)]
@@ -1878,13 +1881,15 @@
               )))))
 
     om/IRenderState
-    (render-state [_ {:keys [chan-upload form-id]}]
+    (render-state [_ {:keys [chan-upload form-id uploader-id]}]
       (dom/form #js {:id form-id
                      :encType "multipart/form-data"
                      :method "POST"}
-                (dom/span #js {:className "btn btn-default btn-file btn-primary"}
+                (dom/span #js {:className "btn btn-default btn-file btn-primary"
+                               }
                           "Загрузить"
-                          (dom/input #js {:name "uploader"
+                          (dom/input #js {:id uploader-id
+                                          :name "uploader"
                                           :type "file"
                                           :multiple true
                                           :accept accept
