@@ -593,7 +593,7 @@
                     text-success
                     text-info
                     text-warning
-                    text-danger]} app]
+                    text-danger]} @app]
         (dom/div nil
                  (when text-muted
                    (dom/p #js {:className "text-muted"} text-muted))
@@ -619,6 +619,18 @@
                           :text-info
                           :text-warning
                           :text-danger))))
+
+(defn helper-p-clean-and-set!! [app k message]
+  (om/transact! app (fn [app]
+                      (-> app
+                          (dissoc :text-muted
+                                  :text-primary
+                                  :text-success
+                                  :text-info
+                                  :text-warning
+                                  :text-danger)
+                          (assoc k message)))))
+
 
 ;; END helper
 ;;..................................................................................................
@@ -678,6 +690,19 @@
                           :alert-warning
                           :alert-danger))))
 
+(defn alert-clean-and-set!! [app k message]
+  (om/transact! app
+                (fn [app]
+                  (-> app
+                      (dissoc :alert-muted
+                              :alert-primary
+                              :alert-success
+                              :alert-info
+                              :alert-warning
+                              :alert-danger)
+                      (assoc k message)))))
+
+
 ;; END alert
 ;;..................................................................................................
 
@@ -717,6 +742,15 @@
                           :has-success?
                           :has-warning?
                           :has-error?))))
+
+(defn input-css-string-has?-clean-and-set!! [app k]
+  (om/transact! app
+                (fn [app]
+                  (-> app
+                      (dissoc :has-success?
+                              :has-warning?
+                              :has-error?)
+                      (assoc k true)))))
 
 ;; END has
 ;;..................................................................................................
@@ -794,12 +828,13 @@
   (reify
     om/IRender
     (render [this]
-      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className label-class+ } label)
-               (dom/div #js {:className input-class+ :style #js {:padding 0}}
-                        (om/build input app {:opts spec-input})
-                        (om/build helper-p app {})
-                        )))))
+      (dom/div nil
+               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+                        (dom/label #js {:className (str "control-label " label-class+) } label)
+                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
+                                 (om/build input app {:opts spec-input})
+                                 (om/build helper-p app {})
+                                 ))))))
 
 
 
@@ -873,12 +908,13 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className label-class+ } label)
-               (dom/div #js {:className input-class+ :style #js {:padding 0}}
-                        (om/build select app {:opts spec-select})
-                        (om/build helper-p app {})
-                        )))))
+      (dom/div nil
+               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+                        (dom/label #js {:className (str "control-label " label-class+) } label)
+                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
+                                 (om/build select app {:opts spec-select})
+                                 (om/build helper-p app {})
+                                 ))))))
 
 
 ;; END input select
@@ -945,11 +981,12 @@
   (reify
     om/IRender
     (render [this]
-      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className label-class+ } label)
-               (dom/div #js {:className input-class+ :style #js {:padding 0}}
-                        (om/build input-change-password app {:opts spec-input})
-                        )))))
+      (dom/div nil
+               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+                        (dom/label #js {:className (str "control-label " label-class+) } label)
+                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
+                                 (om/build input-change-password app {:opts spec-input})
+                                 ))))))
 
 ;; END Input password
 ;;..................................................................................................
@@ -1020,11 +1057,12 @@
   (reify
     om/IRender
     (render [this]
-      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className label-class+ } label)
-               (dom/div #js {:className input-class+ :style #js {:padding 0}}
-                        (om/build textarea app {:opts spec-textarea})
-                        (om/build helper-p app {}) )))))
+      (dom/div nil
+               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+                        (dom/label #js {:className (str "control-label " label-class+) } label)
+                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
+                                 (om/build textarea app {:opts spec-textarea})
+                                 (om/build helper-p app {}) ))))))
 
 
 ;; END textarea
@@ -1072,11 +1110,12 @@
   (reify
     om/IRender
     (render [this]
-      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-               (dom/label #js {:className label-class+ } label)
-               (dom/div #js {:className input-class+ :style #js {:padding 0}}
-                        (om/build toggle-button app {:opts spec-toggle-button})
-                        (om/build helper-p app {}) )))))
+      (dom/div nil
+               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+                        (dom/label #js {:className (str "control-label " label-class+) } label)
+                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
+                                 (om/build toggle-button app {:opts spec-toggle-button})
+                                 (om/build helper-p app {}) ))))))
 
 ;; END toggle batton
 ;;..................................................................................................
@@ -2351,6 +2390,9 @@
 (defn input-form-search-view-get-selected [app]
   (:sel app))
 
+(defn input-form-search-view-clean [app]
+  (assoc app :sel []))
+
 
 (defn input-from-search-view [search-view
                               {:keys [label-one
@@ -2405,20 +2447,24 @@
                        :text ui-type--add-button--text })
 
            :input-select
-           (dom/div #js {:className (str "form-group " class+ " "(input-css-string-has? app))}
+           (dom/div #js {:className (str "form-group " class+ " "(input-css-string-has? @app))}
                     (dom/label #js {:className "control-label col-sm-3 col-md-2 col-lg-1"} ({:one label-one :multi label-multi} selection-type))
 
                     (condp = selection-type
 
-                      :one (dom/div #js {:className "input-group col-sm-9 col-md-10 col-lg-11"}
-                                    (dom/input #js {:value (get-in @app [:sel 0 :keyname])
-                                                    :placeholder placeholder
-                                                    :className "form-control"})
-                                    (dom/span #js {:className "input-group-btn"}
-                                              (ui-button {:type :default
-                                                          :on-click #(modal-show (:modal app))
-                                                          :text (dom/span #js {:className "glyphicon glyphicon-list-alt"
-                                                                               :aria-hidden "true"})})))
+                      :one
+                      (dom/div
+                       #js {:className "col-sm-9 col-md-10 col-lg-11" :style #js {:padding 0}}
+                       (dom/div #js {:className "input-group"}
+                                (dom/input #js {:value (get-in @app [:sel 0 :keyname])
+                                                :placeholder placeholder
+                                                :className "form-control"})
+                                (dom/span #js {:className "input-group-btn"}
+                                          (ui-button {:type :default
+                                                      :on-click #(modal-show (:modal app))
+                                                      :text (dom/span #js {:className "glyphicon glyphicon-list-alt"
+                                                                           :aria-hidden "true"})})))
+                       (om/build helper-p app))
 
                       :multi
                       (dom/div
@@ -2432,7 +2478,9 @@
                                                :warning "panel-warning"
                                                :danger  "panel-danger"}
                                               ui-type--add-button--type))}
-                        (dom/div #js {:className "panel-heading"} (dom/b nil "Выбрано (" (count (@app :sel)) ")"))
+                        (dom/div #js {:className "panel-heading"}
+                                 (dom/b nil "Выбрано (" (count (@app :sel)) ")")
+                                 (om/build helper-p app))
                         (dom/div #js {:className "panel-body" :style #js {:padding 2}}
                                  (ui-table
                                   {:hover? true
@@ -2485,8 +2533,6 @@
                     )
 
            (str "непонятный тип отображения: " ui-type))
-
-         (om/build helper-p app)
 
 
          (om/build modal (:modal app)
