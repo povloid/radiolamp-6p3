@@ -76,11 +76,12 @@
   (assoc row omut-row-key omut-row-app-state))
 
 (defn omut-row-if-not-init-init!! [app]
-  (om/transact! app omut-row-key
-                (fn [app]
-                  (if (omut-row-key app)
-                    app
-                    (omut-row-init app)))))
+  (om/transact!
+   app
+   (fn [app]
+     (if (omut-row-key app)
+       app
+       (omut-row-init app)))))
 
 (defn omut-row-row [row]
   (dissoc row omut-row-key))
@@ -101,13 +102,21 @@
 
 
 
+
+
 (defn omut-row-set-collapsed!! [app-row k v]
-  (om/update! app-row [omut-row-key :collapsed k] v))
+  (om/transact!
+   app-row
+   (fn [app-row]
+     (assoc-in app-row [omut-row-key :collapsed k] v))))
 
 (defn omut-row-set-collapsed-not!! [app-row k]
-  (om/transact! app-row [omut-row-key :collapsed]
-                (fn [app-row]
-                  (if app-row (update-in app-row [k] not) {k false}))))
+  (om/transact!
+   app-row
+   (fn [app-row]
+     (println (app-row omut-row-key))
+     (let [v (get-in app-row [omut-row-key :collapsed k])]
+       (assoc-in app-row [omut-row-key :collapsed k] (if (nil? v) false (not v)))))))
 
 (defn omut-row-collapsed? [app-row k]
   (get-in app-row [omut-row-key :collapsed k] true))
@@ -542,7 +551,7 @@
 ;;**************************************************************************************************
 
 
-(defn text-collapser [app owner {k :k}]
+(defn text-collapser [app _ {k :k}]
   (reify
     om/IWillMount
     (will-mount [_]
@@ -562,6 +571,31 @@
                  text))))))
 
 ;; END Long text collapser
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN collapser
+;;* tag: <collapser>
+;;*
+;;* description: Свертыватель
+;;*
+;;**************************************************************************************************
+
+                                        ;TODO: Перемиеноывать в ui-hidder
+(defn ui-collapser [app text k show? collapsed-body]
+  (dom/p #js {:style #js {:display (if show? "" "none")}}
+         (ui-button {:text text
+                     :type :info
+                     :active? (not (omut-row-collapsed? @app k))
+                     :on-click #(omut-row-set-collapsed-not!! app k)})
+
+         (dom/div #js {:style #js {:display (if (omut-row-collapsed? @app k) "none" "")}}
+                  collapsed-body)))
+
+
+
+
+;; END collapser
 ;;..................................................................................................
 
 
