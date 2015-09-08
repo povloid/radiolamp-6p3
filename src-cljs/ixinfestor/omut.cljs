@@ -835,7 +835,7 @@
   (reify
     om/IRender
     (render [this]
-      (let [value (:value @app)]
+      (let [value (or (:value @app) "")]
         (dom/input #js {:value value
                         :onChange (fn [e]
                                     (let [new-value (.. e -target -value)]
@@ -1062,8 +1062,8 @@
                                 cols "40"}}]
   (reify
     om/IRender
-    (render [this]
-      (dom/textarea #js {:value (:value app)
+    (render [this]            
+      (dom/textarea #js {:value (or (:value @app) "")
                          :onChange (fn [e]
                                      (let [v (.. e -target -value)]
                                        (when (onChange-valid?-fn app v)
@@ -1123,7 +1123,7 @@
     om/IRender
     (render [_]
       (ui-button {:type bs-type
-                  :active? (app :value)
+                  :active? (@app :value)
                   :disabled? disabled?
                   :on-click (fn [_]
                               (om/transact! app :value not)
@@ -1209,8 +1209,9 @@
                                      (select-keys [:id :keyname :description])
                                      vals)))}}]
   (letfn [(on-click [app e]
-            (.preventDefault e)
-            (.stopPropagation e)
+            ;;Пока отрубил для мобил, 
+            ;;(.preventDefault e) 
+            ;;(.stopPropagation e)
 
             (when clear-selections-fn
               (clear-selections-fn))
