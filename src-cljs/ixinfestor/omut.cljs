@@ -1209,9 +1209,8 @@
                                      (select-keys [:id :keyname :description])
                                      vals)))}}]
   (letfn [(on-click [app e]
-            ;;Пока отрубил для мобил, 
-            ;;(.preventDefault e) 
-            ;;(.stopPropagation e)
+            (.preventDefault e) 
+            (.stopPropagation e)
 
             (when clear-selections-fn
               (clear-selections-fn))
@@ -1231,7 +1230,8 @@
       (render [_]
         (apply dom/tr #js {:className  (if (omut-row-selected? @app) "info" "")
                            :onClick    (partial on-click app)
-                           :onTouchEnd (partial on-click app)}
+                           ;;:onTouchEnd (partial on-click app) ;; недает проматывать
+                           }
                (app-to-tds-seq-fn app) )))))
 
 
