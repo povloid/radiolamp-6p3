@@ -1543,7 +1543,7 @@
 
 (def nav-app-state-key :menu)
 
-(defn nav [app _]
+(defn nav [app _ opts]
   (letfn [(f1 [{:keys [sub separator?] :as row}]
             (if separator?
               (ui-navbar-li-separator)
@@ -1554,7 +1554,7 @@
       om/IRender
       (render [_]
         (let [m (nav-app-state-key app)]
-          (ui-nav {}
+          (ui-nav opts
                   (when-let [menus (:left m)]
                     (apply ui-ul-navbar-nav
                            (map f1 menus)))
