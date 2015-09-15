@@ -3,7 +3,8 @@
   (:import (java.io ByteArrayOutputStream))
   (:require [ring.util.response :refer :all]
             [plumbing.core :refer [keywordize-map]]
-            [cognitect.transit :as transit]))
+            [cognitect.transit :as transit]
+            [clojure.stacktrace]))
 
 (defn- write [x t opts]
   (let [baos (ByteArrayOutputStream.)
@@ -109,6 +110,15 @@
      (-> ~@body
          ring.util.response/response
          (ring.util.response/content-type "application/transit+json;charset=utf-8"))
+     (catch java.sql.BatchUpdateException ex-buth#
+       (let [ex# (.getNextException ex-buth#)]
+         (-> ex#
+             .getMessage
+             ((fn [message#] (println message#) message#))
+             ((partial array-map :error))
+             ring.util.response/response
+             (ring.util.response/status 500)
+             (ring.util.response/content-type "application/transit+json;charset=utf-8"))))
      (catch Exception ex#
        (do
          (clojure.stacktrace/print-stack-trace ex#)
@@ -119,13 +129,3 @@
              ring.util.response/response
              (ring.util.response/status 500)
              (ring.util.response/content-type "application/transit+json;charset=utf-8"))))))
-
-
-
-
-
-
-
-
-
-
