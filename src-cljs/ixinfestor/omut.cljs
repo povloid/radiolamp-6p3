@@ -910,7 +910,11 @@
             (= sv no-select-v)) nil sv)))
 
 
-(defn select [app _ {:keys [on-change-fn]}]
+(defn select [app _ {:keys [on-change-fn
+                            value-field-key
+                            title-field-key]
+                     :or {value-field-key :id
+                          title-field-key :keyname}}]
   (reify
     om/IRender
     (render [_]
@@ -925,10 +929,9 @@
                 (when on-change-fn (on-change-fn v))))}
 
        (doall
-        (map (fn [{:keys [id title keyname]}]
-               (println id title keyname)
-               (dom/option #js {:value (str id)} keyname " " title))
-             (into [{:id no-select-v :title "Выбрать..."}] (@app :list)))) ))))
+        (map (fn [row]
+               (dom/option #js {:value (str (value-field-key row))} (title-field-key row)))
+             (into [{value-field-key no-select-v title-field-key "Выбрать..."}] (@app :list)))) ))))
 
 (defn select-form-group  [app _ {:keys [label
                                         type
