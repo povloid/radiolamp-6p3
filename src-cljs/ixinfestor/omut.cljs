@@ -2017,7 +2017,8 @@
                                        :top 10 :left 5
                                        :fontSize "2em"}
                            :aria-hidden "true"}))
-          (dom/a nil (dom/img #js {:src path :alt "фото"}))
+          (dom/a nil (dom/img #js {:src (str path "_as_150.png") :alt "фото"
+                                   :style #js {:width "100%"}}))
           (dom/div #js {:className "caption"}
                    (when (not (clojstr/blank? top_description))
                      (dom/h3 nil top_description))
@@ -2025,10 +2026,11 @@
                             (when (not (clojstr/blank? description))
                               (dom/p nil description))
 
-                            (dom/span #js {:className "label label-default"} "URL")
+                            (dom/span #js {:className "label label-default"
+                                           :style #js {:width "15%" :fontSize "0.7em"}} "URL")
                             " "
                             (dom/input #js {:type "text"
-                                            :style #js {:width "70%" :fontSize "0.7em"}
+                                            :style #js {:width "65%" :fontSize "0.7em"}
                                             :value path
                                             :onMouseDown (fn [e] (.select (.-target e)))
                                             }))
@@ -2216,7 +2218,7 @@
 
 (defn file-thumb [app _ {:keys [class+
                                 onClick-fn]
-                         :or {class+ "col-xs-12 col-sm-6 col-md-6 col-lg-6"}}]
+                         :or {class+ "col-xs-12 col-sm-12 col-md-12 col-lg-12"}}]
   (reify
     om/IRender
     (render [_]
