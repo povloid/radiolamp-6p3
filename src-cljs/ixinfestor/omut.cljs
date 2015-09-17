@@ -2017,8 +2017,9 @@
                                        :top 10 :left 5
                                        :fontSize "2em"}
                            :aria-hidden "true"}))
-          (dom/a nil (dom/img #js {:src (str path "_as_150.png") :alt "фото"
-                                   :style #js {:width "100%"}}))
+          (dom/a nil (dom/img #js {:src (str path "_as_300.png") :alt "фото"
+                                   ;;:style #js {:width "100%"}
+                                   }))
           (dom/div #js {:className "caption"}
                    (when (not (clojstr/blank? top_description))
                      (dom/h3 nil top_description))
