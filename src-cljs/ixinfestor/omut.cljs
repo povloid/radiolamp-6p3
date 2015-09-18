@@ -840,12 +840,15 @@
 (def input-app-init
   {:value ""})
 
+(defn input-value [app] (get app :value))
+
 (defn input [app owner {:keys [class+
                                type
                                onChange-valid?-fn
                                onChange-updated-fn
                                onKeyPress-fn
-                               placeholder]
+                               placeholder
+                               min max step]
                         :or {class+ ""
                              type "text"
                              onChange-valid?-fn (fn [_ _] true)
@@ -867,6 +870,7 @@
                                       ))
                         :onKeyPress onKeyPress-fn
                         :type type
+                        :min min :max max :step step
                         :placeholder placeholder
                         :className (str "form-control " class+)})))))
 
@@ -898,6 +902,14 @@
   (input-css-string-has?-clean app)
   (when (= (count (.trim v)) 0)
     (om/transact! app #(assoc % :has-warning? true :text-warning "Пустое поле")))
+  true)
+
+
+(defn input-vldfn-not-empty-or-0 [app v]
+  (helper-p-clean app)
+  (input-css-string-has?-clean app)
+  (when (or (= (count (.trim v)) 0) (= (.valueOf (new js/Number v)) 0))
+    (om/transact! app #(assoc % :has-warning? true :text-warning "Показание пустое либо равно нулю")))
   true)
 
 ;; END input
@@ -934,11 +946,14 @@
             (= sv no-select-v)) nil sv)))
 
 
-(defn select [app _ {:keys [on-change-fn
+(defn select [app _ {:keys [first-item-text
+                            on-change-fn
                             value-field-key
+                            disabled?
                             title-field-key]
                      :or {value-field-key :id
-                          title-field-key :keyname}}]
+                          title-field-key :keyname
+                          first-item-text "Выбрать..."}}]
   (reify
     om/IRender
     (render [_]
@@ -946,6 +961,7 @@
       (dom/select
        #js {:value (@app :selected)
             :className "form-control"
+            :disabled (when disabled? "disabled")
             :onChange
             (fn [e]
               (let [v (-> e .-target .-value)]
@@ -955,7 +971,7 @@
        (doall
         (map (fn [row]
                (dom/option #js {:value (str (value-field-key row))} (title-field-key row)))
-             (into [{value-field-key no-select-v title-field-key "Выбрать..."}] (@app :list)))) ))))
+             (into [{value-field-key no-select-v title-field-key first-item-text}] (@app :list)))) ))))
 
 (defn select-form-group  [app _ {:keys [label
                                         type
@@ -1430,7 +1446,8 @@
                    {:keys [chan-update
                            data-update-fn
                            data-rendering-fn
-                           add-button-fn]
+                           add-button-fn
+                           tools]
                     :or {data-update-fn (fn [app]
                                           (println "Неопределена функция запроса обновления данных (data-update-fn [app] ...)")
                                           (println "параметр на входе: " (str app)))
@@ -1510,6 +1527,7 @@
 
                         )
                (dom/br nil)
+               (when tools tools)
                (om/build paginator app {:opts {:chan-update chan-update}})
                (dom/br nil)
 
@@ -2531,13 +2549,14 @@
                      ui-type
                      ui-type--add-button--type
                      ui-type--add-button--text
-                     on-selected-fn]
+                     on-selected-fn
+                     search-view-opts]
               :or {selection-type selection-type
                    ui-type ui-type
                    ui-type--add-button--type ui-type--add-button--type
                    ui-type--add-button--text ui-type--add-button--text
                    on-selected-fn on-selected-fn
-                   }}]
+                   search-view-opts {}}}]
 
 
     (reify
@@ -2646,7 +2665,7 @@
 
          (om/build modal (:modal app)
                    {:opts {:body (om/build search-view (get-in app [:modal :search-view])
-                                           {:opts {:selection-type selection-type}})
+                                           {:opts (merge {:selection-type selection-type} search-view-opts)})
                            :footer (dom/div #js {:className "btn-toolbar  pull-right"}
                                             (ui-button
                                              {:type :primary
