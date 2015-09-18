@@ -598,7 +598,27 @@
 ;; END collapser
 ;;..................................................................................................
 
+;;**************************************************************************************************
+;;* BEGIN label
+;;* tag: <label>
+;;*
+;;* description: Пометки
+;;*
+;;**************************************************************************************************
 
+(defn ui-label [type text]
+  (dom/span #js {:className (str  "label label-"
+                                  (get {:default "default"
+                                        :primary "primary"
+                                        :success "success"
+                                        :info "info"
+                                        :warning "warning"
+                                        :danger "danger"
+                                        } type "default"))
+                 } text))
+
+;; END label
+;;..................................................................................................
 
 
 ;;**************************************************************************************************
@@ -903,6 +923,10 @@
 (defn select-app-selected-set! [app selected]
   (assoc app :selected (str selected)))
 
+(defn select-app-selected-set-nil! [app]
+  (assoc app :selected no-select-v))
+
+
 (defn select-app-selected [app]
   (let [sv (app :selected)]
     (if (or (nil? sv)
@@ -952,6 +976,50 @@
                                  (om/build select app {:opts spec-select})
                                  (om/build helper-p app {})
                                  ))))))
+
+
+;; select in list from url
+
+(def select-from-url-app-init select-app-init)
+
+(defn select-from-url [app owner {:keys [url params] :as select-opts}]
+  (reify
+    om/IWillMount
+    (will-mount [_]
+      (ixnet/get-data
+       url params
+       (fn [result]
+         ;;(println result " to " @app)
+         (om/update! app :list result))))
+    om/IRender
+    (render [_]
+      (om/build select app {:opts select-opts}))))
+
+
+
+(defn select-from-url-form-group  [app _ {:keys [label
+                                                 type
+                                                 label-class+
+                                                 input-class+
+                                                 spec-select]
+                                          :or {label "Метка"
+                                               label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                               input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                                               spec-select {}}}]
+  (reify
+    om/IRender
+    (render [_]
+      (dom/div nil
+               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+                        (dom/label #js {:className (str "control-label " label-class+) } label)
+                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
+                                 (om/build select-from-url app {:opts spec-select})
+                                 (om/build helper-p app {})
+                                 ))))))
+
+
+
+
 
 
 ;; END input select
@@ -1065,7 +1133,7 @@
                                 cols "40"}}]
   (reify
     om/IRender
-    (render [this]            
+    (render [this]
       (dom/textarea #js {:value (or (:value @app) "")
                          :onChange (fn [e]
                                      (let [v (.. e -target -value)]
@@ -1212,7 +1280,7 @@
                                      (select-keys [:id :keyname :description])
                                      vals)))}}]
   (letfn [(on-click [app e]
-            (.preventDefault e) 
+            (.preventDefault e)
             (.stopPropagation e)
 
             (when clear-selections-fn
