@@ -2028,10 +2028,11 @@
                                      :danger  " list-group-item-danger"
                                      } type "")
                                (if active? "active" "")
-                               (or class+ "")
+                               " " (or class+ "")
                                )}
          (when badge (dom/span #js {:className "badge"} badge))
          text))
+
 
 
 (defn ui-list-group--counts-by [text f points & [nil-text]]
