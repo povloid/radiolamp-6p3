@@ -171,7 +171,9 @@
 
 
 (defn str-to-date [date-string]
-  (new js/Date (.parse js/Date date-string)))
+  (let [d (new js/Date (.parse js/Date date-string))]
+    (if (js/isNaN d) nil d)))
+
 
 (defn format-date
   "Format a date using either the built-in goog.i18n.DateTimeFormat.Format enum
@@ -185,7 +187,8 @@
   > \"July\"
   "
   [date-format date]
-  (.format (goog.i18n.DateTimeFormat. (or (date-formats date-format) date-format))  date))
+  (if (nil? date) nil 
+      (.format (goog.i18n.DateTimeFormat. (or (date-formats date-format) date-format))  date)))
 
 (defn str-to-date-and-format [date-format alt-string s]
   (if (nil? s) alt-string
@@ -2015,7 +2018,7 @@
 ;;**************************************************************************************************
 
 (defn ui-list-group [list-groups-items & [class+]]
-  (apply dom/div #js {:className (str "list-group"
+  (apply dom/div #js {:className (str "list-group "
                                       (or class+ "col-xs-12 col-sm-12 col-md-12 col-lg-12"))
                       :style #js {:marginTop 10}}
          list-groups-items))
@@ -2035,7 +2038,10 @@
 
 
 
-(defn ui-list-group--counts-by [text f points & [nil-text]]
+(defn ui-list-group--counts-by [points f
+                                {:keys [text nil-text]
+                                 :or {text "метка в заголовке"
+                                      nil-text "не указано"}}]
   (let [items (->> points
                    (group-by f)
                    seq)]
@@ -2043,10 +2049,14 @@
      (reduce
       (fn [a [gi items]]
         (conj a (ui-list-group-item
-                 {:text (or  gi (or nil-text "не указано")) :badge (count items)
+                 {:text (or gi nil-text) :badge (count items)
                   :type (if (nil? gi) :warning :default)})))
       [(ui-list-group-item {:text text :active? true :badge (count points)})]
       items))))
+
+
+
+
 
 
 
