@@ -2006,6 +2006,55 @@
 
 ;; END Virtual pages
 ;;..................................................................................................
+;;**************************************************************************************************
+;;* BEGIN lists
+;;* tag: <lists>
+;;*
+;;* description: списки для вывода
+;;*
+;;**************************************************************************************************
+
+(defn ui-list-group [list-groups-items & [class+]]
+  (apply dom/div #js {:className (str "list-group"
+                                      (or class+ "col-xs-12 col-sm-12 col-md-12 col-lg-12"))
+                      :style #js {:marginTop 10}}
+         list-groups-items))
+
+(defn ui-list-group-item [{:keys [text type badge active? class+]}]
+  (dom/a #js {:className (str  "list-group-item "
+                               (get {:success " list-group-item-success"
+                                     :info    " list-group-item-info"
+                                     :warning " list-group-item-warning"
+                                     :danger  " list-group-item-danger"
+                                     } type "")
+                               (if active? "active" "")
+                               (or class+ "")
+                               )}
+         (when badge (dom/span #js {:className "badge"} badge))
+         text))
+
+
+(defn ui-list-group--counts-by [text f points & [nil-text]]
+  (let [items (->> points
+                   (group-by f)
+                   seq)]
+    (ui-list-group
+     (reduce
+      (fn [a [gi items]]
+        (conj a (ui-list-group-item
+                 {:text (or  gi (or nil-text "не указано")) :badge (count items)
+                  :type (if (nil? gi) :warning :default)})))
+      [(ui-list-group-item {:text text :active? true :badge (count points)})]
+      items))))
+
+
+
+
+;; END lists
+;;..................................................................................................
+
+
+
 
 ;;**************************************************************************************************
 ;;* BEGIN Uploader elements
