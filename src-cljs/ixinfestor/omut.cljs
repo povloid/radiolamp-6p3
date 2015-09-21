@@ -963,7 +963,8 @@
     om/IRender
     (render [_]
       ;;(println "SELECT APP:" @app)
-      (dom/select
+      (apply
+       dom/select
        #js {:value (@app :selected)
             :className "form-control"
             :disabled (when disabled? "disabled")
