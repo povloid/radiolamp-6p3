@@ -187,7 +187,7 @@
   > \"July\"
   "
   [date-format date]
-  (if (nil? date) nil 
+  (if (nil? date) nil
       (.format (goog.i18n.DateTimeFormat. (or (date-formats date-format) date-format))  date)))
 
 (defn str-to-date-and-format [date-format alt-string s]
@@ -618,7 +618,7 @@
                                         :warning "warning"
                                         :danger "danger"
                                         } type "default"))
-                 } text))
+                 :style #js {:whiteSpace "normal"}} text))
 
 ;; END label
 ;;..................................................................................................
@@ -913,7 +913,9 @@
   (input-css-string-has?-clean app)
   (when (or (= (count (.trim v)) 0) (= (.valueOf (new js/Number v)) 0))
     (om/transact! app #(assoc % :has-warning? true :text-warning "Показание пустое либо равно нулю")))
-  true)
+  (do
+    (om/transact! app #(assoc % :has-success? true))
+    true))
 
 ;; END input
 ;;..................................................................................................
