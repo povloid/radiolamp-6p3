@@ -358,6 +358,11 @@
                                                " " class+)}
                           (dom/div #js {:className "modal-content"}
                                    (dom/div #js {:className "modal-header"}
+                                            (dom/button #js {:type "button" :className "close"
+                                                             :data-dismiss "modal" :aria-label "Close"
+                                                             :onClick (fn [_] (om/update! app :show false) 1)}
+                                                        (ui-glyphicon "remove"))
+
                                             (or header (dom/h4 #js {:className "modal-title"} label)))
                                    (dom/div #js {:className "modal-body"
                                                  :style #js {:marginRight 40}}
