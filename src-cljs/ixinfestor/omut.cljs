@@ -805,14 +805,17 @@
                           :has-warning?
                           :has-error?))))
 
+(defn input-css-string-has?-clean-and-set! [app k]
+  (-> app
+      (dissoc :has-success?
+              :has-warning?
+              :has-error?)
+      (assoc k true)))
+
 (defn input-css-string-has?-clean-and-set!! [app k]
   (om/transact! app
                 (fn [app]
-                  (-> app
-                      (dissoc :has-success?
-                              :has-warning?
-                              :has-error?)
-                      (assoc k true)))))
+                  (input-css-string-has?-clean-and-set! app k))))
 
 ;; END has
 ;;..................................................................................................
@@ -939,6 +942,9 @@
 
 (def no-select-v "NO-SELECT")
 
+(defn select-app-list [app]
+  (app :list))
+
 (defn select-app-list-set! [app new-list]
   (assoc app :list new-list))
 
@@ -948,12 +954,16 @@
 (defn select-app-selected-set-nil! [app]
   (assoc app :selected no-select-v))
 
-
 (defn select-app-selected [app]
   (let [sv (app :selected)]
     (if (or (nil? sv)
             (empty? sv)
             (= sv no-select-v)) nil sv)))
+
+
+(defn select-app-selected-int-or-nil [app]
+  (when-let [v (select-app-selected app)]
+    (js/parseInt v)))
 
 
 (defn select [app _ {:keys [first-item-text
