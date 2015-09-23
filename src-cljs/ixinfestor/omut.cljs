@@ -2036,8 +2036,8 @@
 ;;**************************************************************************************************
 
 (defn ui-list-group [list-groups-items & [class+]]
-  (apply dom/div #js {:className (str "list-group "
-                                      (or class+ "col-xs-12 col-sm-12 col-md-12 col-lg-12"))
+  (apply dom/ul #js {:className (str "list-group "
+                                      (or class+ ""))
                       :style #js {:marginTop 10}}
          list-groups-items))
 
