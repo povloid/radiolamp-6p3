@@ -114,7 +114,7 @@
   (om/transact!
    app-row
    (fn [app-row]
-     (println (app-row omut-row-key))
+     ;;(println (app-row omut-row-key))
      (let [v (get-in app-row [omut-row-key :collapsed k])]
        (assoc-in app-row [omut-row-key :collapsed k] (if (nil? v) false (not v)))))))
 
@@ -1363,7 +1363,7 @@
                     (om/transact!
                      app
                      (fn [data]
-                       (println (map omut-row-key data))
+                       ;;(println (map omut-row-key data))
                        (vec (map #(omut-row-set-selected! % false) data))))))
            opts)})))))
 
@@ -2118,8 +2118,7 @@
                {:success
                 #(do
                    (when update-fn (update-fn))
-                   (println "UPLOAD SUCCES!!!"))})
-              )))))
+                   (println "UPLOAD SUCCES!!!"))}))))))
 
     om/IRenderState
     (render-state [_ {:keys [chan-upload form-id uploader-id]}]
