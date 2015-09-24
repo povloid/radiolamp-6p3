@@ -1394,7 +1394,10 @@
     om/IRender
     (render [this]
       (dom/div #js {:className (str  "input-group " (if class+ class+ ""))
-                    :style #js {:textAlign "center"}}
+                    :style #js {:textAlign "center"
+                                :maxWidth 500
+                                :float "none"
+                                :margin "0 auto"}}
                (dom/span #js {:className "input-group-btn"}
                          (ui-button {:type :default
                                      :on-click (fn [_]
@@ -1510,80 +1513,63 @@
 
     om/IRenderState
     (render-state [_ {:keys [chan-update]}]
-      (dom/div nil
-               (dom/div #js {:className "input-group"}
-                        (dom/span #js {:className "input-group-btn"}
-                                  (ui-button {:type :default
-                                              :on-click (fn [_]
-                                                          (om/update! app :page 1)
-                                                          (om/update! app [:fts-query :value] "")
-                                                          (put! chan-update 1)
-                                                          1)
-                                              :text (dom/span #js {:className "glyphicon glyphicon-remove"
-                                                                   :aria-hidden "true"})
-                                              }))
-                        (om/build input (:fts-query app)
-                                  {:opts {:onKeyPress-fn #(do #_(println
-                                                                 (.-type %)
-                                                                 (.-which %)
-                                                                 (.-timeStamp %))
+      (dom/div
+       #js {:className "container-fluid"}
+       (dom/div
+        #js {:className "row"}
+        (dom/div #js {:className "input-group"}
+                 (dom/span #js {:className "input-group-btn"}
+                           (ui-button {:type :default
+                                       :on-click (fn [_]
+                                                   (om/update! app :page 1)
+                                                   (om/update! app [:fts-query :value] "")
+                                                   (put! chan-update 1)
+                                                   1)
+                                       :text (dom/span #js {:className "glyphicon glyphicon-remove"
+                                                            :aria-hidden "true"})
+                                       }))
+                 (om/build input (:fts-query app)
+                           {:opts {:onKeyPress-fn #(do #_(println
+                                                          (.-type %)
+                                                          (.-which %)
+                                                          (.-timeStamp %))
 
-                                                              (when (= 13 (.-which %))
-                                                                (do
-                                                                  (om/update! app :page 1)
-                                                                  (put! chan-update 1)))
-                                                              1)
-                                          }})
+                                                       (when (= 13 (.-which %))
+                                                         (do
+                                                           (om/update! app :page 1)
+                                                           (put! chan-update 1)))
+                                                       1)
+                                   }})
 
-                        (dom/span #js {:className "input-group-btn"}
-                                  (ui-button {:type :success
-                                              :on-click (fn [_]
-                                                          (om/update! app :page 1)
-                                                          (put! chan-update 1)
-                                                          1)
-                                              :text (dom/span #js {:className "glyphicon glyphicon-search"
-                                                                   :aria-hidden "true"})
-                                              })
+                 (dom/span #js {:className "input-group-btn"}
+                           (ui-button {:type :success
+                                       :on-click (fn [_]
+                                                   (om/update! app :page 1)
+                                                   (put! chan-update 1)
+                                                   1)
+                                       :text (dom/span #js {:className "glyphicon glyphicon-search"
+                                                            :aria-hidden "true"})
+                                       })
 
-                                  (when add-button-fn
-                                    (ui-button {:type :danger
-                                                :on-click (fn [_]
-                                                            (add-button-fn)
-                                                            1)
-                                                :text (dom/span #js {:className "glyphicon glyphicon-plus"
-                                                                     :aria-hidden "true"})
-                                                }))
+                           (when add-button-fn
+                             (ui-button {:type :danger
+                                         :on-click (fn [_]
+                                                     (add-button-fn)
+                                                     1)
+                                         :text (dom/span #js {:className "glyphicon glyphicon-plus"
+                                                              :aria-hidden "true"})
+                                         }))
 
-                                  )
-
-                        )
-               (dom/br nil)
-               (when tools tools)
-
-                                        ;(dom/div #js {:className "input-group"})
-               (dom/div #js {:className "input-group col-xs-12 col-sm-offset-6 col-sm-6 col-md-offset-7 col-md-5 col-lg-offset-8 col-lg-4" }
-                        (om/build paginator app {:opts {:chan-update chan-update}}))
-               (dom/br nil)
-
-               ;; data rendering component
-               (data-rendering-fn app)
-               ;; Использовалось при разработке
-               ;; #_(ui-table {:hover? true
-               ;;              :bordered? true
-               ;;              :striped? true
-               ;;              :responsive? true
-               ;;              :thead (ui-thead-tr [(dom/th nil "Наименование")
-               ;;                                   (dom/th nil "Описание")])
-               ;;              :tbody (apply dom/tbody nil
-               ;;                            (for [r (:data app)]
-               ;;                              (dom/tr nil
-               ;;                                      (dom/td nil (r :id))
-               ;;                                      (dom/td nil (r :keyname)))))
-               ;;              })
-
-
-
-               ))))
+                           )
+                 )
+        
+        (dom/br nil)
+        (when tools tools)
+        (dom/div #js {:className "input-group col-xs-12 col-sm-12"}
+                 (om/build paginator app {:opts {:chan-update chan-update}}))
+        (dom/br nil)
+        ;; data rendering component
+        (data-rendering-fn app))))))
 
 
 ;; END Search view
