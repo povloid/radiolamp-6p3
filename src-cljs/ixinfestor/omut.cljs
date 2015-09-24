@@ -1385,13 +1385,15 @@
 
 
 (def paginator-app-init
-  {:page 1})
+  {:page 1
+   :page-size 10
+   :count-all nil})
 
-(defn paginator [app owner {:keys [chan-update]}]
+(defn paginator [app owner {:keys [chan-update class+]}]
   (reify
     om/IRender
     (render [this]
-      (dom/div #js {:className "input-group"
+      (dom/div #js {:className (str  "input-group " (if class+ class+ ""))
                     :style #js {:textAlign "center"}}
                (dom/span #js {:className "input-group-btn"}
                          (ui-button {:type :default
@@ -1418,7 +1420,14 @@
                                      })
                          )
 
-               (dom/h4 nil (str "страница " (@app :page)))
+               (dom/h4 nil
+                       (str " стр." (@app :page)
+                            (when-let [count-all (:count-all @app)]
+                              (str
+                               (if-let [page-size (:page-size @app)]
+                                 (str " из " (inc (quot count-all page-size)))
+                                 "")
+                               " (" count-all ") "))))
 
                (dom/span #js {:className "input-group-btn"}
                          (ui-button {:type :default
@@ -1550,7 +1559,10 @@
                         )
                (dom/br nil)
                (when tools tools)
-               (om/build paginator app {:opts {:chan-update chan-update}})
+
+                                        ;(dom/div #js {:className "input-group"})
+               (dom/div #js {:className "input-group col-xs-12 col-sm-offset-6 col-sm-6 col-md-offset-7 col-md-5 col-lg-offset-8 col-lg-4" }
+                        (om/build paginator app {:opts {:chan-update chan-update}}))
                (dom/br nil)
 
                ;; data rendering component
@@ -2038,8 +2050,8 @@
 
 (defn ui-list-group [list-groups-items & [class+]]
   (apply dom/ul #js {:className (str "list-group "
-                                      (or class+ ""))
-                      :style #js {:marginTop 10}}
+                                     (or class+ ""))
+                     :style #js {:marginTop 10}}
          list-groups-items))
 
 (defn ui-list-group-item [{:keys [text type badge active? class+]}]
