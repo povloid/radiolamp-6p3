@@ -391,6 +391,7 @@
       (ui-button {:text text
                   :type btn-type
                   :block? true
+                  :size :lg
                   :on-click (fn [_]
                               (modal-hide app)
                               (if act-fn
