@@ -203,6 +203,29 @@
 ;;..................................................................................................
 
 ;;**************************************************************************************************
+;;* BEGIN bootstrap-containers
+;;* tag: <layout containers>
+;;*
+;;* description: Контенеры
+;;*
+;;**************************************************************************************************
+
+(defn ui-container [& body]
+  (apply dom/div #js {:className "container"} body))
+
+(defn ui-container-fluid [& body]
+  (apply dom/div #js {:className "container-fluid"} body))
+
+(defn ui-row [& body]
+  (apply dom/div #js {:className "row"} body))
+
+
+
+;; END bootstrap-containers
+;;..................................................................................................
+
+
+;;**************************************************************************************************
 ;;* BEGIN icons
 ;;* tag: <icons>
 ;;*
@@ -1562,7 +1585,7 @@
 
                            )
                  )
-        
+
         (dom/br nil)
         (when tools tools)
         (dom/div #js {:className "input-group col-xs-12 col-sm-12"}
@@ -1685,12 +1708,17 @@
           ]})
 
 
+
 (defn nav-tabs-app-state-i-maker [tabs]
   (reduce
    (fn [a [k v]]
      (assoc a k v))
    (vec (range (count tabs)))
    (seq tabs)))
+
+(defn nav-tabs-app-state-init [tabs]
+  (assoc nav-tabs-app-state
+         :tabs (nav-tabs-app-state-i-maker tabs)))
 
 (defn nav-tabs-active-tab [app]
   (get-in @app [:active-tab] 0))
@@ -1725,7 +1753,7 @@
                  (put! chan-update i)))))]
     (reify
       om/IRender
-      (render [_]
+      (render [_]        
         (apply dom/ul #js {:className (str "nav"
                                            (condp = type
                                              :tabs  " nav-tabs"
@@ -1749,7 +1777,8 @@
                                                   :aria-hidden "true"}))
                                  text)))
 
-                (:tabs app) (range)) )))))
+                (:tabs @app) (range)) )))))
+
 
 
 (defn ui-nav-tab [app i body]
@@ -1784,7 +1813,7 @@
   {:id nil})
 
 (defn edit-form-for-id [app owner {:keys [chan-load-for-id
-                                          uri
+                                          uri uri-params+
                                           chan-load-row
                                           chan-save
                                           uri-save
@@ -1793,7 +1822,8 @@
                                           fill-app-fn
                                           app-to-row-fn
                                           ]
-                                   :or {fill-app-fn
+                                   :or {url-params+ {}
+                                        fill-app-fn
                                         (fn [row]
                                           (println "Функция (fill-app-fn) формирования зароса не определена!"
                                                    " Пришел ответ вида: " row))
@@ -1818,7 +1848,7 @@
                 ;; TODO: сделать отлов ошибок на alert
                 (ixnet/get-data
                  uri
-                 {:id id}
+                 (merge {:id id} uri-params+)
                  (fn [row]
                    (put! chan-init-row row) ))))))
 
@@ -1914,7 +1944,8 @@
     om/IRenderState
     (render-state [_ {:keys[chan-save]}]
       (om/build modal app
-                {:opts {:label (if new-or-edit-fn?
+                {:opts {:modal-size :lg
+                        :label (if new-or-edit-fn?
                                  (condp = (new-or-edit-fn?)
                                    :new "Создание новой записи"
                                    :edit "Редактирование записи"
@@ -1962,7 +1993,8 @@
     om/IRender
     (render [_]
       (om/build modal app
-                {:opts {:label (if new-or-edit-fn?
+                {:opts {:modal-size :lg
+                        :label (if new-or-edit-fn?
                                  (condp = (new-or-edit-fn?)
                                    :new "Создание новой записи"
                                    :edit "Редактирование записи"
@@ -2079,6 +2111,66 @@
 
 
 ;; END lists
+;;..................................................................................................
+
+
+;;**************************************************************************************************
+;;* BEGIN panel
+;;* tag: <panel >
+;;*
+;;* description: панели
+;;*
+;;**************************************************************************************************
+
+(defn ui-panel [{:keys [heading heading-glyphicon
+                        body after-body type]}]
+  (dom/div #js {:className (str "panel panel-"
+                                (get {:default "default"
+                                      :primary "primary"
+                                      :success "success"
+                                      :info "info"
+                                      :warning "warning"
+                                      :danger "danger"
+                                      } type "default"))}
+           (when heading
+             (dom/div #js {:className "panel-heading"}
+                      (when heading-glyphicon
+                        (ui-glyphicon heading-glyphicon))
+                      (when heading-glyphicon " ")
+                      heading))
+
+           (when body
+             (apply
+              dom/div #js {:className "panel-body"}
+              (if (coll? body) body [body])))
+
+           after-body))
+
+(defn ui-panel-with-table [{:keys [cols rows]
+                            :or {cols [] rows []}
+                            :as options}]
+  (ui-panel
+   (assoc options
+          :after-body
+          (ui-table
+           {:hover? true
+            :bordered? true
+            :striped? true
+            :responsive? true
+            :thead (->> cols
+                        (map #(dom/th nil %))
+                        ui-thead-tr)
+            :tbody (->> rows
+                        (map (fn [row]
+                               (apply
+                                dom/tr nil
+                                (vec (map #(dom/td nil %) row)))))
+                        (apply dom/tbody nil))
+            }))))
+
+
+
+;; END panel
 ;;..................................................................................................
 
 
@@ -2358,6 +2450,53 @@
                                                   1)}})
 
                ))))
+
+
+
+(defn images-gallery-1 [app own]
+  (reify
+    om/IInitState
+    (init-state [_]
+      {:i 0})
+    om/IRenderState
+    (render-state [_ {:keys [i]}]
+      (dom/div
+       nil
+       (dom/div
+        #js {:style #js {:textAlign "right"}}
+        (dom/div #js {:className "btn-group"}
+                 (ui-button {:type :default
+                             :size :lg
+                             :on-click (fn [_]
+                                         (om/update-state!
+                                          own :i
+                                          #(let [i (dec %)]
+                                             (if (< i 0) (dec (count @app)) i)))
+                                         1)
+                             :text (dom/span nil
+                                             (dom/span #js {:className "glyphicon glyphicon-chevron-left"
+                                                            :aria-hidden "true"}))
+                             })
+                 (ui-button {:type :default
+                             :size :lg
+                             :on-click (fn [_]
+                                         (om/update-state!
+                                          own :i
+                                          #(let [i (inc %)]
+                                             (if (= i (count @app)) 0  i)))
+                                         1)
+                             :text (dom/span nil
+                                             (dom/span #js {:className "glyphicon glyphicon-chevron-right"
+                                                            :aria-hidden "true"}))
+                             })
+                 ))
+       (dom/br nil)
+       (if (empty? @app)
+         (dom/h1 nil "Изображений нет")
+         (dom/div
+          #js {:className "thumbnail"}
+          (dom/img #js {:className ""
+                        :src (get-in @app [i :path] "")})))))))
 
 ;; END Thumbs
 ;;..................................................................................................
@@ -2740,7 +2879,8 @@
 
 
          (om/build modal (:modal app)
-                   {:opts {:body (om/build search-view (get-in app [:modal :search-view])
+                   {:opts {:modal-size :lg
+                           :body (om/build search-view (get-in app [:modal :search-view])
                                            {:opts (merge {:selection-type selection-type} search-view-opts)})
                            :footer (dom/div #js {:className "btn-toolbar  pull-right"}
                                             (ui-button
