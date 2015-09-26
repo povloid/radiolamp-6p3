@@ -1753,7 +1753,7 @@
                  (put! chan-update i)))))]
     (reify
       om/IRender
-      (render [_]        
+      (render [_]
         (apply dom/ul #js {:className (str "nav"
                                            (condp = type
                                              :tabs  " nav-tabs"
@@ -2122,7 +2122,7 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn ui-panel [{:keys [heading heading-glyphicon
+(defn ui-panel [{:keys [heading heading-glyphicon badge
                         body after-body type]}]
   (dom/div #js {:className (str "panel panel-"
                                 (get {:default "default"
@@ -2137,7 +2137,9 @@
                       (when heading-glyphicon
                         (ui-glyphicon heading-glyphicon))
                       (when heading-glyphicon " ")
-                      heading))
+                      heading
+                      (when badge (dom/span #js {:className "badge"
+                                                 :style #js {:float "right"}} badge))))
 
            (when body
              (apply
@@ -2173,7 +2175,38 @@
 ;; END panel
 ;;..................................................................................................
 
+;;**************************************************************************************************
+;;* BEGIN Media
+;;* tag: <ui media>
+;;*
+;;* description: Вывод с заголовком и картинкой
+;;*
+;;**************************************************************************************************
 
+(defn ui-media-object [{:keys [src]}]
+  (dom/img #js {:className "media-object" :src src}))
+
+(defn ui-media [{:keys [media-object
+                        heading heading-2
+                        href
+                        body]}]
+  (dom/div #js {:className "media"}
+           (dom/div #js {:className "media-left"}
+                    (dom/a #js {:href (or href "#")}
+                           media-object))
+           (dom/div #js {:className "media-body"}
+                    (when href (dom/a #js {:style #js {:float "right"}
+                                           :href (or href "#")}
+                                      (dom/button #js {:className "btn btn-success"} "скачать")))
+                    (when heading (dom/h4 #js {:className "media-heading"} heading
+                                          (when heading-2 (dom/small nil " " heading-2 ))))
+                    body)))
+
+
+
+
+;; END Media
+;;..................................................................................................
 
 
 ;;**************************************************************************************************
@@ -2708,6 +2741,37 @@
                                                   1)}})
 
                ))))
+
+
+(def files-table-1-app-init
+  [])
+
+(defn files-table-1 [app own]
+  (reify
+    om/IRender
+    (render [_]
+      (ui-panel
+       {:heading " Список файлов"
+        :badge (str (count @app))
+        :heading-glyphicon "folder-open"
+        :type :primary
+        :after-body
+        (ui-table
+         {:hover? true
+          :bordered? true
+          :striped? true
+          :responsive? true
+          :tbody
+          (->> @app
+               (map (fn [{:keys [filename path top_description description size]}]
+                      (dom/tr nil
+                              (dom/td nil
+                                      (ui-media {:href path
+                                                 :media-object (ui-glyphicon "file" nil "5em")
+                                                 :heading filename
+                                                 :heading-2 top_description
+                                                 :body (dom/p nil description)})))))
+               (apply dom/tbody nil))})}))))
 
 ;; END files
 ;;..................................................................................................
