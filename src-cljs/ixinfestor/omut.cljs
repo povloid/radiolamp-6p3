@@ -1720,8 +1720,9 @@
   (assoc nav-tabs-app-state
          :tabs (nav-tabs-app-state-i-maker tabs)))
 
+
 (defn nav-tabs-active-tab [app]
-  (get-in @app [:active-tab] 0))
+  (get app :active-tab 0))
 
 (defn nav-tabs-enable-inly-one [app ii]
   (om/transact!
@@ -2196,10 +2197,10 @@
                            media-object))
            (dom/div #js {:className "media-body"}
                     (when href (dom/a #js {:style #js {:float "right"}
-                                           :href (or href "#")}
+                                           :href (or href "#") :target "_blank"}
                                       (dom/button #js {:className "btn btn-success"} "скачать")))
                     (when heading (dom/h4 #js {:className "media-heading"} heading
-                                          (when heading-2 (dom/small nil " " heading-2 ))))
+                                          (when heading-2 (dom/small nil " - " heading-2 ))))
                     body)))
 
 
