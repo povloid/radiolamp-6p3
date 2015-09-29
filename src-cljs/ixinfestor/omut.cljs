@@ -2494,43 +2494,44 @@
       {:i 0})
     om/IRenderState
     (render-state [_ {:keys [i]}]
-      (dom/div
-       nil
-       (dom/div
-        #js {:style #js {:textAlign "right"}}
-        (dom/div #js {:className "btn-group"}
-                 (ui-button {:type :default
-                             :size :lg
-                             :on-click (fn [_]
-                                         (om/update-state!
-                                          own :i
-                                          #(let [i (dec %)]
-                                             (if (< i 0) (dec (count @app)) i)))
-                                         1)
-                             :text (dom/span nil
-                                             (dom/span #js {:className "glyphicon glyphicon-chevron-left"
-                                                            :aria-hidden "true"}))
-                             })
-                 (ui-button {:type :default
-                             :size :lg
-                             :on-click (fn [_]
-                                         (om/update-state!
-                                          own :i
-                                          #(let [i (inc %)]
-                                             (if (= i (count @app)) 0  i)))
-                                         1)
-                             :text (dom/span nil
-                                             (dom/span #js {:className "glyphicon glyphicon-chevron-right"
-                                                            :aria-hidden "true"}))
-                             })
-                 ))
-       (dom/br nil)
-       (if (empty? @app)
-         (dom/h1 nil "Изображений нет")
+      (if (empty? @app)
+        (dom/h2 nil "Изображений нет")
+        (dom/div
+         #js {}
+         (dom/b #js {:style #js {:fontSize "26px"}} "Изображение " (inc i) " из " (count @app))
+         (dom/div #js {:className "btn-group" :style #js {:float "right"}}
+                  (ui-button {:type :default
+                              :size :lg
+                              :on-click (fn [_]
+                                          (om/update-state!
+                                           own :i
+                                           #(let [i (dec %)]
+                                              (if (< i 0) (dec (count @app)) i)))
+                                          1)
+                              :text (dom/span nil
+                                              (dom/span #js {:className "glyphicon glyphicon-chevron-left"
+                                                             :aria-hidden "true"}))
+                              })
+                  (ui-button {:type :default
+                              :size :lg
+                              :on-click (fn [_]
+                                          (om/update-state!
+                                           own :i
+                                           #(let [i (inc %)]
+                                              (if (= i (count @app)) 0  i)))
+                                          1)
+                              :text (dom/span nil
+                                              (dom/span #js {:className "glyphicon glyphicon-chevron-right"
+                                                             :aria-hidden "true"}))
+                              }))
+         (dom/br nil)
+         (dom/br nil)
          (dom/div
           #js {:className "thumbnail"}
           (dom/img #js {:className ""
-                        :src (get-in @app [i :path] "")})))))))
+                        :src (get-in @app [i :path] "")}))
+         (dom/h2 nil (get-in @app [i :top_description] ""))
+         (dom/p nil (get-in @app [i :description] "")))))))
 
 ;; END Thumbs
 ;;..................................................................................................
@@ -2751,28 +2752,30 @@
   (reify
     om/IRender
     (render [_]
-      (ui-panel
-       {:heading " Список файлов"
-        :badge (str (count @app))
-        :heading-glyphicon "folder-open"
-        :type :primary
-        :after-body
-        (ui-table
-         {:hover? true
-          :bordered? true
-          :striped? true
-          :responsive? true
-          :tbody
-          (->> @app
-               (map (fn [{:keys [filename path top_description description size]}]
-                      (dom/tr nil
-                              (dom/td nil
-                                      (ui-media {:href path
-                                                 :media-object (ui-glyphicon "file" nil "5em")
-                                                 :heading filename
-                                                 :heading-2 top_description
-                                                 :body (dom/p nil description)})))))
-               (apply dom/tbody nil))})}))))
+      (if (empty? @app)
+        (dom/h2 nil "Нет файлов")
+        (ui-panel
+         {:heading " Список файлов"
+          :badge (str (count @app))
+          :heading-glyphicon "folder-open"
+          :type :primary
+          :after-body
+          (ui-table
+           {:hover? true
+            :bordered? true
+            :striped? true
+            :responsive? true
+            :tbody
+            (->> @app
+                 (map (fn [{:keys [filename path top_description description size]}]
+                        (dom/tr nil
+                                (dom/td nil
+                                        (ui-media {:href path
+                                                   :media-object (ui-glyphicon "file" nil "5em")
+                                                   :heading filename
+                                                   :heading-2 top_description
+                                                   :body (dom/p nil description)})))))
+                 (apply dom/tbody nil))})})))))
 
 ;; END files
 ;;..................................................................................................
