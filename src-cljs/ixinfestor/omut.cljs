@@ -2492,6 +2492,9 @@
     om/IInitState
     (init-state [_]
       {:i 0})
+    om/IWillReceiveProps
+    (will-receive-props [_ next-props]
+      (om/set-state! own :i 0))
     om/IRenderState
     (render-state [_ {:keys [i]}]
       (if (empty? @app)
