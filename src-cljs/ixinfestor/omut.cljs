@@ -2218,35 +2218,39 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn file-uploder [_ owner {:keys [uri
-                                    get-uri-fn
-                                    update-fn
-                                    accept]
-                             :or {uri "/file-uploder/uri"
-                                  accept "*.*"}}]
+(defn file-uploder [_ own {:keys [uri
+                                  get-uri-fn
+                                  update-fn
+                                  accept]
+                           :or {uri "/file-uploder/uri"
+                                accept "*.*"}}]
   (reify
     om/IInitState
     (init-state [_]
       {:chan-upload (chan)
        :form-id (uniq-id "file-uploder-form")
-       :uploader-id (uniq-id "uploder")})
+       :uploader-id (uniq-id "uploder")
+       :in-progress false})
     om/IWillMount
     (will-mount [this]
-      (let [{:keys[chan-upload form-id]} (om/get-state owner)]
+      (let [{:keys[chan-upload form-id uploader-id]} (om/get-state own)]
         (go
           (while true
             (let [_ (<! chan-upload)]
+
+              (om/set-state! own :in-progress true)
+
               (ix-io/file-upload
                (.getElementById js/document form-id)
-               (if get-uri-fn (get-uri-fn)
-                   uri)
-               {:success
-                #(do
-                   (when update-fn (update-fn))
-                   (println "UPLOAD SUCCES!!!"))}))))))
+               (.getElementById js/document uploader-id)
+               (if get-uri-fn (get-uri-fn) uri)
+               {:complete #(do
+                             (when update-fn (update-fn))
+                             (om/set-state! own :in-progress false))
+                }))))))
 
     om/IRenderState
-    (render-state [_ {:keys [chan-upload form-id uploader-id]}]
+    (render-state [_ {:keys [chan-upload form-id uploader-id in-progress]}]
       (dom/form #js {:id form-id
                      :encType "multipart/form-data"
                      :method "POST"}
@@ -2259,7 +2263,13 @@
                                           :multiple true
                                           :accept accept
                                           :onChange #(put! chan-upload 1)
-                                          }))))))
+                                          }))
+                (when in-progress
+                  (dom/span #js {:className "text-warning"}
+                            " " (ui-glyphicon "flag") " Подождите, идет выгрузка файлов на сервер..."
+                            (dom/img #js {:src "/images/uploading.gif"})))
+
+                ))))
 
 ;; END Uploader elements
 ;;..................................................................................................
