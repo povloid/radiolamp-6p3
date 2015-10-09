@@ -295,11 +295,17 @@
 (defn com-pred-page* [query* page size]
   (-> query* (limit size) (offset (* page size))))
 
+(def spec-query-prefix "tsquery>>")
+(def spec-query-prefix-count (count spec-query-prefix))
+
 (defn com-pred-full-text-search* [query* fts-field fts-query]
-  (let [fts-query (->> (clojure.string/split (str fts-query) #"\s+")
-                       (map #(str % ":*"))
-                       (reduce #(str %1 " & " %2)))]
+  (let [fts-query (if (.startsWith fts-query spec-query-prefix)
+                    (-> fts-query (subs spec-query-prefix-count) clojure.string/trim)
+                    (->> (clojure.string/split (str fts-query) #"\s+")
+                         (map #(str % ":*"))
+                         (reduce #(str %1 " & " %2))))]
     (where query* (raw (str " " (name fts-field) " @@ to_tsquery('" fts-query "')")))))
+
 
 (defn com-defn-add-rel-many-to-many
   "создание функции соединения двух сущностей по типу many-to-many"
