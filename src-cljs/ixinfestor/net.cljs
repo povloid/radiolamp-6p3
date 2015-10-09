@@ -28,7 +28,7 @@
                    (fn [e]
                      (let [response (t/read r (.getResponseText (.-target e)))]
                        (println "ERROR: " response)
-                       (js/alert "ОШИБКА ОБРАЩЕНИЯ К СЕРВЕРУ: " response) 
+                       (js/alert "ОШИБКА ОБРАЩЕНИЯ К СЕРВЕРУ: " (str response)) 
                        (if error-fn (error-fn response)))))
 
     (events/listen req goog.net.EventType.COMPLETE
