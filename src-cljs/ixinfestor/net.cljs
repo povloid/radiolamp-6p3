@@ -26,9 +26,10 @@
 
     (events/listen req goog.net.EventType.ERROR
                    (fn [e]
-                     (let [response (t/read r (.getResponseText (.-target e)))]
+                     (let [response-text (.getResponseText (.-target e))
+                           response (t/read r response-text)]
                        (println "ERROR: " response)
-                       (js/alert "ОШИБКА ОБРАЩЕНИЯ К СЕРВЕРУ: " (str response)) 
+                       (js/alert (str "ОШИБКА ОБРАЩЕНИЯ К СЕРВЕРУ:\n" response)) 
                        (if error-fn (error-fn response)))))
 
     (events/listen req goog.net.EventType.COMPLETE
