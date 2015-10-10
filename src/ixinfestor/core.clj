@@ -295,15 +295,23 @@
 (defn com-pred-page* [query* page size]
   (-> query* (limit size) (offset (* page size))))
 
-(def spec-query-prefix "tsquery>>")
+
+(def spec-word-or #"\|")
+
+(def spec-query-prefix "tsquery//")
 (def spec-query-prefix-count (count spec-query-prefix))
 
 (defn com-pred-full-text-search* [query* fts-field fts-query]
-  (let [fts-query (if (.startsWith fts-query spec-query-prefix)
+  (let [fts-query (clojure.string/trim fts-query)
+        fts-query (if (.startsWith fts-query spec-query-prefix)
                     (-> fts-query (subs spec-query-prefix-count) clojure.string/trim)
-                    (->> (clojure.string/split (str fts-query) #"\s+")
-                         (map #(str % ":*"))
-                         (reduce #(str %1 " & " %2))))]
+                    (->> (clojure.string/split (str fts-query) spec-word-or)
+                         (map (fn [s]
+                                (->> (clojure.string/split (clojure.string/trim s) #"\s+")
+                                     (map #(str % ":*"))
+                                     (reduce #(str %1 " & " %2))
+                                     (#(str "(" % ")")))))
+                         (clojure.string/join " | ")))]
     (where query* (raw (str " " (name fts-field) " @@ to_tsquery('" fts-query "')")))))
 
 
