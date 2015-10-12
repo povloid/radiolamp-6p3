@@ -56,8 +56,8 @@
 
        ;; options
        (clj->js {"preset" "islands#redIcon"
-                 
-                  })))
+
+                 })))
 
 (defonce ids (atom 0))
 (defn get-id [] (str "ymap-" (swap! ids inc)))
@@ -76,6 +76,7 @@
       {:id (get-id)
        :chan-update (or chan-update (chan))
        :map-object nil
+       :show-route? false
        })
     om/IDidMount
     (did-mount [_]
@@ -89,6 +90,23 @@
                                            }))]
 
 
+             (-> map-object .-controls (.add "routeEditor"))
+
+             ;; Кнопка
+             (let [b (new js/ymaps.control.Button
+                          (clj->js {:data {:content "Маршрут"}
+                                    :options {:selectOnClick true}}))]
+               (-> b .-events (.add "select"
+                                    (fn []
+                                      (println "show route..." )
+                                      (om/set-state! owner :show-route? true))))
+               
+               (-> b .-events (.add "deselect"
+                                    (fn []
+                                      (println "show route..." )
+                                      (om/set-state! owner :show-route? false))))
+               
+               (-> map-object .-controls (.add b)))
 
              (when (or click-fn click-coords-fn)
                (-> map-object
@@ -116,7 +134,7 @@
                "-> OK")
       )
     om/IRenderState
-    (render-state [_ {:keys [id chan-update map-object]}]
+    (render-state [_ {:keys [id chan-update map-object show-route?]}]
 
       ;;(println ">>>>>>>" (-> map-object .-geoObjects))
 
@@ -125,7 +143,55 @@
           (-> map-object .-geoObjects .removeAll)
           (doseq [o (@app :geo-objects)]
             (-> map-object .-geoObjects (.add (geo-object o))) )
-          ))
+
+          ;; Вариант с простыми маршрутами
+          ;; #_(when show-route?
+          ;;     (let [route-points (->> @app
+          ;;                             :geo-objects
+          ;;                             (sort-by #(* 1M (get-in % [:coordinates 0])))
+          ;;                             (reduce
+          ;;                              (fn [a {[lat lng] :coordinates}]
+          ;;                                (conj a {:type "wayPoint" :point [lat lng]}))
+          ;;                              [{:type "wayPoint" :point [60.10166 30.41011]}])
+          ;;                             (#(conj % {:type "wayPoint" :point [60.10166 30.41011]})))]
+          ;;       (.then (js/ymaps.route (clj->js  route-points)
+          ;;                              (clj->js {:routingMode "auto"}))
+          ;;              (fn [route]
+          ;;                ;;(println (type route))
+          ;;                ;;(println (-> route .getPaths .-options type))
+          ;;                #_ (-> route .getPaths .-options
+          ;;                       (.set (clj->js {
+          ;;                                       :balloonContentBodyLayout
+          ;;                                       (js/ymaps.templateLayoutFactory.createClass
+          ;;                                        "{{properties.humanJamsTime }}")
+          ;;                                       :strokeColor "0000ffff"
+          ;;                                       })))
+          ;;                ;;(println ">>>" (.toArray (.getPaths route)))
+          ;;                (println ">>>" (.getLength route))
+          ;;                (-> map-object .-geoObjects (.add route))
+          ;;                ))))
+
+          (when show-route?
+            (let [route-points (->> @app
+                                    :geo-objects
+                                    (sort-by #(* 1M (get-in % [:coordinates 0] 0)))
+                                    (reduce
+                                     (fn [a{[lat lng] :coordinates}]
+                                       (conj a [lat lng]))
+                                     [[60.10166 30.41011]])
+                                    vec
+                                    (#(conj % [60.10166 30.41011])))
+                  mr (new js/ymaps.multiRouter.MultiRoute
+                          (clj->js {:referencePoints
+                                    (clj->js route-points)})
+                          (clj->js {:editorDrawOver false
+                                    :wayPointDraggable true
+                                    :viaPointDraggable true})
+                          )]
+
+              (-> map-object .-geoObjects (.add mr))))))
+
+
 
 
       (dom/div #js {:id id
