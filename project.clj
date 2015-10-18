@@ -1,4 +1,4 @@
-(defproject ixinfestor "0.1.3"
+(defproject ixinfestor "0.1.4"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -10,8 +10,8 @@
                  [ring/ring-json "0.4.0"]
 
                  ;;[ring-transit "0.1.3"]
-                 [prismatic/plumbing "0.4.4"]
-                 [com.cognitect/transit-clj "0.8.281"]
+                 [prismatic/plumbing "0.5.0"] ;; Просит транзит
+                 [com.cognitect/transit-clj "0.8.283"]
 
 
                  [compojure "1.4.0"]
@@ -23,17 +23,17 @@
                  [org.postgresql/postgresql "9.3-1102-jdbc41"]
                  [korma "0.4.2"]
 
-                 [net.sourceforge.htmlcleaner/htmlcleaner "2.14"]
+                 [net.sourceforge.htmlcleaner/htmlcleaner "2.15"]
 
-                 [com.draines/postal "1.11.3"]
-                 [image-resizer "0.1.7"]
+                 [com.draines/postal "1.11.4"]
+                 [image-resizer "0.1.8"]
 
 
                  ;; CLOJURESCRIPT LIBRARIES
-                 [org.clojure/clojurescript "1.7.48"]
+                 [org.clojure/clojurescript "1.7.145"]
                  
                  [com.cognitect/transit-cljs "0.8.225"]
-                 [org.omcljs/om "0.8.8"]
+                 [org.omcljs/om "0.9.0"]
                  ;;[sablono "0.3.4"]
                  [secretary "1.2.3"]
                  
