@@ -37,27 +37,25 @@
 
 
 
-
 (defn geo-object [{:keys [type coordinates preset
                           balloon-content-header
-                          balloon-content-body]
+                          balloon-content-body
+                          icon-content hint-content
+                          preset]
                    :or {type "Point"}}]
   (new js/ymaps.GeoObject
        ;;feature
-       (clj->js { "geometry" (clj->js {"coordinates" coordinates
-                                       "type" type
-                                       "preset" "islands#redIcon"
-                                       })
-                  "properties" (clj->js {"balloonContentHeader" balloon-content-header
-                                         "balloonContentBody" balloon-content-body
-
+       (clj->js { "geometry" (clj->js {:coordinates coordinates
+                                       :type type})
+                  "properties" (clj->js {:balloonContentHeader balloon-content-header
+                                         :balloonContentBody balloon-content-body                                         
+                                         :iconContent icon-content
+                                         :hintContent hint-content
                                          })
                   })
 
        ;; options
-       (clj->js {"preset" "islands#redIcon"
-
-                 })))
+       (clj->js {:preset (or preset  "islands#redStretchyIcon")})))
 
 (defonce ids (atom 0))
 (defn get-id [] (str "ymap-" (swap! ids inc)))
