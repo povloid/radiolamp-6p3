@@ -1258,9 +1258,12 @@
 (defn toggle-button [app _ {:keys [bs-type
                                    class+
                                    onClick-fn
+                                   text-on
+                                   text-off
                                    disabled?]
                             :or {bs-type :default
-                                 class+ ""}}]
+                                 class+ ""
+                                 text-on "вкл." text-off "выкл."}}]
   (reify
       om/IRender
     (render [_]
@@ -1270,8 +1273,7 @@
                   :on-click (fn [_]
                               (om/transact! app :value not)
                               (when onClick-fn (onClick-fn)))
-                  :text (if (app :value) "Вкл." "Выкл.")}
-                 ))))
+                  :text (if (@app :value) text-on text-off)}))))
 
 
 (defn toggle-button-form-group [app owner {:keys [label

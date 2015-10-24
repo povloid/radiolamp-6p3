@@ -90,7 +90,7 @@
 
              (-> map-object .-controls (.add "routeEditor"))
 
-             ;; Кнопка
+             ;; Кнопка маршрута
              (let [b (new js/ymaps.control.Button
                           (clj->js {:data {:content "Маршрут"}
                                     :options {:selectOnClick true}}))]
