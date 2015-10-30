@@ -1,4 +1,4 @@
-(defproject ixinfestor "0.1.4"
+(defproject infestor-clj "0.2.0"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -13,7 +13,6 @@
                  [prismatic/plumbing "0.5.0"] ;; Просит транзит
                  [com.cognitect/transit-clj "0.8.283"]
 
-
                  [compojure "1.4.0"]
                  [hiccup "1.0.5"]
                  [com.cemerick/friend "0.2.1"]
@@ -26,31 +25,10 @@
                  [net.sourceforge.htmlcleaner/htmlcleaner "2.15"]
 
                  [com.draines/postal "1.11.4"]
-                 [image-resizer "0.1.8"]
-
-
-                 ;; CLOJURESCRIPT LIBRARIES
-                 [org.clojure/clojurescript "1.7.145"]
-                 
-                 [com.cognitect/transit-cljs "0.8.225"]
-                 [org.omcljs/om "0.9.0"]
-                 ;;[sablono "0.3.4"]
-                 [secretary "1.2.3"]
-                 
+                 [image-resizer "0.1.8"]                              
                  ]
 
-  :source-paths ["src" "src-cljs"]
-
-  :plugins [;;[lein-cljsbuild "1.0.6"]
-	    ]
-
-  :aot [ixinfestor.core
-        ixinfestor.core-web
-        ixinfestor.core-web-bootstrap
-        ixinfestor.core-handler
-        ixinfestor.transit]
-
-  ;;:omit-source true
-  :jar-exclusions [#"(?:^|ixinfestor/)*.clj\z"]
+  :aot :all
+  :omit-source true
 
   )
