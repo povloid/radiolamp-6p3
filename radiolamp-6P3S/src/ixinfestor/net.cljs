@@ -23,14 +23,16 @@
 (def w (t/writer :json))
 (def transit-header (clj->js {:content-type "application/transit+json"}))
 
-(defn get-data [uri params success-fn & [error-fn complete-fn]]
+(defn get-data [uri params success-fn & [error-fn complete-fn disable-progress-element?]]
   (let [req (goog.net.XhrIo.)
-        progress-element (.getElementById js/document progress-element-id)]
+        progress-element (if disable-progress-element?
+                           false
+                           (.getElementById js/document progress-element-id))]
 
     ;; Отобразить элемент прогресса выполнения
     (when progress-element
       (set! (-> progress-element .-style .-display) ""))
-    
+
     (events/listen req goog.net.EventType.ERROR
                    (fn [e]
                      (let [response-text (.getResponseText (.-target e))
@@ -46,7 +48,7 @@
                        ;; Отобразить элемент прогресса выполнения
                        (when progress-element
                          (set! (-> progress-element .-style .-display) "none"))
-                       
+
                        (println "REQUEST COMPLETE")
                        (if complete-fn (complete-fn response)))))
 
