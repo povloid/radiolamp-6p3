@@ -1716,7 +1716,7 @@
 
 (def nav-tabs-app-state
   {:active-tab 0
-   :tabs [;; {:text "item 1"}
+   :tabs [;;{:text "item 1"}
           ]})
 
 

@@ -29,11 +29,22 @@
           :password omut/input-change-password-app-init
           :description omut/textarea-app-init
           :troles []
+          :tabs omut/nav-tabs-app-state
           }))
 
 
-(defn webusers-edit-form [app _ opts]
+
+(defn webusers-edit-form [app _ {{:keys [app->row-fn row->app-fn
+                                         nav-tabs-items-map
+                                         abody]
+                                  :or {nav-tabs-items-map {0 {:text "Логин"}
+                                                           1 {:text "Роли"}}}} :specific
+                                 :as opts}]
   (reify
+      om/IWillMount
+    (will-mount [_]
+      (om/update! app :tabs
+                  (omut/nav-tabs-app-state-init nav-tabs-items-map)))
     om/IRender
     (render [_]
       (om/build
@@ -68,6 +79,12 @@
                                                                    groups))))
                                                         {}))}
                                           ))
+
+                         ;; SPECIFIC
+                         (as-> app
+                             (if row->app-fn
+                               (row->app-fn row app) app))
+
                          ))))
 
 
@@ -81,7 +98,11 @@
                             (assoc
                              :username      (get-in @app [:username :value])
                              :description   (get-in @app [:description :value])
-                             :password (omut/input-change-password-value (@app :password)) ))
+                             :password (omut/input-change-password-value (@app :password)) )
+                            ;; SPECIFIC
+                            (as-> row
+                                (if app->row-fn
+                                  (app->row-fn app row) row)))
                    :user-roles-keys-set (->> @app
                                              :troles
                                              :roles
@@ -93,42 +114,60 @@
                    })
 
                 :form-body
-                (dom/fieldset
-                 nil
-                 (dom/legend nil "Основные данные")
+                (apply
+                 dom/div nil
 
-                 (om/build omut/input-form-group (get-in app [:username])
-                           {:opts {:label "Наименование"
-                                   :spec-input {:onChange-valid?-fn
-                                                omut/input-vldfn-not-empty}}})
+                 (into
+                  [(om/build omut/nav-tabs (app :tabs)
+                             {:opts {}})
+
+                   (omut/ui-nav-tab
+                    (app :tabs) 0
+                    (dom/fieldset
+                     nil
+                     (dom/legend nil "Основные данные")
+
+                     (om/build omut/input-form-group (get-in app [:username])
+                               {:opts {:label "Наименование"
+                                       :spec-input {:onChange-valid?-fn
+                                                    omut/input-vldfn-not-empty}}})
 
 
-                 (om/build omut/input-change-password-group (get-in app [:password]))
+                     (om/build omut/input-change-password-group (get-in app [:password]))
 
-                 (om/build omut/textarea-form-group (get-in app [:description])
-                           {:opts {:label "Описание"}})
+                     (om/build omut/textarea-form-group (get-in app [:description])
+                               {:opts {:label "Описание"}})
 
-                 (dom/div #js {:className "form-group"}
-                          (dom/label #js {:className "control-label col-sm-4 col-md-4 col-lg-4"} "Роли")
+                     ))
 
-                          (apply dom/div #js {:className "col-sm-8 col-md-8 col-lg-8"}
+                   (omut/ui-nav-tab
+                    (app :tabs) 1
+                    (dom/fieldset
+                     nil
+                     (dom/legend nil "Роли пользователя")
+                     (apply dom/div #js {:className "col-sm-12 col-md-12 col-lg-12"}
 
-                                 (let [roles (get-in @app [:troles :roles])
-                                       groups (get-in @app [:troles :groups])]
-                                   (map
-                                    (fn [[g-id title]]
-                                      (dom/div
-                                       nil (dom/hr nil) (dom/h5 nil title)
-                                       (->> g-id
-                                            roles
-                                            (map
-                                             (fn [i {:keys [title]}]
-                                               (dom/div nil
-                                                        (om/build omut/toggle-button (get-in app [:troles :roles g-id i :user-role?]))
-                                                        title))
-                                             (range))
-                                            (apply dom/div nil)) ))
-                                    (seq groups)) ))))
+                            (let [roles (get-in @app [:troles :roles])
+                                  groups (get-in @app [:troles :groups])]
+                              (map
+                               (fn [[g-id title]]
+                                 (dom/div
+                                  nil (dom/hr nil) (dom/h5 nil title)
+                                  (->> g-id
+                                       roles
+                                       (map
+                                        (fn [i {:keys [title]}]
+                                          (dom/div nil
+                                                   (om/build omut/toggle-button (get-in app [:troles :roles g-id i :user-role?]))
+                                                   title))
+                                        (range))
+                                       (apply dom/div nil)) ))
+                               (seq groups)) ))))]
+
+                  (or  abody []))
+
+
+                 )
 
 
                 })
@@ -140,7 +179,7 @@
 
 (defn webusers-modal-edit-form [app _ opts]
   (reify
-    om/IRender
+      om/IRender
     (render [_]
       (om/build omut/modal-edit-form-for-id--YN- app
                 {:opts (assoc opts :edit-form-for-id webusers-edit-form)}))))
@@ -170,7 +209,7 @@
                                                    editable?]
                                             :or {selection-type :one}}]
   (reify
-    om/IInitState
+      om/IInitState
     (init-state [_]
       {:chan-update (chan)
        :chan-modal-act (chan)
@@ -286,7 +325,7 @@
 
 (defn webusers-change-password-form [app _ _]
   (reify
-    om/IInitState
+      om/IInitState
     (init-state [_]
       {:chan-save (chan)})
     om/IRenderState
