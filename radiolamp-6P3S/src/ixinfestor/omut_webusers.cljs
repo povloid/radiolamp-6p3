@@ -36,10 +36,11 @@
 
 (defn webusers-edit-form [app _ {{:keys [app->row-fn row->app-fn
                                          nav-tabs-items-map
-                                         abody]
+                                         abody-fn]
                                   :or {nav-tabs-items-map {0 {:text "Логин"}
                                                            1 {:text "Роли"}}}} :specific
                                  :as opts}]
+
   (reify
       om/IWillMount
     (will-mount [_]
@@ -116,9 +117,11 @@
                 :form-body
                 (apply
                  dom/div nil
-
-                 (into
-                  [(om/build omut/nav-tabs (app :tabs)
+                 
+                 (reduce
+                  conj
+                  [
+                   (om/build omut/nav-tabs (app :tabs)
                              {:opts {}})
 
                    (omut/ui-nav-tab
@@ -162,9 +165,10 @@
                                                    title))
                                         (range))
                                        (apply dom/div nil)) ))
-                               (seq groups)) ))))]
+                               (seq groups)) ))))
+                   ]
 
-                  (or  abody []))
+                  (if abody-fn (abody-fn app) []))
 
 
                  )
@@ -205,9 +209,10 @@
     :modal-yes-no (assoc omut/modal-yes-no-app-init :row {})
     }))
 
-(defn webusers-search-view [app webuserser {:keys [selection-type
-                                                   editable?]
-                                            :or {selection-type :one}}]
+(defn webusers-search-view [app own {:keys [selection-type
+                                            webusers-edit-form-specific
+                                            editable?]
+                                     :or {selection-type :one}}]
   (reify
       om/IInitState
     (init-state [_]
@@ -226,8 +231,7 @@
                            (fn [app]
                              (ixnet/get-data "/tc/rb/webusers/list/transit"
                                              {:fts-query (get-in @app [:fts-query :value])
-                                              :page (get-in @app [:page])
-                                              :arls (get-in @app [:arls] #{})}
+                                              :page (get-in @app [:page])}
                                              (fn [response]
                                                (om/update! app :data (vec response)))))
                            :data-rendering-fn
@@ -276,7 +280,7 @@
                  (om/build omut/actions-modal (:modal-act app) {:opts {:chan-open chan-modal-act}}))
 
                (om/build webusers-modal-edit-form (:modal-add app)
-                         {:opts {
+                         {:opts {:specific webusers-edit-form-specific
                                  :chan-load-for-id chan-modal-add-id
                                  :post-save-fn #(do
                                                   (when chan-update
