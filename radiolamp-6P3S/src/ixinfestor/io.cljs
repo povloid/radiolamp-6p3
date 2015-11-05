@@ -35,7 +35,7 @@
     (events/listen io goog.net.EventType.SUCCESS
                    (fn [e]
                      (.log js/console "SUCCESS!")
-                     (when success (success))))
+                     (when success (success nil))))
 
     (events/listen io goog.net.EventType.ERROR
                    (fn [e]
@@ -52,7 +52,10 @@
                            file (.-value form-e-uploader)]
 
                        (if (.isSuccess io)
-                         (.log js/console "UPLOADING SUCCESS!")
+                         (do
+                           (.log js/console "UPLOADING SUCCESS! --> " (.getResponseText io))
+                           (when success (success (.getResponseText io))))
+                         
                          (do (.log js/console "ERROR!")
                              (js/alert (str  "Произошла ошибка. файлы небыли выгружены.  ERROR!!: "
                                              (.getLastErrorCode io) " - "(.getLastError io) ))
@@ -64,7 +67,7 @@
                        (when complete (complete)))))
 
 
-    (.setErrorChecker io #(not= "OK" (.getResponseText io)))
+    (.setErrorChecker io #(= nil (.getResponseText io)))
 
     (.sendFromForm io form-e uri true)
 

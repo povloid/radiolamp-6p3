@@ -1930,7 +1930,7 @@
         ;; HELPER FOR MESSAGES
         (om/build alert app)
 
-        (dom/form
+        (dom/div ;; Common mistakes - Form inside of another form
          #js {:className "form-horizontal col-sm-12 col-md-12 col-lg-12"}
          (if form-body
            form-body
@@ -2196,8 +2196,9 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn ui-media-object [{:keys [src]}]
-  (dom/img #js {:className "media-object" :src src}))
+(defn ui-media-object [{:keys [src style]}]
+  (dom/img #js {:className "media-object" :style style :src src
+                }))
 
 (defn ui-media [{:keys [media-object
                         heading heading-2
@@ -2233,6 +2234,7 @@
 (defn file-uploder [_ own {:keys [uri
                                   get-uri-fn
                                   update-fn
+                                  success-fn
                                   accept]
                            :or {uri "/file-uploder/uri"
                                 accept "*.*"}}]
@@ -2256,7 +2258,8 @@
                (.getElementById js/document form-id)
                (.getElementById js/document uploader-id)
                (if get-uri-fn (get-uri-fn) uri)
-               {:complete #(do
+               {:success success-fn
+                :complete #(do
                              (when update-fn (update-fn))
                              (om/set-state! own :in-progress false))
                 }))))))
@@ -2266,8 +2269,7 @@
       (dom/form #js {:id form-id
                      :encType "multipart/form-data"
                      :method "POST"}
-                (dom/span #js {:className "btn btn-default btn-file btn-primary"
-                               }
+                (dom/span #js {:className "btn btn-default btn-file btn-primary"}
                           "Загрузить"
                           (dom/input #js {:id uploader-id
                                           :name "uploader"
@@ -2286,6 +2288,66 @@
 ;; END Uploader elements
 ;;..................................................................................................
 
+
+;;**************************************************************************************************
+;;* BEGIN Upload one image
+;;* tag: <one image uploader>
+;;*
+;;* description: Закрузчик одной фотографии
+;;*
+;;**************************************************************************************************
+
+(def one-image-uploader-app-init {:image nil})
+
+(defn one-image-uploader [app own {:keys [class+]
+                                   :as  opts}]
+  (reify
+      om/IInitState
+    (init-state [_]
+      {:chan-upload (chan)})
+    om/IRenderState
+    (render-state [_ {:keys [chan-upload]}]
+      (dom/div #js {:className class+}
+               (om/build file-uploder app
+                         {:opts (merge opts
+                                       {:accept "image/gif, image/jpeg, image/png, image/*"
+                                        :update-fn #(put! chan-upload 1)
+                                        :success-fn #(om/update! app :image %)
+                                        })})
+               
+               (dom/div
+                #js {:className "well well-sm" :style #js {:marginTop 4
+                                                           :display "inline-block"}}
+                (let [image (@app :image)]
+                  (if (empty? image)
+                    (ui-glyphicon "camera" "" "8em")
+                    (ui-media-object {:style #js {:maxWidth "100%"}
+                                      :src (@app :image)}))))
+               ))))
+
+(defn one-image-uploader-form-group  [app owner {:keys [label
+                                                        label-class+
+                                                        input-class+
+                                                        spec-one-image-uploader]
+                                                 :or {label "Метка"
+                                                      label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                                      input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                                                      spec-one-image-uploader {}}}]
+  (reify
+      om/IRender
+    (render [this]
+      (dom/div nil
+               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+                        (dom/label #js {:className (str "control-label " label-class+) } label)
+                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
+                                 (om/build one-image-uploader app {:opts spec-one-image-uploader})
+                                 (om/build helper-p app {}) ))))))
+
+
+
+
+;; END Upload one image
+;;..................................................................................................
 
 
 
