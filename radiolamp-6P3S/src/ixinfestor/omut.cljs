@@ -2299,6 +2299,13 @@
 
 (def one-image-uploader-app-init {:image nil})
 
+(defn one-image-uploader-value [app]
+  (get app :image))
+
+(defn one-image-uploader-value-set! [app v]
+  (assoc app :image v))
+
+
 (defn one-image-uploader [app own {:keys [class+]
                                    :as  opts}]
   (reify

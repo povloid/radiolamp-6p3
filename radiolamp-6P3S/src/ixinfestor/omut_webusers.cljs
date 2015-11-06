@@ -103,7 +103,7 @@
                             ;; SPECIFIC
                             (as-> row
                                 (if app->row-fn
-                                  (app->row-fn app row) row)))
+                                  (app->row-fn @app row) row)))
                    :user-roles-keys-set (->> @app
                                              :troles
                                              :roles
@@ -117,7 +117,7 @@
                 :form-body
                 (apply
                  dom/div nil
-                 
+
                  (reduce
                   conj
                   [
@@ -211,6 +211,7 @@
 
 (defn webusers-search-view [app own {:keys [selection-type
                                             webusers-edit-form-specific
+                                            header app-to-tds-seq-fn
                                             editable?]
                                      :or {selection-type :one}}]
   (reify
@@ -240,18 +241,21 @@
                                              :bordered? true
                                              :striped? true
                                              :responsive? true
-                                             :thead (omut/ui-thead-tr [(dom/th nil "№")
-                                                                       (dom/th nil "Наименование")
-                                                                       (dom/th nil "Описание")])
+                                             :thead (omut/ui-thead-tr
+                                                     (or header
+                                                         [(dom/th nil "№")
+                                                          (dom/th nil "Наименование")
+                                                          (dom/th nil "Описание")]))
                                              :tbody
                                              (om/build omut/tbody-trs-sel (:data app-2)
                                                        {:opts {:selection-type selection-type
                                                                :app-to-tds-seq-fn
-                                                               (fn [{:keys [id username description]}]
-                                                                 [(dom/td nil id)
-                                                                  (dom/td nil username)
-                                                                  (dom/td #js{:style #js {:whiteSpace "normal"}}
-                                                                          description)])
+                                                               (or app-to-tds-seq-fn
+                                                                   (fn [{:keys [id username description]}]
+                                                                     [(dom/td nil id)
+                                                                      (dom/td nil username)
+                                                                      (dom/td #js{:style #js {:whiteSpace "normal"}}
+                                                                              description)]))
                                                                :on-select-fn
                                                                (fn [{:keys [id] :as row}]
                                                                  (when editable?
