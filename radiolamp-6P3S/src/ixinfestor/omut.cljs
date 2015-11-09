@@ -2323,8 +2323,10 @@
                                         })})
                
                (dom/div
-                #js {:className "well well-sm" :style #js {:marginTop 4
-                                                           :display "inline-block"}}
+                #js {:className "well well-sm"
+                     :style #js {:marginTop 4
+                                 :maxWidth "100%"
+                                 :display "inline-block"}}
                 (let [image (@app :image)]
                   (if (empty? image)
                     (ui-glyphicon "camera" "" "8em")
