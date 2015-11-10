@@ -2954,7 +2954,7 @@
 
                       :one
                       (dom/div
-                       #js {:className "col-sm-9 col-md-10 col-lg-11" :style #js {:padding 0}}
+                       #js {:className "col-sm-9 col-md-10 col-lg-11" :style #js {}}
                        (dom/div #js {:className "input-group"}
                                 (dom/input #js {:value (let [r (get-in @app [:sel 0])]
                                                          (if one--row-to-text-fn
@@ -2971,7 +2971,7 @@
 
                       :multi
                       (dom/div
-                       #js {:className "col-sm-9 col-md-10 col-lg-11" :style #js {:padding 0}}
+                       #js {:className "col-sm-9 col-md-10 col-lg-11" :style #js {}}
                        (dom/div
                         #js {:className (str "panel "
                                              ({:muted   "panel-muted"
