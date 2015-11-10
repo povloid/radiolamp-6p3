@@ -2922,12 +2922,16 @@
                      ui-type--add-button--type
                      ui-type--add-button--text
                      on-selected-fn
+                     label-class+
+                     input-class+
                      search-view-opts]
               :or {selection-type selection-type
                    ui-type ui-type
                    ui-type--add-button--type ui-type--add-button--type
                    ui-type--add-button--text ui-type--add-button--text
                    on-selected-fn on-selected-fn
+                   label-class+ "col-sm-3 col-md-2  col-lg-1"
+                   input-class+ "col-sm-9 col-md-10 col-lg-11"
                    search-view-opts {}}}]
 
 
@@ -2948,13 +2952,15 @@
 
            :input-select
            (dom/div #js {:className (str "form-group " class+ " "(input-css-string-has? @app))}
-                    (dom/label #js {:className "control-label col-sm-3 col-md-2 col-lg-1"} ({:one label-one :multi label-multi} selection-type))
+                    (dom/label #js {:className (str "control-label " label-class+)}
+                               ({:one label-one :multi label-multi} selection-type))
 
                     (condp = selection-type
 
                       :one
                       (dom/div
-                       #js {:className "col-sm-9 col-md-10 col-lg-11" :style #js {}}
+                       #js {:className input-class+
+                            :style #js {}}
                        (dom/div #js {:className "input-group"}
                                 (dom/input #js {:value (let [r (get-in @app [:sel 0])]
                                                          (if one--row-to-text-fn
