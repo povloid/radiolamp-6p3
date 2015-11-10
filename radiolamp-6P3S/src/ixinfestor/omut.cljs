@@ -336,7 +336,7 @@
                              class+ "" }
                         }]
   (reify
-      om/IInitState
+    om/IInitState
     (init-state [_]
       {:id (uniq-id "modal")})
     om/IWillUnmount
@@ -411,7 +411,7 @@
                                    :or {text "Метка события"
                                         btn-type :default}}]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (ui-button {:text text
                   :type btn-type
@@ -433,7 +433,7 @@
 
 (defn actions-modal [app owner {:keys [chan-open]}]
   (reify
-      om/IInitState
+    om/IInitState
     (init-state [_]
       {:actions
        {:label "Пусто"
@@ -476,7 +476,7 @@
                                :or {act-yes-fn #(js/alert "Действие еще не реализовано")}
                                :as opts}]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (om/build modal app
                 {:opts (assoc opts :footer
@@ -514,7 +514,7 @@
 
 (defn message-modal [app _]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (let [[type-class+ title-default icon]
             (get-in {:muted   ["text-muted"   "Текстовое сообщение"
@@ -587,7 +587,7 @@
 
 (defn text-collapser [app _ {k :k}]
   (reify
-      om/IWillMount
+    om/IWillMount
     (will-mount [_]
       (omut-row-if-not-init-init!! app))
     om/IRender
@@ -674,7 +674,7 @@
 
 (defn helper-p [app _]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (let [{:keys [text-muted
                     text-primary
@@ -744,7 +744,7 @@
 
 (defn alert [app _]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (let [{:keys [alert-muted
                     alert-primary
@@ -893,7 +893,7 @@
                              placeholder ""
                              }}]
   (reify
-      om/IRender
+    om/IRender
     (render [this]
       (let [value (or (:value @app) "")]
         (dom/input #js {:value value
@@ -921,15 +921,14 @@
                                          input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                          spec-input {}}}]
   (reify
-      om/IRender
+    om/IRender
     (render [this]
-      (dom/div nil
-               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-                        (dom/label #js {:className (str "control-label " label-class+) } label)
-                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
-                                 (om/build input app {:opts spec-input})
-                                 (om/build helper-p app {})
-                                 ))))))
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className (str "control-label " label-class+) } label)
+               (dom/div #js {:className input-class+ :style #js {}}
+                        (om/build input app {:opts spec-input})
+                        (om/build helper-p app {})
+                        )))))
 
 
 
@@ -1009,7 +1008,7 @@
                           title-field-key :keyname
                           first-item-text "Выбрать..."}}]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       ;;(println "SELECT APP:" @app)
       (apply
@@ -1038,15 +1037,14 @@
                                       input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                       spec-select {}}}]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
-      (dom/div nil
-               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-                        (dom/label #js {:className (str "control-label " label-class+) } label)
-                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
-                                 (om/build select app {:opts spec-select})
-                                 (om/build helper-p app {})
-                                 ))))))
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className (str "control-label " label-class+) } label)
+               (dom/div #js {:className input-class+ :style #js {}}
+                        (om/build select app {:opts spec-select})
+                        (om/build helper-p app {})
+                        )))))
 
 
 ;; select in list from url
@@ -1055,7 +1053,7 @@
 
 (defn select-from-url [app owner {:keys [url params] :as select-opts}]
   (reify
-      om/IWillMount
+    om/IWillMount
     (will-mount [_]
       (ixnet/get-data
        url params
@@ -1078,15 +1076,14 @@
                                                input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                                spec-select {}}}]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
-      (dom/div nil
-               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-                        (dom/label #js {:className (str "control-label " label-class+) } label)
-                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
-                                 (om/build select-from-url app {:opts spec-select})
-                                 (om/build helper-p app {})
-                                 ))))))
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className (str "control-label " label-class+) } label)
+               (dom/div #js {:className input-class+ :style #js {}}
+                        (om/build select-from-url app {:opts spec-select})
+                        (om/build helper-p app {})
+                        )))))
 
 
 
@@ -1132,7 +1129,7 @@
                      (dissoc app :text-warning :has-warning?))))
             )]
     (reify
-        om/IRender
+      om/IRender
       (render [this]
         (dom/div
          nil
@@ -1155,14 +1152,13 @@
                                                     input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                                     spec-input {}}}]
   (reify
-      om/IRender
+    om/IRender
     (render [this]
-      (dom/div nil
-               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-                        (dom/label #js {:className (str "control-label " label-class+) } label)
-                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
-                                 (om/build input-change-password app {:opts spec-input})
-                                 ))))))
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className (str "control-label " label-class+) } label)
+               (dom/div #js {:className input-class+ :style #js {}}
+                        (om/build input-change-password app {:opts spec-input})
+                        )))))
 
 ;; END Input password
 ;;..................................................................................................
@@ -1203,7 +1199,7 @@
                                 wrap ""
                                 cols "40"}}]
   (reify
-      om/IRender
+    om/IRender
     (render [this]
       (dom/textarea #js {:value (or (:value @app) "")
                          :onChange (fn [e]
@@ -1231,14 +1227,13 @@
                                             input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                             spec-textarea {}}}]
   (reify
-      om/IRender
+    om/IRender
     (render [this]
-      (dom/div nil
-               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-                        (dom/label #js {:className (str "control-label " label-class+) } label)
-                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
-                                 (om/build textarea app {:opts spec-textarea})
-                                 (om/build helper-p app {}) ))))))
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className (str "control-label " label-class+) } label)
+               (dom/div #js {:className input-class+ :style #js {}}
+                        (om/build textarea app {:opts spec-textarea})
+                        (om/build helper-p app {}))))))
 
 
 ;; END textarea
@@ -1265,7 +1260,7 @@
                                  class+ ""
                                  text-on "вкл." text-off "выкл."}}]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (ui-button {:type bs-type
                   :active? (@app :value)
@@ -1286,14 +1281,13 @@
                                                 input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                                 spec-toggle-button {}}}]
   (reify
-      om/IRender
+    om/IRender
     (render [this]
-      (dom/div nil
-               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-                        (dom/label #js {:className (str "control-label " label-class+) } label)
-                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
-                                 (om/build toggle-button app {:opts spec-toggle-button})
-                                 (om/build helper-p app {}) ))))))
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className (str "control-label " label-class+) } label)
+               (dom/div #js {:className input-class+ :style #js {}}
+                        (om/build toggle-button app {:opts spec-toggle-button})
+                        (om/build helper-p app {}) )))))
 
 ;; END toggle batton
 ;;..................................................................................................
@@ -1367,7 +1361,7 @@
             1)]
 
     (reify
-        om/IWillMount
+      om/IWillMount
       (will-mount [_]
         (omut-row-if-not-init-init!! app))
       om/IRender
@@ -1385,7 +1379,7 @@
                                 :or {selection-type :one}
                                 :as opts}]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (apply
        dom/tbody nil
@@ -1426,7 +1420,7 @@
 
 (defn paginator [app owner {:keys [chan-update class+]}]
   (reify
-      om/IRender
+    om/IRender
     (render [this]
       (dom/div #js {:className (str  "input-group " (if class+ class+ ""))
                     :style #js {:textAlign "center"
@@ -1525,7 +1519,7 @@
                                              (println "параметр на входе: " (str app)))
                          }}]
   (reify
-      om/IInitState
+    om/IInitState
     (init-state [_]
       {:chan-update (or chan-update (chan))})
     om/IWillMount
@@ -1695,7 +1689,7 @@
                 (apply (partial ui-navbar-li-dropdown row) (map f1 sub))
                 (ui-navbar-li row))))]
     (reify
-        om/IRender
+      om/IRender
       (render [_]
         (let [m (nav-app-state-key app)]
           (ui-nav opts
@@ -1765,7 +1759,7 @@
                (when chan-update
                  (put! chan-update i)))))]
     (reify
-        om/IRender
+      om/IRender
       (render [_]
         (apply dom/ul #js {:className (str "nav"
                                            (condp = type
@@ -1846,7 +1840,7 @@
                                           {})
                                         }}]
   (reify
-      om/IInitState
+    om/IInitState
     (init-state [_]
       {:chan-init-row (chan)})
     om/IWillMount
@@ -1922,19 +1916,14 @@
         ))
     om/IRender
     (render [_]
-      (dom/div
-       #js {:className "row"}
-       (dom/div
-        #js {:className "col-sm-12 col-md-12 col-lg-12"}
+      (dom/div ;; Common mistakes - Form inside of another form
+       #js {:className "form-horizontal col-xs-12 col-sm-12 col-md-12 col-lg-12"}
+       ;; HELPER FOR MESSAGES
+       (om/build alert app)
 
-        ;; HELPER FOR MESSAGES
-        (om/build alert app)
-
-        (dom/div ;; Common mistakes - Form inside of another form
-         #js {:className "form-horizontal col-sm-12 col-md-12 col-lg-12"}
-         (if form-body
-           form-body
-           (dom/h1 nil "Элементы формы еще не определены"))))))))
+       (if form-body
+         form-body
+         (dom/h1 nil "Элементы формы еще не определены"))))))
 
 
 (def modal-edit-form-for-id--YN--app-init
@@ -1945,13 +1934,13 @@
                                           :or {edit-form-for-id
                                                (fn [_ _]
                                                  (reify
-                                                     om/IRender
+                                                   om/IRender
                                                    (render [_]
                                                      (dom/h1 nil "Форма диалога еще не указана"))))
                                                }
                                           :as opts}]
   (reify
-      om/IInitState
+    om/IInitState
     (init-state [_]
       {:chan-save (chan)})
     om/IRenderState
@@ -1966,14 +1955,15 @@
                                  "Редактирование записи")
                         ;;:modal-size :lg
                         :body
-                        (om/build edit-form-for-id app
-                                  {:opts (assoc opts
-                                                :chan-save chan-save
-                                                :post-save-fn
-                                                (fn [r]
-                                                  (modal-hide app)
-                                                  (when-let [post-save-fn-2 (:post-save-fn opts)]
-                                                    (post-save-fn-2 r))))})
+                        (dom/div #js {:className "row"}
+                                 (om/build edit-form-for-id app
+                                           {:opts (assoc opts
+                                                         :chan-save chan-save
+                                                         :post-save-fn
+                                                         (fn [r]
+                                                           (modal-hide app)
+                                                           (when-let [post-save-fn-2 (:post-save-fn opts)]
+                                                             (post-save-fn-2 r))))}))
                         :footer
                         (dom/div nil
                                  (ui-button {:type :primary
@@ -1997,13 +1987,13 @@
                                              :or {edit-form-for-id
                                                   (fn [_ _]
                                                     (reify
-                                                        om/IRender
+                                                      om/IRender
                                                       (render [_]
                                                         (dom/h1 nil "Форма диалога еще не указана"))))
                                                   }
                                              :as opts}]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (om/build modal app
                 {:opts {:modal-size :lg
@@ -2015,7 +2005,9 @@
                                  "Редактирование записи")
                         ;;:modal-size :lg
                         :body
-                        (om/build edit-form-for-id app {:opts opts})
+                        (dom/div
+                         #js {:className "row"}
+                         (om/build edit-form-for-id app {:opts opts}))
                         :footer
                         (ui-button {:type :default
                                     :on-click (fn [_]
@@ -2239,7 +2231,7 @@
                            :or {uri "/file-uploder/uri"
                                 accept "*.*"}}]
   (reify
-      om/IInitState
+    om/IInitState
     (init-state [_]
       {:chan-upload (chan)
        :form-id (uniq-id "file-uploder-form")
@@ -2309,7 +2301,7 @@
 (defn one-image-uploader [app own {:keys [class+]
                                    :as  opts}]
   (reify
-      om/IInitState
+    om/IInitState
     (init-state [_]
       {:chan-upload (chan)})
     om/IRenderState
@@ -2321,7 +2313,7 @@
                                         :update-fn #(put! chan-upload 1)
                                         :success-fn #(om/update! app :image %)
                                         })})
-               
+
                (dom/div
                 #js {:className "well well-sm"
                      :style #js {:marginTop 4
@@ -2343,7 +2335,7 @@
                                                       input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                                       spec-one-image-uploader {}}}]
   (reify
-      om/IRender
+    om/IRender
     (render [this]
       (dom/div nil
                (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
@@ -2381,7 +2373,7 @@
 (defn thumbnail [app _ {:keys [class+ onClick-fn]
                         :or {class+ "col-xs-6 col-sm-4 col-md-4 col-lg-4"}}]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (let [{:keys [id path top_description description galleria] :as row} app
             on-click (on-click-com-fn #(when onClick-fn (onClick-fn row)))]
@@ -2429,7 +2421,7 @@
 
 (defn thumbnails-edit-form [app owner opts]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (om/build
        edit-form-for-id app
@@ -2475,7 +2467,7 @@
 
 (defn thumbnails-modal-edit-form [app _ opts]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (om/build modal-edit-form-for-id--YN- app
                 {:opts (assoc opts :edit-form-for-id thumbnails-edit-form)}))))
@@ -2495,7 +2487,7 @@
                                          chan-update]
                                   :or {params {}}}]
   (reify
-      om/IInitState
+    om/IInitState
     (init-state [_]
       {:chan-modal-act (chan)
        :chan-thumbnails-modal-edit-form-open-for-id (chan)})
@@ -2582,7 +2574,7 @@
 
 (defn images-gallery-1 [app own]
   (reify
-      om/IInitState
+    om/IInitState
     (init-state [_]
       {:i 0})
     om/IWillReceiveProps
@@ -2653,7 +2645,7 @@
                                 onClick-fn]
                          :or {class+ "col-xs-12 col-sm-12 col-md-12 col-lg-12"}}]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (let [{:keys [id path top_description description galleria] :as row} app
             on-click (on-click-com-fn #(when onClick-fn (onClick-fn row)))]
@@ -2700,7 +2692,7 @@
 
 (defn files-edit-form [app owner opts]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (om/build
        edit-form-for-id app
@@ -2741,7 +2733,7 @@
 
 (defn files-modal-edit-form [app _ opts]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (om/build modal-edit-form-for-id--YN- app
                 {:opts (assoc opts :edit-form-for-id files-edit-form)}))))
@@ -2761,7 +2753,7 @@
                                     chan-update]
                              :or {params {}}}]
   (reify
-      om/IInitState
+    om/IInitState
     (init-state [_]
       {:chan-modal-act (chan)
        :chan-files-modal-edit-form-open-for-id (chan)})
@@ -2846,7 +2838,7 @@
 
 (defn files-table-1 [app own]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (if (empty? @app)
         (dom/h2 nil "Нет файлов")
@@ -2913,6 +2905,7 @@
                                       disabled?
                                       multiselect-row-render-fn
                                       row-pk-fiels
+                                      one--row-to-text-fn
                                       ]
                                :or {class+ ""
                                     selection-type :one
@@ -2939,7 +2932,7 @@
 
 
     (reify
-        om/IRender
+      om/IRender
       (render [_]
         (dom/div
          nil
@@ -2963,7 +2956,10 @@
                       (dom/div
                        #js {:className "col-sm-9 col-md-10 col-lg-11" :style #js {:padding 0}}
                        (dom/div #js {:className "input-group"}
-                                (dom/input #js {:value (get-in @app [:sel 0 :keyname])
+                                (dom/input #js {:value (let [r (get-in @app [:sel 0])]
+                                                         (if one--row-to-text-fn
+                                                           (one--row-to-text-fn r)
+                                                           (:keyname r)))
                                                 :placeholder placeholder
                                                 :className "form-control"})
                                 (dom/span #js {:className "input-group-btn"}

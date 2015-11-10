@@ -42,7 +42,7 @@
                                  :as opts}]
 
   (reify
-      om/IWillMount
+    om/IWillMount
     (will-mount [_]
       (om/update! app :tabs
                   (omut/nav-tabs-app-state-init nav-tabs-items-map)))
@@ -183,7 +183,7 @@
 
 (defn webusers-modal-edit-form [app _ opts]
   (reify
-      om/IRender
+    om/IRender
     (render [_]
       (om/build omut/modal-edit-form-for-id--YN- app
                 {:opts (assoc opts :edit-form-for-id webusers-edit-form)}))))
@@ -214,8 +214,9 @@
                                             header app-to-tds-seq-fn
                                             editable?]
                                      :or {selection-type :one}}]
+  (println " selection-type: " selection-type)
   (reify
-      om/IInitState
+    om/IInitState
     (init-state [_]
       {:chan-update (chan)
        :chan-modal-act (chan)
@@ -333,7 +334,7 @@
 
 (defn webusers-change-password-form [app _ _]
   (reify
-      om/IInitState
+    om/IInitState
     (init-state [_]
       {:chan-save (chan)})
     om/IRenderState
