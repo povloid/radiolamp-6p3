@@ -194,6 +194,43 @@
   (if (nil? s) alt-string
       (format-date date-format (str-to-date s))))
 
+
+
+(defn the-time-has-passed-from-the-date [date]
+  (let [now (new js/Date)
+
+        time-diff (.abs js/Math
+                        (- (.getTime now)
+                           (.getTime date)))
+
+        diff-ds (.floor js/Math
+                        (/ time-diff
+                           (* 1000 60 60 24)))
+
+        diff-hs (.floor js/Math
+                        (/ time-diff
+                           (* 1000 60 60)))
+
+        diff-ms (.floor js/Math
+                        (/ time-diff
+                           (* 1000 60)))]
+
+    [
+     ;; Дни
+     diff-ds
+     ;; Часы
+     (- diff-hs (* diff-ds 24))
+     ;; Минуты
+     (- diff-ms (* diff-hs 60))
+     ]))
+
+(defn the-time-has-passed-from-the-date-as-str [date]
+  (let [[d h m]  (the-time-has-passed-from-the-date date)]
+    (str "прошло "
+         (- m (* h 60)) " мин. "
+         (- h (* d 24)) " чac. "
+         d " дн. ")))
+
 ;; END date and time functions
 ;;..................................................................................................
 
