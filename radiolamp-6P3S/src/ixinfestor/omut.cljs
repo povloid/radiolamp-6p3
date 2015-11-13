@@ -15,6 +15,8 @@
             [clojure.string :as clojstr]
 
             [goog.i18n.DateTimeFormat :as dtf]
+            [goog.string :as gstring]
+            [goog.string.format]
             )
 
   (:import [goog.dom query]))
@@ -214,7 +216,6 @@
         diff-ms (.floor js/Math
                         (/ time-diff
                            (* 1000 60)))]
-
     [
      ;; Дни
      diff-ds
@@ -226,10 +227,7 @@
 
 (defn the-time-has-passed-from-the-date-as-str [date]
   (let [[d h m]  (the-time-has-passed-from-the-date date)]
-    (str "прошло "
-         (- m (* h 60)) " мин. "
-         (- h (* d 24)) " чac. "
-         d " дн. ")))
+    (gstring/format "прошло: %d дн. %02d час. %02d мин." d h m)))
 
 ;; END date and time functions
 ;;..................................................................................................
