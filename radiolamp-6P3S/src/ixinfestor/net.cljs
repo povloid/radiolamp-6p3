@@ -31,7 +31,7 @@
 
 
 (defn get-data [uri params success-fn & [error-fn complete-fn disable-progress-element?]]
-  (letfn [(print-error [s ee]            
+  (letfn [(print-error [s ee show-alert]            
             (println "ERROR IN " s "\n"
                      "LastErrorCode: " (.getLastErrorCode ee) "\n"
                      "Status: " (.getStatus ee) " - " (.getStatusText ee) "\n"
@@ -39,9 +39,10 @@
                      "---------------------------------------------------------\n"
                      (.getResponseText ee)
                      "\n---------------------------------------------------------\n\n")
-            (js/alert (str
-                       "ERROR IN [" s "]\n"
-                       "Status: " (.getStatus ee) " - " (.getStatusText ee))))
+            (when show-alert
+              (js/alert (str
+                         "ERROR IN [" s "]\n"
+                         "Status: " (.getStatus ee) " - " (.getStatusText ee)))))
 
           ;; (redirect-to-root-when-not-transit [ee]
           ;;   (let [ct (.getResponseHeader ee "Content-Type")]
@@ -71,12 +72,12 @@
                          (try
                            (let [response (t/read r rt)]
                              (make-reload-if-reload-client r)
-                             (print-error "ERROR: " ee)
-                             (js/alert (str "ОШИБКА ОБРАЩЕНИЯ К СЕРВЕРУ:\n" response))
+                             (print-error "ERROR: " ee false)
+                             ;;(js/alert (str "ОШИБКА ОБРАЩЕНИЯ К СЕРВЕРУ:\n" response))
                              (if error-fn (error-fn response)))                           
                            (catch js/Error e
                              (let [m (str "ERROR: " e)]                               
-                               (print-error "ERRON IN ERROR:" ee)
+                               (print-error "ERRON IN ERROR:" ee true)
                                (js/alert (str  "ERRON IN ERROR: " rt))))))))
 
       (events/listen req goog.net.EventType.COMPLETE
@@ -84,7 +85,7 @@
                        (let [ee (.-target e)]
                          ;;;(redirect-to-root-when-not-transit ee)
                          (when-not (.isSuccess ee)
-                           (print-error "COMPLETE" ee))
+                           (print-error "COMPLETE" ee true))
 
                          ;; Скрыть элемент прогресса выполнения
                          (when progress-element
@@ -109,7 +110,7 @@
                            (catch js/Error e
                              (let [m (str "Ошибка сохранения: " e)]
                                (println m)
-                               (print-error "ERRON IN REQUEST SUCCESS" ee)))))))
+                               (print-error "ERRON IN REQUEST SUCCESS" ee false)))))))
       (.send req
              uri
              "POST"
