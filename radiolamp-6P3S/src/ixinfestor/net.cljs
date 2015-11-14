@@ -31,14 +31,17 @@
 
 
 (defn get-data [uri params success-fn & [error-fn complete-fn disable-progress-element?]]
-  (letfn [(print-error [s ee]
+  (letfn [(print-error [s ee]            
             (println "ERROR IN " s "\n"
                      "LastErrorCode: " (.getLastErrorCode ee) "\n"
                      "Status: " (.getStatus ee) " - " (.getStatusText ee) "\n"
                      "Content-Type: " (.getResponseHeader ee "Content-Type") "\n"
                      "---------------------------------------------------------\n"
                      (.getResponseText ee)
-                     "\n---------------------------------------------------------\n\n"))
+                     "\n---------------------------------------------------------\n\n")
+            (js/alert (str
+                       "ERROR IN [" s "]\n"
+                       "Status: " (.getStatus ee) " - " (.getStatusText ee))))
 
           ;; (redirect-to-root-when-not-transit [ee]
           ;;   (let [ct (.getResponseHeader ee "Content-Type")]
@@ -91,7 +94,7 @@
 
                          (let [])
                          
-                         (if complete-fn (complete-fn (t/read r (.getResponseText ee)))))))
+                         (if complete-fn (complete-fn e)))))
 
 
       (events/listen req goog.net.EventType.SUCCESS
