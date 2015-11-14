@@ -76,12 +76,20 @@
                      (fn [e]
                        (print "REQUEST ERROR")
                        (let [ee (.-target e)]
+                         
                          (try
                            (make-reload-if-reload-client (t/read r (.getResponseText ee)))
                            (catch js/Error e
                              (println "ERR -1 " e)))
+                         
                          (print-error "ERROR" ee false)
-                         (when error-fn (error-fn e)))))
+                         
+                         (when error-fn
+                           (let [rt (.getResponseText ee)]
+                             (try
+                               (error-fn (t/read r rt))
+                               (catch js/Error e
+                                 (error-fn rt))))))))
 
       (events/listen req goog.net.EventType.SUCCESS
                      (fn [e]
