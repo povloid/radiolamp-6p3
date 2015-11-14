@@ -37,7 +37,7 @@
               (catch js/Error e
                 (.getResponseText ee))))
 
-          (print-error [s ee show-alert]            
+          (print-error [s ee show-alert]
             (println "ERROR IN " s "\n"
                      "LastErrorCode: " (.getLastErrorCode ee) "\n"
                      "Status: " (.getStatus ee) " - " (.getStatusText ee) "\n"
@@ -60,8 +60,8 @@
           (make-reload-if-reload-client [r]
             (when (get r :reload-client)
               (do (js/alert "СЕРВЕР ПРИСЛАЛ СИГНАЛ НА ОБНОВЛЕНИЕ")
-                (set! (.-location js/window) "/"))))]
-    
+                  (set! (.-location js/window) "/"))))]
+
     (let [req (goog.net.XhrIo.)
           progress-element (if disable-progress-element?
                              false
@@ -71,21 +71,30 @@
       (when progress-element
         (set! (-> progress-element .-style .-display) ""))
 
+
       (events/listen req goog.net.EventType.ERROR
                      (fn [e]
-                       (print "REQUEST ERROR: ")
-                       (let [ee (.-target e)
-                             rt (.getResponseText ee)]
+                       (print "REQUEST ERROR")
+                       (let [ee (.-target e)]
                          (try
-                           (let [response (t/read r rt)]
-                             (make-reload-if-reload-client r)
-                             (print-error "ERROR: " ee false)
-                             ;;(js/alert (str "ОШИБКА ОБРАЩЕНИЯ К СЕРВЕРУ:\n" response))
-                             (if error-fn (error-fn response)))                           
+                           (make-reload-if-reload-client (t/read r (.getResponseText ee)))
                            (catch js/Error e
-                             (let [m (str "ERROR: " e)]                               
-                               (print-error "ERRON IN ERROR:" ee true)
-                               (js/alert (str  "ERRON IN ERROR: " rt))))))))
+                             (println "ERR -1 " e)))
+                         (print-error "ERROR" ee false)
+                         (if error-fn (error-fn e)))))
+
+      (events/listen req goog.net.EventType.SUCCESS
+                     (fn [e]
+                       (println "REQUEST SUCCESS")
+                       (let [ee (.-target e)]
+                         ;;(redirect-to-root-when-not-transit ee)
+                         (try
+                           (let [r (t/read r (.getResponseText ee))]
+                             (make-reload-if-reload-client r)
+                             (success-fn r))
+                           (catch js/Error e                             
+                             (println (str "ERR 1 " e))
+                             (print-error "ERRON IN REQUEST SUCCESS" ee false))))))
 
       (events/listen req goog.net.EventType.COMPLETE
                      (fn [e]
@@ -99,25 +108,11 @@
                            (set! (-> progress-element .-style .-display) "none"))
 
                          (println "REQUEST COMPLETE")
-
-                         (let [])
-                         
                          (if complete-fn (complete-fn e)))))
 
 
-      (events/listen req goog.net.EventType.SUCCESS
-                     (fn [e]
-                       (println "REQUEST SUCCESS")
-                       (let [ee (.-target e)]
-                         ;;(redirect-to-root-when-not-transit ee)
-                         (try
-                           (let [r (t/read r (.getResponseText ee))]
-                             (make-reload-if-reload-client r)
-                             (success-fn r))                           
-                           (catch js/Error e
-                             (let [m (str "Ошибка сохранения: " e)]
-                               (println m)
-                               (print-error "ERRON IN REQUEST SUCCESS" ee false)))))))
+
+
       (.send req
              uri
              "POST"
