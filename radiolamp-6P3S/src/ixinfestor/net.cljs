@@ -81,7 +81,7 @@
                            (catch js/Error e
                              (println "ERR -1 " e)))
                          (print-error "ERROR" ee false)
-                         (if error-fn (error-fn e)))))
+                         (when error-fn (error-fn e)))))
 
       (events/listen req goog.net.EventType.SUCCESS
                      (fn [e]
@@ -91,7 +91,7 @@
                          (try
                            (let [r (t/read r (.getResponseText ee))]
                              (make-reload-if-reload-client r)
-                             (success-fn r))
+                             (when success-fn (success-fn r)))
                            (catch js/Error e                             
                              (println (str "ERR 1 " e))
                              (print-error "ERRON IN REQUEST SUCCESS" ee false))))))
@@ -108,7 +108,7 @@
                            (set! (-> progress-element .-style .-display) "none"))
 
                          (println "REQUEST COMPLETE")
-                         (if complete-fn (complete-fn e)))))
+                         (when complete-fn (complete-fn e)))))
 
 
 
