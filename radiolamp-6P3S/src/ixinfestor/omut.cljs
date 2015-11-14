@@ -2223,8 +2223,10 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn ui-media-object [{:keys [src style]}]
-  (dom/img #js {:className "media-object" :style style :src src
+(defn ui-media-object [{:keys [src class+ style]}]
+  (dom/img #js {:className (str "media-object " (or class+ ""))
+                :style style
+                :src src
                 }))
 
 (defn ui-media [{:keys [media-object
