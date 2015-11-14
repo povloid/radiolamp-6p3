@@ -40,11 +40,11 @@
                      (.getResponseText ee)
                      "\n---------------------------------------------------------\n\n"))
 
-          (redirect-to-root-when-not-transit [ee]
-            (let [ct (.getResponseHeader ee "Content-Type")]
-              (when-not (= ct "application/transit+json;charset=utf-8")
-                (do (js/alert "ОТВЕТА СЕРВЕРА В ПЛОХОМ ФОРМАТЕ.")
-                    (set! (.-location js/window) "/")))))
+          ;; (redirect-to-root-when-not-transit [ee]
+          ;;   (let [ct (.getResponseHeader ee "Content-Type")]
+          ;;     (when-not (= ct "application/transit+json;charset=utf-8")
+          ;;       (do (js/alert "ОТВЕТА СЕРВЕРА В ПЛОХОМ ФОРМАТЕ.")
+          ;;           (set! (.-location js/window) "/")))))
 
           (make-reload-if-reload-client [r]
             (when (get r :reload-client)
@@ -79,7 +79,7 @@
       (events/listen req goog.net.EventType.COMPLETE
                      (fn [e]
                        (let [ee (.-target e)]
-                         (redirect-to-root-when-not-transit ee)
+                         ;;;(redirect-to-root-when-not-transit ee)
                          (when-not (.isSuccess ee)
                            (print-error "COMPLETE" ee))
 
@@ -98,7 +98,7 @@
                      (fn [e]
                        (println "REQUEST SUCCESS")
                        (let [ee (.-target e)]
-                         (redirect-to-root-when-not-transit ee)
+                         ;;(redirect-to-root-when-not-transit ee)
                          (try
                            (let [r (t/read r (.getResponseText ee))]
                              (make-reload-if-reload-client r)

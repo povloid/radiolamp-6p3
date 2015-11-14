@@ -1541,12 +1541,14 @@
 
 
 (defn search-view [app owner
-                   {:keys [chan-update
+                   {:keys [input-placeholder
+                           chan-update
                            data-update-fn
                            data-rendering-fn
                            add-button-fn
                            tools]
-                    :or {data-update-fn (fn [app]
+                    :or {input-placeholder "введите сюда поисковый запрос"
+                         data-update-fn (fn [app]
                                           (println "Неопределена функция запроса обновления данных (data-update-fn [app] ...)")
                                           (println "параметр на входе: " (str app)))
                          data-rendering-fn (fn [app]
@@ -1593,7 +1595,8 @@
                                                             :aria-hidden "true"})
                                        }))
                  (om/build input (:fts-query app)
-                           {:opts {:onKeyPress-fn #(do #_(println
+                           {:opts {:placeholder input-placeholder
+                                   :onKeyPress-fn #(do #_(println
                                                           (.-type %)
                                                           (.-which %)
                                                           (.-timeStamp %))
