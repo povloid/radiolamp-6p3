@@ -731,6 +731,11 @@
     (throw (Exception. "У вас нет прав доступа для данной функции!"))))
 
 
+(defn throw-when-no-roles-from-request [request webrole-row]
+  (throw-when-no-role
+   (webuserwebrole-get-rels-set-from-request request)
+   webrole-row))
+
 
 ;; дополнительный функционал
 (defn add-user [username password roles-keys-set]
