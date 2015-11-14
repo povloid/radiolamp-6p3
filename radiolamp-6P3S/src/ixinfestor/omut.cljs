@@ -2353,13 +2353,13 @@
 
                (dom/div
                 #js {:className "well well-sm"
-                     :style #js {:marginTop 4
-                                 :maxWidth "100%"
+                     :style #js {:marginTop 4                                 
                                  :display "inline-block"}}
                 (let [image (@app :image)]
                   (if (empty? image)
                     (ui-glyphicon "camera" "" "8em")
-                    (ui-media-object {:style #js {:maxWidth "100%"}
+                    (ui-media-object {:class+ "img-rounded"
+                                      :style #js {:maxWidth 300}
                                       :src (@app :image)}))))
                ))))
 
@@ -2374,12 +2374,11 @@
   (reify
     om/IRender
     (render [this]
-      (dom/div nil
-               (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
-                        (dom/label #js {:className (str "control-label " label-class+) } label)
-                        (dom/div #js {:className input-class+ :style #js {:padding 0}}
-                                 (om/build one-image-uploader app {:opts spec-one-image-uploader})
-                                 (om/build helper-p app {}) ))))))
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className (str "control-label " label-class+) } label)
+               (dom/div #js {:className input-class+}
+                        (om/build one-image-uploader app {:opts spec-one-image-uploader})
+                        (om/build helper-p app {}) )))))
 
 
 
