@@ -31,18 +31,25 @@
 
 
 (defn get-data [uri params success-fn & [error-fn complete-fn disable-progress-element?]]
-  (letfn [(print-error [s ee show-alert]            
+  (letfn [(get-response-as-transit-or-text [ee]
+            (try
+              (t/read r (.getResponseText ee))
+              (catch js/Error e
+                (.getResponseText ee))))
+
+          (print-error [s ee show-alert]            
             (println "ERROR IN " s "\n"
                      "LastErrorCode: " (.getLastErrorCode ee) "\n"
                      "Status: " (.getStatus ee) " - " (.getStatusText ee) "\n"
                      "Content-Type: " (.getResponseHeader ee "Content-Type") "\n"
                      "---------------------------------------------------------\n"
-                     (.getResponseText ee)
+                     (get-response-as-transit-or-text ee)
                      "\n---------------------------------------------------------\n\n")
             (when show-alert
               (js/alert (str
                          "ERROR IN [" s "]\n"
-                         "Status: " (.getStatus ee) " - " (.getStatusText ee)))))
+                         "Status: " (.getStatus ee) " - " (.getStatusText ee) "\n"
+                         (get-response-as-transit-or-text ee)))))
 
           ;; (redirect-to-root-when-not-transit [ee]
           ;;   (let [ct (.getResponseHeader ee "Content-Type")]
