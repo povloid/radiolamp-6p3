@@ -2235,8 +2235,9 @@
 (defn ui-media [{:keys [media-object
                         heading heading-2
                         href
+                        style
                         body]}]
-  (dom/div #js {:className "media"}
+  (dom/div #js {:className "media" :style style}
            (dom/div #js {:className "media-left"}
                     (dom/a #js {:href (or href "#")}
                            media-object))
