@@ -1,13 +1,13 @@
 (ns ixinfestor.core
 
-  (:use korma.db)
-  (:use korma.core)
-
   (:use clojure.pprint)
 
   (:import [org.imgscalr Scalr])
 
-  (:require [clj-time.core :as tco]
+  (:require [korma.db :as kdb]
+            [korma.core :as kc]
+
+            [clj-time.core :as tco]
             [clj-time.format :as tf]
             [clj-time.coerce :as tc]
             [clj-time.local :as tl]
@@ -200,14 +200,14 @@
 (defn com-exec
   "Выполнить запрос"
   [query]
-  (exec query))
+  (kc/exec query))
 
 (defn com-exec-1
   "Выполнить запрос одной записи"
   [query]
   (-> query
-      (limit 1)
-      exec
+      (kc/limit 1)
+      kc/exec
       first))
 
 
@@ -215,54 +215,54 @@
 (defn com-save-for-field
   "Сохранить сущность"
   [entity field row]
-  (transaction
-   (let [r (update entity (set-fields row) (where (= field (row field))))]
+  (kdb/transaction
+   (let [r (kc/update entity (kc/set-fields row) (kc/where (= field (row field))))]
      (if (= r 0)
-       (insert entity (values row))
-       (first (select entity (where (= field (row field)))))))))
+       (kc/insert entity (kc/values row))
+       (first (kc/select entity (kc/where (= field (row field)))))))))
 
 (defn com-save-for-field-2
   "Сохранить сущность"
   [entity field-1 field-2 row]
-  (transaction
-   (let [r (update entity (set-fields row) (where (and
-                                                   (= field-1 (row field-1))
-                                                   (= field-2 (row field-2))
-                                                   )))]
+  (kdb/transaction
+   (let [r (kc/update entity (kc/set-fields row) (kc/where (and
+                                                            (= field-1 (row field-1))
+                                                            (= field-2 (row field-2))
+                                                            )))]
      (if (= r 0)
-       (insert entity (values row))
-       (first (select entity (where (and
-                                     (= field-1 (row field-1))
-                                     (= field-2 (row field-2))))))))))
+       (kc/insert entity (kc/values row))
+       (first (kc/select entity (kc/where (and
+                                           (= field-1 (row field-1))
+                                           (= field-2 (row field-2))))))))))
 
 (defn com-save-for-id
   "Сохранить сущность"
   [entity row]
-  (transaction
-   (let [r (update entity (set-fields row) (where (= :id (row :id))))]
+  (kdb/transaction
+   (let [r (kc/update entity (kc/set-fields row) (kc/where (= :id (row :id))))]
      (if (= r 0)
-       (insert entity (values row))
-       (first (select entity (where (= :id (row :id)))))))))
+       (kc/insert entity (kc/values row))
+       (first (kc/select entity (kc/where (= :id (row :id)))))))))
 
 (defn com-delete*
   "Удалить сущность"
   [entity]
-  (delete* entity))
+  (kc/delete* entity))
 
 (defn com-delete-for-id
   "Удалить сущность"
   [entity]
-  (delete* entity))
+  (kc/delete* entity))
 
 (defn com-delete-for-id
   "Удалить сущность по id"
   [entity id]
-  (delete entity (where (= :id id))))
+  (kc/delete entity (kc/where (= :id id))))
 
 (defn com-find
   "Найти сущность по :id"
   [entity id]
-  (let [rows (select entity (where (= :id id)))]
+  (let [rows (kc/select entity (kc/where (= :id id)))]
     (cond (empty? rows) nil
           (< 1 (count rows)) (do
                                (println "Внимание! По com-find нашел более одной записи по id "
@@ -274,13 +274,13 @@
   "Найти сущность по :id"
   [select*-1 id]
   (-> select*-1
-      (where (= :id id))
+      (kc/where (= :id id))
       com-exec-1))
 
 (defn com-count
   "Количество всех элементов"
   [entity]
-  (-> (select entity (aggregate (count :*) :c))
+  (-> (kc/select entity (kc/aggregate (count :*) :c))
       first
       :c))
 
@@ -288,12 +288,12 @@
   "Количество всех элементов"
   [select*-1]
   (-> select*-1
-      (aggregate (count :*) :c)
+      (kc/aggregate (count :*) :c)
       com-exec-1
       :c))
 
 (defn com-pred-page* [query* page size]
-  (-> query* (limit size) (offset (* page size))))
+  (-> query* (kc/limit size) (kc/offset (* page size))))
 
 
 (def spec-word-or #"\|")
@@ -312,19 +312,19 @@
                                      (reduce #(str %1 " & " %2))
                                      (#(str "(" % ")")))))
                          (clojure.string/join " | ")))]
-    (where query* (raw (str " " (name fts-field) " @@ to_tsquery('" fts-query "')")))))
+    (kc/where query* (kc/raw (str " " (name fts-field) " @@ to_tsquery('" fts-query "')")))))
 
 
 (defn com-defn-add-rel-many-to-many
   "создание функции соединения двух сущностей по типу many-to-many"
   [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2]
   (fn [{entity-1-id field-id-1} {entity-2-id field-id-2}]
-    (let [entity-2-row (select rel-entity
-                               (where (and
-                                       (=  field-fk-id-1 entity-1-id)
-                                       (=  field-fk-id-2 entity-2-id))))]
-      (if (empty? entity-2-row) (insert rel-entity
-                                        (values {field-fk-id-1 entity-1-id field-fk-id-2 entity-2-id}))
+    (let [entity-2-row (kc/select rel-entity
+                                  (kc/where (and
+                                             (=  field-fk-id-1 entity-1-id)
+                                             (=  field-fk-id-2 entity-2-id))))]
+      (if (empty? entity-2-row) (kc/insert rel-entity
+                                           (kc/values {field-fk-id-1 entity-1-id field-fk-id-2 entity-2-id}))
           (first entity-2-row)))))
 
 
@@ -333,54 +333,54 @@
   "создание функции проверки наличия соединения двух сущностей по типу many-to-many"
   [entity-2 field-id-2 field-keyname-2 rel-entity field-fk-id-1 field-fk-id-2]
   (fn [{entity-1-id field-id-2} entity-2-keyname]
-    (transaction
-     (let [entity-2s-ids (select entity-2
-                                 (fields field-id-2)
-                                 (where (= field-keyname-2 (name entity-2-keyname))))]
+    (kdb/transaction
+     (let [entity-2s-ids (kc/select entity-2
+                                    (kc/fields field-id-2)
+                                    (kc/where (= field-keyname-2 (name entity-2-keyname))))]
        (if (empty? entity-2s-ids)
          (throw (Exception. (str "Row with " field-keyname-2 " = " entity-2-keyname " is not described.")))
-         (not (empty? (select rel-entity
-                              (limit 1)
-                              (where (and
-                                      (= field-fk-id-1 entity-1-id)
-                                      (= field-fk-id-2 (-> entity-2s-ids first field-id-2))))))))))))
+         (not (empty? (kc/select rel-entity
+                                 (kc/limit 1)
+                                 (kc/where (and
+                                            (= field-fk-id-1 entity-1-id)
+                                            (= field-fk-id-2 (-> entity-2s-ids first field-id-2))))))))))))
 
 (defn com-defn-get-rels-set
   [entity-2 field-id-2 field-keyname-2 rel-entity field-fk-id-1 field-fk-id-2]
   (fn [{entity-1-id field-id-2}]
-    (transaction
-     (->> (select entity-2 (fields field-keyname-2)
-                  (where {field-id-2 [in (subselect rel-entity
-                                                    (fields field-fk-id-2)
-                                                    (where (= field-fk-id-1 entity-1-id)))]}))
+    (kdb/transaction
+     (->> (kc/select entity-2 (kc/fields field-keyname-2)
+                     (kc/where {field-id-2 [in (kc/subselect rel-entity
+                                                             (kc/fields field-fk-id-2)
+                                                             (kc/where (= field-fk-id-1 entity-1-id)))]}))
           (map field-keyname-2)
           set))))
 
 (defn com-defn-pred-rows-by-rel?
   [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2 & [not?]]
   (fn [select*-1 {entity-2-id field-id-2}]
-    (where select*-1
-           {field-id-1
-            (let [p [in (subselect rel-entity
-                                   (fields field-fk-id-1)
-                                   (where (= field-fk-id-2 entity-2-id)))]]
-              (if not? (not p) p))})))
+    (kc/where select*-1
+              {field-id-1
+               (let [p [in (kc/subselect rel-entity
+                                         (kc/fields field-fk-id-1)
+                                         (kc/where (= field-fk-id-2 entity-2-id)))]]
+                 (if not? (not p) p))})))
 
 (defn com-defn-pred-rows-by-rel--nil-other?
   [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2]
   (fn [select*-1 {entity-2-id field-id-2 :as row}]
     (if (nil? entity-2-id)
       ;; nil
-      (where select*-1 (not (exists
-                             (subselect rel-entity
-                                        (where (= field-fk-id-1
-                                                  (-> select*-1
-                                                      :ent
-                                                      :table
-                                                      str
-                                                      (str "." (name field-id-1))
-                                                      keyword)
-                                                  ))))))
+      (kc/where select*-1 (not (exists
+                                (kc/subselect rel-entity
+                                              (kc/where (= field-fk-id-1
+                                                           (-> select*-1
+                                                               :ent
+                                                               :table
+                                                               str
+                                                               (str "." (name field-id-1))
+                                                               keyword)
+                                                           ))))))
       ;; not nil
       ((com-defn-pred-rows-by-rel? field-id-1 field-id-2
                                    rel-entity field-fk-id-1 field-fk-id-2)
@@ -391,19 +391,19 @@
   (fn [select*-1 entity-2-rows]
     (reduce
      (fn [query entity-2-row]
-       (where query
-              (let [p (exists
-                       (subselect rel-entity
-                                  (fields field-fk-id-1)
-                                  (where (and
-                                          (= field-fk-id-2 (field-id-2 entity-2-row))
-                                          (= field-fk-id-1 (-> select*-1
-                                                               :ent
-                                                               :table
-                                                               (str "." (name field-id-1))
-                                                               keyword)))
-                                         )))]
-                (if not? (not p) p))))
+       (kc/where query
+                 (let [p (exists
+                          (kc/subselect rel-entity
+                                        (kc/fields field-fk-id-1)
+                                        (kc/where (and
+                                                   (= field-fk-id-2 (field-id-2 entity-2-row))
+                                                   (= field-fk-id-1 (-> select*-1
+                                                                        :ent
+                                                                        :table
+                                                                        (str "." (name field-id-1))
+                                                                        keyword)))
+                                                  )))]
+                   (if not? (not p) p))))
      select*-1 entity-2-rows)))
 
 ;; END SQL TOOLS
@@ -590,9 +590,9 @@
 ;;*
 ;;**************************************************************************************************
 
-(defentity webuser
-  (pk :id)
-  (transform (fn [row] (dissoc row :fts)))
+(kc/defentity webuser
+  (kc/pk :id)
+  (kc/transform (fn [row] (dissoc row :fts)))
   )
 
 
@@ -608,12 +608,12 @@
   ;; SAVE
   (com-save-for-field webuser :username webuser-row))
 
-(def webuser-select* (select* webuser))
+(def webuser-select* (kc/select* webuser))
 
 (defn webuser-find-by-username [username]
-  (-> (select* webuser)
-      (where (= :username username))
-      exec
+  (-> (kc/select* webuser)
+      (kc/where (= :username username))
+      kc/exec
       first))
 
 (defn webuser-pred-search? [select*-1 fts-query]
@@ -639,21 +639,21 @@
 ;;**************************************************************************************************
 
 
-(defentity webrolesgroup
-  (pk :id)
-  (prepare (partial prepare-as-string :keyname))
-  (transform (partial transform-as-keyword :keyname)))
+(kc/defentity webrolesgroup
+  (kc/pk :id)
+  (kc/prepare (partial prepare-as-string :keyname))
+  (kc/transform (partial transform-as-keyword :keyname)))
 
 
 (defn webrolesgroup-init [row]
   (com-save-for-field webrolesgroup :keyname (update-in row [:keyname] name)))
 
 
-(defentity webrole
-  (pk :id)
-  (belongs-to webrolesgroup)
-  (prepare (partial prepare-as-string :keyname))
-  (transform (partial transform-as-keyword :keyname)))
+(kc/defentity webrole
+  (kc/pk :id)
+  (kc/belongs-to webrolesgroup)
+  (kc/prepare (partial prepare-as-string :keyname))
+  (kc/transform (partial transform-as-keyword :keyname)))
 
 (defn webrole-init [row]
   (com-save-for-field webrole :keyname (update-in row [:keyname] name)))
@@ -662,8 +662,8 @@
   ([] (webrole-list false))
   ([with-webrolesgroup]
    (if with-webrolesgroup
-     (select webrole (with webrolesgroup))
-     (select webrole))))
+     (kc/select webrole (kc/with webrolesgroup))
+     (kc/select webrole))))
 
 
 ;; END entity webrole
@@ -677,24 +677,24 @@
 ;;*
 ;;**************************************************************************************************
 
-(defentity webuserwebrole
-  (pk :id))
+(kc/defentity webuserwebrole
+  (kc/pk :id))
 
 (defn webuserwebrole-add-rel [webuser-row webrole-row]
   ((com-defn-add-rel-many-to-many :id :id webuserwebrole :webuser_id :webrole_id) webuser-row webrole-row))
 
                                         ;TODO: Надо написать тесты
 (defn webuserwebrole-add-rels [{id :id :as webuser-row} webrole-rows]
-  (transaction
-   (delete webuserwebrole (where (= :webuser_id id)))
+  (kdb/transaction
+   (kc/delete webuserwebrole (kc/where (= :webuser_id id)))
    (doall (map (partial webuserwebrole-add-rel webuser-row) webrole-rows))))
 
                                         ;TODO: Надо написать тесты
 (defn webuserwebrole-add-rels-for-keynames [webuser-row webrole-rows-keynames]
   (->> webrole-rows-keynames
-       (map #(first (select webrole (where (= :keyname (name %))))))
+       (map #(first (kc/select webrole (kc/where (= :keyname (name %))))))
        (webuserwebrole-add-rels webuser-row)
-       transaction))
+       kdb/transaction))
 
 (defn webuserwebrole-webuser-has-a-role? [webuser-row webrole-keyname]
   ((com-defn-has-a-rel? webrole :id :keyname webuserwebrole :webuser_id :webrole_id) webuser-row webrole-keyname))
@@ -706,7 +706,7 @@
   (-> username
       webuser-find-by-username
       webuserwebrole-own-get-rels-set
-      transaction))
+      kdb/transaction))
 
 (defn webuserwebrole-get-rels-set-from-request [request]
   (-> request
@@ -806,15 +806,15 @@
 (declare files)
 
 (defn files-resize-all-images [{:keys [ws] :or {ws []}}]
-  (doseq [{path :path} (select files
-                               (fields :path)
-                               (where {:content_type [in ["image/gif"
-                                                          "image/jpeg"
-                                                          "image/pjpeg"
-                                                          "image/png"
-                                                          ;;"image/svg+xml"
-                                                          ;;"image/tiff"
-                                                          ]]}))
+  (doseq [{path :path} (kc/select files
+                                  (kc/fields :path)
+                                  (kc/where {:content_type [in ["image/gif"
+                                                                "image/jpeg"
+                                                                "image/pjpeg"
+                                                                "image/png"
+                                                                ;;"image/svg+xml"
+                                                                ;;"image/tiff"
+                                                                ]]}))
           :let [path (clojure.string/replace-first path #"/image/" "/")
                 file-src (new java.io.File (str @files-root-directory "/" path))]]
     (do
@@ -835,11 +835,11 @@
 (defn save-file [tempfile dir filename]
   (save-file-o tempfile dir filename {}))
 
-(defentity files
-  (pk :id)
-  (transform (fn [row] (dissoc row :fts))))
+(kc/defentity files
+  (kc/pk :id)
+  (kc/transform (fn [row] (dissoc row :fts))))
 
-(def files-select* (select* files))
+(def files-select* (kc/select* files))
 
 (defn files-save
   "Сохранение files"
@@ -852,7 +852,7 @@
 (defn file-upload-o [file-row tempfile {:keys [path-prefix]
                                         :or {path-prefix ""}
                                         :as options}]
-  (transaction
+  (kdb/transaction
    (let [{id :id :as new-row} (-> file-row
                                   (assoc :path "?TMP?")
                                   files-save)
@@ -869,16 +869,16 @@
 
 
 (defn file-pred-images* [query* & [not?]]
-  (where query*
-         {:content_type [(if not? not-in in) ["image/gif"
-                                              "image/jpeg"
-                                              "image/pjpeg"
-                                              "image/png"
-                                              "image/svg+xml"
-                                              "image/tiff"]]}))
+  (kc/where query*
+            {:content_type [(if not? not-in in) ["image/gif"
+                                                 "image/jpeg"
+                                                 "image/pjpeg"
+                                                 "image/png"
+                                                 "image/svg+xml"
+                                                 "image/tiff"]]}))
 
 (defn file-pred-galleria? [query*]
-  (where query* (= :galleria true)))
+  (kc/where query* (= :galleria true)))
 
 
 
@@ -887,13 +887,13 @@
 
 ;;связи для файлов
 
-(defentity files_rel
-  (belongs-to files))
+(kc/defentity files_rel
+  (kc/belongs-to files))
 
 (defn file-upload-rel-on-o [entity files-rel-field {id :id :as entity-row} options file-row tempfile]
-  (transaction
+  (kdb/transaction
    (let [file-row (file-upload-o file-row tempfile options)]
-     [file-row (insert files_rel (values {:files_id (:id file-row) files-rel-field id}))]
+     [file-row (kc/insert files_rel (kc/values {:files_id (:id file-row) files-rel-field id}))]
      )))
 
 (defn file-upload-rel-on [entity files-rel-field {id :id :as entity-row} file-row tempfile]
@@ -902,8 +902,8 @@
 
 
 (defn files_rel-delete [files-rel-field {file-id :id} {rel-id :id}]
-  (delete files_rel (where (and (= :files_id file-id)
-                                (= files-rel-field rel-id)))))
+  (kc/delete files_rel (kc/where (and (= :files_id file-id)
+                                      (= files-rel-field rel-id)))))
 
 (defn files_rel-select-files-by-* [row files-rel-field]
   ((com-defn-pred-rows-by-rel? :id :id files_rel :files_id files-rel-field)
@@ -939,18 +939,18 @@
 ;; select a.id, a.parent_id, a.tagname, cast (b.PATH ||'->'|| a.tagname as text) as PATH FROM tag a, temp1 b WHERE a.parent_id = b.id)
 ;; select * from temp1 order by PATH
 
-(defentity tag
-  (pk :id)
-  (prepare (fn [row] (-> row
-                         ((partial prepare-as-string :constname)))))
-  (transform (fn [row] (-> row
-                           ((partial transform-as-keyword :constname))
-                           (dissoc :fts)))))
+(kc/defentity tag
+  (kc/pk :id)
+  (kc/prepare (fn [row] (-> row
+                            ((partial prepare-as-string :constname)))))
+  (kc/transform (fn [row] (-> row
+                              ((partial transform-as-keyword :constname))
+                              (dissoc :fts)))))
 
 (defn tag-const? [{id :id}]
-  (-> (select* tag)
-      (where (and (= :id id) (= :const true)))
-      exec
+  (-> (kc/select* tag)
+      (kc/where (and (= :id id) (= :const true)))
+      kc/exec
       empty?
       not))
 
@@ -964,18 +964,18 @@
 (defn tag-save
   "Сохранение tag"
   [tag-row]
-  (transaction
+  (kdb/transaction
    (if (tag-const? tag-row) (throw (Exception. "Константная запись не может быть изменена!"))
        (com-save-for-id tag (update-in tag-row [:constname] #(when % (name %)))))))
 
 (defn tag-delete [{id :id :as tag-row}]
-  (transaction
+  (kdb/transaction
    (if (tag-const? tag-row) (throw (Exception. "Константная запись не может быть удалена!"))
        (com-delete-for-id tag id))))
 
 ;; TODO: написать тесты
 (defn tag-get-tree-path [row]
-  (transaction
+  (kdb/transaction
    (let [row (com-find tag (:id row))]
      (if (nil? row) []
          (loop [i 0, {p-id :parent_id}, row a [row]]
@@ -986,11 +986,11 @@
 
 ;; TODO: написать тесты
 (defn tag-get-tree-childs [{id :id}]
-  (select tag (where (= :parent_id id)) (order :tagname :ASC)))
+  (kc/select tag (kc/where (= :parent_id id)) (kc/order :tagname :ASC)))
 
 ;; TODO: написать тесты
 (defn tag-set-parent [row {id :id :as parent-row}]
-  (transaction
+  (kdb/transaction
    (doseq [{i-id :id} (tag-get-tree-path parent-row)
            :when (= id i-id)]
      (do
@@ -1000,32 +1000,32 @@
 
 ;; TODO: написать тесты
 (defn tag-get-tree-path-and-childs [row]
-  (transaction
+  (kdb/transaction
    [(tag-get-tree-path row) (tag-get-tree-childs row)]))
 
 
-(def tag-list* (select* tag))
+(def tag-list* (kc/select* tag))
 
 ;; TODO: написать тесты
 (defn tag-tree-as-flat-groups []
-  (sort-tree-as-flat-groups :id :parent_id (select tag)))
+  (sort-tree-as-flat-groups :id :parent_id (kc/select tag)))
 
 ;; TODO: написать тесты
 (defn tag-tree-as-flat-groups-with-patches [store-on-key]
-  (sort-tree-as-flat-groups-with-patches :id :parent_id store-on-key (select tag) :tagname))
+  (sort-tree-as-flat-groups-with-patches :id :parent_id store-on-key (kc/select tag) :tagname))
 
 ;; TODO: написать тесты
 (defn tag-tree-as-flat []
-  (sort-tree-as-flat :id :parent_id (select tag)))
+  (sort-tree-as-flat :id :parent_id (kc/select tag)))
 
 
 (defn tag-select-all-sub-tree-ids [{id :id}]
-  (transaction
+  (kdb/transaction
    (letfn [(getch [id]
              (let [cc (map :id
-                           (select tag
-                                   (fields :id)
-                                   (where (= :parent_id id))))]
+                           (kc/select tag
+                                      (kc/fields :id)
+                                      (kc/where (= :parent_id id))))]
                (reduce into cc (map getch cc))))]
 
      (getch id))))
@@ -1047,37 +1047,37 @@
 ;;*
 ;;**************************************************************************************************
 
-(defentity webdoc
-  (pk :id)
+(kc/defentity webdoc
+  (kc/pk :id)
 
-  (many-to-many tag :webdoctag)
+  (kc/many-to-many tag :webdoctag)
 
-  (prepare (fn [{:keys [id keyname web_description] :as row}]
-             (-> (if id row (assoc row :cdate (new java.util.Date)))
-                 ((partial prepare-date-to-sql-timestamp :cdate))
-                 (assoc :udate (new java.util.Date))
-                 ((partial prepare-date-to-sql-timestamp :udate))
+  (kc/prepare (fn [{:keys [id keyname web_description] :as row}]
+                (-> (if id row (assoc row :cdate (new java.util.Date)))
+                    ((partial prepare-date-to-sql-timestamp :cdate))
+                    (assoc :udate (new java.util.Date))
+                    ((partial prepare-date-to-sql-timestamp :udate))
 
-                 (as-> row
-                     (if keyname
-                       (assoc row :ttitle (make-translit-ru-en (str keyname)))
-                       row))
+                    (as-> row
+                        (if keyname
+                          (assoc row :ttitle (make-translit-ru-en (str keyname)))
+                          row))
 
-                 (assoc :plan_text (html-clean-tags web_description))
-                 )))
+                    (assoc :plan_text (html-clean-tags web_description))
+                    )))
 
-  (transform (fn [row]
-               (-> row
-                   ((partial transform-sql-date-to-date :cdate))
-                   ((partial transform-sql-date-to-date :udate))
-                   (dissoc :fts)
-                   (as-> row
-                       (if (:tag row)
-                         (-> row
-                             ;;(assoc :tag-tagnames-set (->> row :tag (map :tagname) set))
-                             (assoc :tag-ids-set (->> row :tag (map :id) set)))
-                         row))
-                   )))
+  (kc/transform (fn [row]
+                  (-> row
+                      ((partial transform-sql-date-to-date :cdate))
+                      ((partial transform-sql-date-to-date :udate))
+                      (dissoc :fts)
+                      (as-> row
+                          (if (:tag row)
+                            (-> row
+                                ;;(assoc :tag-tagnames-set (->> row :tag (map :tagname) set))
+                                (assoc :tag-ids-set (->> row :tag (map :id) set)))
+                            row))
+                      )))
   )
 
 
@@ -1097,7 +1097,7 @@
 
 
 
-(def webdoc-select* (select* webdoc))
+(def webdoc-select* (kc/select* webdoc))
 
 (defn webdoc-save
   "Сохранение webdoc"
@@ -1112,16 +1112,16 @@
   ([webdoc-row]
    (webdoc-delete webdoc-row webdoc))
   ([{id :id} webdoc-entity]
-   (transaction
+   (kdb/transaction
     (do
-      (delete webdoctag (where (= :webdoc_id id)))
-      (delete files_rel (where (= :webdoc_id id)))
+      (kc/delete webdoctag (kc/where (= :webdoc_id id)))
+      (kc/delete files_rel (kc/where (= :webdoc_id id)))
       (com-delete-for-id webdoc-entity id)))))
 
 (def webdoc-select*-for-urls
   (-> webdoc-select*
-      (fields :id :keyname :ttitle :web_title_image :web_top_description :cdate
-              :web_color_0 :web_color_1 :web_color_2 :web_color_3 :web_color_4 :web_color_5)))
+      (kc/fields :id :keyname :ttitle :web_title_image :web_top_description :cdate
+                 :web_color_0 :web_color_1 :web_color_2 :web_color_3 :web_color_4 :web_color_5)))
 
 (defn webdoc-get-url-path [{:keys [id ttitle]}]
   (str "/" id "/" ttitle ))
@@ -1147,14 +1147,14 @@
    select*-1 tags-rows))
 
 (defn webdoc-pred-childs-tags-of-parent-tag? [query {id :id}]
-  (where query
-         {:id [in
-               (subselect webdoctag
-                          (fields :webdoc_id)
-                          (where {:tag_id [in
-                                           (subselect tag
-                                                      (fields :id)
-                                                      (where (= :parent_id id)))]}))]}))
+  (kc/where query
+            {:id [in
+                  (kc/subselect webdoctag
+                                (kc/fields :webdoc_id)
+                                (kc/where {:tag_id [in
+                                                    (kc/subselect tag
+                                                                  (kc/fields :id)
+                                                                  (kc/where (= :parent_id id)))]}))]}))
 
 (defn webdoc-pred-by-tags?-and-childs-tags-of-parent-tag?
   [select*-1 tags-rows parent-tag-row]
@@ -1165,9 +1165,9 @@
 (defn webdoc-one-row-by-tags
   ([tags-rows webdoc-entity]
    (-> webdoc-entity
-       select*
+       kc/select*
        ((com-defn-pred-rows-by-rels? :id :id  webdoctag :webdoc_id :tag_id) tags-rows)
-       (order :id :desc)
+       (kc/order :id :desc)
        com-exec-1)))
 
 #_(defn webdoc-pred-by-tag--nil-other*-se?
@@ -1181,10 +1181,10 @@
 
 (defn webdoc-pred-search-for-the-child-tree-tags? [query tag-row]
   (let [tags-ids (tag-select-all-sub-tree-ids-and-with-this-id tag-row)]
-    (where query
-           (in :id (subselect webdoctag
-                              (fields :webdoc_id)
-                              (where (in :tag_id tags-ids)))))))
+    (kc/where query
+              (in :id (kc/subselect webdoctag
+                                    (kc/fields :webdoc_id)
+                                    (kc/where (in :tag_id tags-ids)))))))
 
 
 
@@ -1199,7 +1199,7 @@
                            (webdoc-pred-by-tags? (conj tags-rows tag-row))
                            com-exec-1)]))
        doall
-       transaction))
+       kdb/transaction))
 
 
 (defn tag-get-path-and-join-webdoc-for-urls [tags-rows tag-row]
@@ -1210,7 +1210,7 @@
                            (webdoc-pred-by-tags? (conj tags-rows tag-row))
                            com-exec-1)]))
        doall
-       transaction))
+       kdb/transaction))
 
 
 
@@ -1222,7 +1222,7 @@
                            (webdoc-pred-by-tags? (conj tags-rows tag-row))
                            com-exec-1)]))
        doall
-       transaction))
+       kdb/transaction))
 
 ;;---------------------------------------------------------------------------
 
@@ -1253,17 +1253,17 @@
 ;;*
 ;;**************************************************************************************************
 
-(defentity webdoctag
-  (belongs-to webdoc)
-  (belongs-to tag))
+(kc/defentity webdoctag
+  (kc/belongs-to webdoc)
+  (kc/belongs-to tag))
 
 ;; TODO: написать тесты
 (defn webdoctag-add-tag [webdoc-row tag-row]
   ((com-defn-add-rel-many-to-many :id :id webdoctag :webdoc_id :tag_id) webdoc-row tag-row))
 
 (defn webdoctag-update-tags [{webdoc-id :id :as webdoc-row} tags-rows]
-  (transaction
-   (delete webdoctag (where (= :webdoc_id webdoc-id)))
+  (kdb/transaction
+   (kc/delete webdoctag (kc/where (= :webdoc_id webdoc-id)))
    (->> tags-rows
         (map (fn [tag-row]
                (webdoctag-add-tag webdoc-row tag-row)))
@@ -1280,24 +1280,24 @@
 ;;*
 ;;**************************************************************************************************
 
-(defentity stext
-  (pk :id)
-  (prepare (fn [row] (-> row
-                         ((partial prepare-as-string :keyname)))))
-  (transform (fn [row] (-> row
-                           ((partial transform-as-keyword :keyname))
-                           (dissoc :fts)))))
+(kc/defentity stext
+  (kc/pk :id)
+  (kc/prepare (fn [row] (-> row
+                            ((partial prepare-as-string :keyname)))))
+  (kc/transform (fn [row] (-> row
+                              ((partial transform-as-keyword :keyname))
+                              (dissoc :fts)))))
 
 (defn stext-save [row]
   (com-save-for-id stext row))
 
-(def stext-select* (select* stext))
+(def stext-select* (kc/select* stext))
 
 (defn stext-pred-search? [select*-1 fts-query]
   (com-pred-full-text-search* select*-1 :fts fts-query))
 
 (defn stext-find [stext-keyname]
-  (first (select stext (where (= :keyname (name stext-keyname))))))
+  (first (kc/select stext (kc/where (= :keyname (name stext-keyname))))))
 
 (defn stext-save-const [tag-row]
   (println "stext-save-const >" tag-row)
