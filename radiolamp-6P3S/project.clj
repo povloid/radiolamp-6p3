@@ -6,9 +6,9 @@
   :dependencies [
 
                  ;; CLOJURESCRIPT LIBRARIES
-                 [org.clojure/clojurescript "1.7.145"]
+                 [org.clojure/clojurescript "1.7.170"]
 
-                 [com.cognitect/transit-cljs "0.8.225"]
+                 [com.cognitect/transit-cljs "0.8.232"]
                  [org.omcljs/om "0.9.0"]
                  ;;[sablono "0.3.4"]
                  [secretary "1.2.3"]
