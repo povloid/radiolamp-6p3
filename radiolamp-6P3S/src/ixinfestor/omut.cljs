@@ -2357,7 +2357,7 @@
 
                (dom/div
                 #js {:className "well well-sm"
-                     :style #js {:marginTop 4                                 
+                     :style #js {:marginTop 4
                                  :display "inline-block"}}
                 (let [image (@app :image)]
                   (if (empty? image)
@@ -2388,6 +2388,82 @@
 
 
 ;; END Upload one image
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN Full screen image viewer
+;;* tag: <full screen image viewer>
+;;*
+;;* description: Просмоторщик картинок в полный экран
+;;*
+;;**************************************************************************************************
+
+(defonce chan-thumb-show-in-full-screen-app-init (chan))
+
+                                        ;TODO: Вынести данную констату в общий файл cljc
+(def thumb-show-in-full-screen-id "thumb-show-in-full-screen")
+
+
+
+(defonce thumb-show-in-full-screen-app-state
+  (atom {:src nil
+         :description nil :top_description nil
+         :zoom? false}))
+
+(defn- thumb-show-in-full-screen [app]
+  (reify
+    om/IWillMount
+    (will-mount [this]
+      (go
+        (while true
+          (let [{:keys [path src title top_description description]}
+                (<! chan-thumb-show-in-full-screen-app-init)]
+            (om/transact!
+             app #(assoc % :src (or path src)
+                         :descrioption description
+                         :top_description (or top_description title)))))))
+    om/IRender
+    (render [_]
+      (when-let [src (@app :src)]
+        (let [zoom? (:zoom? @app)]
+          (dom/div
+           #js {:style #js {:position "fixed" :zIndex 3000
+                            :top 0 :bottom 0 :left 0 :right 0
+                            :overflow "auto"}}
+           (dom/button #js {:class "close"
+                            :style #js {:position "fixed" :left 0 :top 0}
+                            :onClick #(om/transact! app :zoom? not)}
+                       (ui-glyphicon (if zoom? "zoom-out" "zoom-in")
+                                     "" "3em"))
+           (dom/button #js {:class "close"
+                            :style #js {:position "fixed" :right 20 :top 0}
+                            :onClick (fn []
+                                       (om/transact!
+                                        app #(assoc % :src nil :descrioption nil
+                                                    :top_description nil))
+                                       1)}
+                       (ui-glyphicon "remove" "" "3em"))
+           (dom/img #js {:src src
+                         :style #js {:width (if zoom? "" "100%")}})))))))
+
+
+;; Инициализация
+(def thumb-show-in-full-screen--tag (by-id thumb-show-in-full-screen-id))
+
+(if thumb-show-in-full-screen--tag
+  (do
+    (om/root
+     thumb-show-in-full-screen
+     thumb-show-in-full-screen-app-state
+     {:target thumb-show-in-full-screen--tag :opts {}})
+    (println "Компонент FULL SCREEN найден и проинициализирован."))
+  (println "Компонент FULL SCREEN НЕ найден по id ="
+           thumb-show-in-full-screen-id " и не проинициализирован."))
+
+
+
+
+;; END Full screen image viewer
 ;;..................................................................................................
 
 
@@ -2449,7 +2525,6 @@
                                             :onMouseDown (fn [e] (.select (.-target e)))
                                             }))
                    )))))))
-
 
 (def thumbnails-edit-form-app-init
   (merge edit-form-for-id-app-init
@@ -2567,14 +2642,21 @@
                                        (put! chan-modal-act
                                              {:label (str "Выбор действий над записью №" id)
                                               :acts
-                                              [{:text "Редактировать" :btn-type :primary
-                                                :act-fn (fn []
-                                                          (put! chan-thumbnails-modal-edit-form-open-for-id id)
-                                                          (modal-show (:modal app)))}
+                                              [{:text "Просмотр" :btn-type :primary
+                                                :act-fn
+                                                (fn []
+                                                  (put! chan-thumb-show-in-full-screen-app-init r))
+                                                }
+                                               {:text "Редактировать" :btn-type :primary
+                                                :act-fn
+                                                (fn []
+                                                  (put! chan-thumbnails-modal-edit-form-open-for-id id)
+                                                  (modal-show (:modal app)))}
                                                {:text "Удалить" :btn-type :danger
-                                                :act-fn #(do
-                                                           (om/update! app [:modal-yes-no :row] r)
-                                                           (modal-show (:modal-yes-no app)))}]
+                                                :act-fn
+                                                #(do
+                                                   (om/update! app [:modal-yes-no :row] r)
+                                                   (modal-show (:modal-yes-no app)))}]
                                               }))}}))
                  (:list app)))
 
