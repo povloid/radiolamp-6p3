@@ -2234,14 +2234,23 @@
 
 (defn ui-media [{:keys [media-object
                         heading heading-2
+                        on-click-fn
                         href
                         style
-                        body]}]
-  (dom/div #js {:className "media" :style style}
+                        body
+                        button-do-fn
+                        button-do-text
+                        ]}]
+  (dom/div #js {:className "media" :style style
+                :onClick on-click-fn}
            (dom/div #js {:className "media-left"}
                     (dom/a #js {:href (or href "#")}
                            media-object))
            (dom/div #js {:className "media-body"}
+                    (when button-do-fn (ui-button {:style #js {:float "right"}
+                                                   :type :primary
+                                                   :text (or button-do-text "Действие")
+                                                   :on-click button-do-fn}))
                     (when href (dom/a #js {:style #js {:float "right"}
                                            :href (or href "#") :target "_blank"}
                                       (dom/button #js {:className "btn btn-success"} "скачать")))
@@ -2408,7 +2417,8 @@
 (defonce thumb-show-in-full-screen-app-state
   (atom {:src nil
          :description nil :top_description nil
-         :zoom? false}))
+         :zoom? false
+         :deg 0}))
 
 (defn- thumb-show-in-full-screen [app]
   (reify
@@ -2425,26 +2435,40 @@
     om/IRender
     (render [_]
       (when-let [src (@app :src)]
-        (let [zoom? (:zoom? @app)]
+        (let [{:keys [deg zoom?]} @app
+              deg-2 (str  "rotate(" deg "deg)")]
           (dom/div
            #js {:style #js {:position "fixed" :zIndex 3000
                             :top 0 :bottom 0 :left 0 :right 0
-                            :overflow "auto"}}
-           (dom/button #js {:class "close"
-                            :style #js {:position "fixed" :left 0 :top 0}
-                            :onClick #(om/transact! app :zoom? not)}
-                       (ui-glyphicon (if zoom? "zoom-out" "zoom-in")
-                                     "" "3em"))
-           (dom/button #js {:class "close"
-                            :style #js {:position "fixed" :right 20 :top 0}
+                            :overflow "auto" :background-color "rgba(0, 0, 0, 0.7)"}}
+
+           (dom/div #js {:style #js {:position "fixed" :left 0 :top 0 :zIndex 3005}}
+                    (dom/button #js {:className "close"
+                                     :onClick #(om/transact! app :zoom? not)}
+                                (ui-glyphicon (if zoom? "zoom-out" "zoom-in")
+                                              "" "3em"))
+                    (dom/button #js {:className "close"
+                                     :onClick #(om/transact!
+                                                app :deg (fn [deg]
+                                                           (let [deg (+ deg 90)]
+                                                             (if (> deg 270) 0 deg))))}
+                                (ui-glyphicon "retweet" "" "3em")))
+
+           (dom/button #js {:className "close"
+                            :style #js {:position "fixed" :right 0 :top 0 :zIndex 3005}
                             :onClick (fn []
                                        (om/transact!
                                         app #(assoc % :src nil :descrioption nil
                                                     :top_description nil))
                                        1)}
                        (ui-glyphicon "remove" "" "3em"))
+           
            (dom/img #js {:src src
-                         :style #js {:width (if zoom? "" "100%")}})))))))
+                         :style #js {:msTransform deg-2
+                                     :WebkitTransform deg-2
+                                     :transform deg-2
+                                     ;;:height (if (#{90 270} deg) (if zoom? nil (.-innerWidth js/window)) nil)
+                                     :width  (if zoom? nil (.-innerWidth  js/window))}})))))))
 
 
 ;; Инициализация
@@ -2487,7 +2511,7 @@
 
 
 (defn thumbnail [app _ {:keys [class+ onClick-fn]
-                        :or {class+ "col-xs-6 col-sm-4 col-md-4 col-lg-4"}}]
+                        :or {class+ "col-xs-12 col-sm-6 col-md-4 col-lg-4"}}]
   (reify
     om/IRender
     (render [_]
@@ -2511,7 +2535,7 @@
                                    }))
           (dom/div #js {:className "caption"}
                    (when (not (clojstr/blank? top_description))
-                     (dom/h3 nil top_description))
+                     (dom/h4 nil top_description))
                    (dom/div nil
                             (when (not (clojstr/blank? description))
                               (dom/p nil description))
@@ -2642,7 +2666,7 @@
                                        (put! chan-modal-act
                                              {:label (str "Выбор действий над записью №" id)
                                               :acts
-                                              [{:text "Просмотр" :btn-type :primary
+                                              [{:text "Просмотр" :btn-type :info
                                                 :act-fn
                                                 (fn []
                                                   (put! chan-thumb-show-in-full-screen-app-init r))

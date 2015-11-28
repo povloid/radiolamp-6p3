@@ -48,7 +48,7 @@
        (clj->js { "geometry" (clj->js {:coordinates coordinates
                                        :type type})
                   "properties" (clj->js {:balloonContentHeader balloon-content-header
-                                         :balloonContentBody balloon-content-body                                         
+                                         :balloonContentBody balloon-content-body
                                          :iconContent icon-content
                                          :hintContent hint-content
                                          })

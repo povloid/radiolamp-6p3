@@ -868,14 +868,30 @@
   (file-upload-o file-row tempfile {}))
 
 
+(def images-content-types #{"image/gif"
+                            "image/jpeg"
+                            "image/pjpeg"
+                            "image/png"
+                            "image/svg+xml"
+                            "image/tiff"})
+
+(defn in-row--files-rows-split-by-content-types [{files :files :as row}]
+  (reduce
+   (fn [{:keys [files images] :as  row}
+        {content_type :content_type :as file-row}]
+     (if (contains? images-mime-types content_type)
+       (assoc row :images (conj images file-row))
+       (assoc row :files  (conj files  file-row))))
+   (assoc row :images [] :files [])
+   files))
+
+(defn in-rows--files-rows-split-by-content-types [rows]
+  (map in-row--files-rows-split-by-content-types rows))
+
+
 (defn file-pred-images* [query* & [not?]]
   (kc/where query*
-            {:content_type [(if not? not-in in) ["image/gif"
-                                                 "image/jpeg"
-                                                 "image/pjpeg"
-                                                 "image/png"
-                                                 "image/svg+xml"
-                                                 "image/tiff"]]}))
+            {:content_type [(if not? not-in in) images-content-types]}))
 
 (defn file-pred-galleria? [query*]
   (kc/where query* (= :galleria true)))
