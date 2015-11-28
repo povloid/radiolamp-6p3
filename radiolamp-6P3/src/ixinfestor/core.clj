@@ -879,7 +879,7 @@
   (reduce
    (fn [{:keys [files images] :as  row}
         {content_type :content_type :as file-row}]
-     (if (contains? images-mime-types content_type)
+     (if (contains? images-content-types content_type)
        (assoc row :images (conj images file-row))
        (assoc row :files  (conj files  file-row))))
    (assoc row :images [] :files [])
