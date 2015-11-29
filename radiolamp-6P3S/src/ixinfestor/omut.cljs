@@ -1004,11 +1004,11 @@
 ;;*
 ;;**************************************************************************************************
 
-(def select-app-init
-  {:selected nil
-   :list []})
-
 (def no-select-v "NO-SELECT")
+
+(def select-app-init
+  {:selected no-select-v
+   :list []})
 
 (defn select-app-list [app]
   (app :list))
@@ -1038,6 +1038,7 @@
                             on-change-fn
                             value-field-key
                             disabled?
+                            alert-warn-on-not-selected?
                             title-field-key]
                      :or {value-field-key :id
                           title-field-key :keyname
@@ -1054,6 +1055,14 @@
             :onChange
             (fn [e]
               (let [v (-> e .-target .-value)]
+                ;; Для подсветки при пустом значении
+                (if (and alert-warn-on-not-selected?
+                         (or (nil? v)
+                             (= v no-select-v)
+                             (empty? v)))
+                  (om/transact! app #(assoc % :has-warning? true :text-warning "Невыбрано значение"))
+                  (do (helper-p-clean app) (input-css-string-has?-clean app)))
+                ;;Дальнейшая отработка действия
                 (om/update! app :selected v)
                 (when on-change-fn (on-change-fn v))))}
 
@@ -2462,7 +2471,7 @@
                                                     :top_description nil))
                                        1)}
                        (ui-glyphicon "remove" "" "3em"))
-           
+
            (dom/img #js {:src src
                          :style #js {:msTransform deg-2
                                      :WebkitTransform deg-2
@@ -3063,7 +3072,9 @@
                                     ui-type--add-button--text "Выбрать..."
                                     row-pk-fiels [:id]
                                     }}]
-  (fn [app _ {:keys [selection-type
+  (fn [app _ {:keys [label-one
+                     label-multi
+                     selection-type
                      ui-type
                      ui-type--add-button--type
                      ui-type--add-button--text
@@ -3071,7 +3082,9 @@
                      label-class+
                      input-class+
                      search-view-opts]
-              :or {selection-type selection-type
+              :or {label-one label-one
+                   label-multi label-multi
+                   selection-type selection-type
                    ui-type ui-type
                    ui-type--add-button--type ui-type--add-button--type
                    ui-type--add-button--text ui-type--add-button--text
