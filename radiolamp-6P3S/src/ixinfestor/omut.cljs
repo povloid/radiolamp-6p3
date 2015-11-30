@@ -48,7 +48,6 @@
     nil))
 
 
-
 (defn on-click-com-fn [f]
   (fn [e]
     (.preventDefault e)
@@ -879,6 +878,25 @@
                   (input-css-string-has?-clean-and-set! app k))))
 
 ;; END has
+;;..................................................................................................
+
+;;**************************************************************************************************
+;;* BEGIN Throw validators
+;;* tag: <throw validators>
+;;*
+;;* description: Валидаторы с исключениями и подсветкой
+;;*
+;;**************************************************************************************************
+
+(defn get-valid-value-or-throw
+  [app path get-val-fn pred? throw-message]
+  (let [v (get-val-fn (get-in @app path))]
+    (if (pred? v)
+      (do (om/transact! app path #(assoc % :has-danger? true :text-danger throw-message))
+          (throw (js/Error. throw-message)))
+      v)))
+
+;; END
 ;;..................................................................................................
 
 ;;**************************************************************************************************
@@ -3081,7 +3099,8 @@
                      on-selected-fn
                      label-class+
                      input-class+
-                     search-view-opts]
+                     search-view-opts
+                     main-div-params]
               :or {label-one label-one
                    label-multi label-multi
                    selection-type selection-type
@@ -3098,7 +3117,7 @@
       om/IRender
       (render [_]
         (dom/div
-         nil
+         main-div-params
 
          ;;(dom/p nil (str (@app :sel)))
 
