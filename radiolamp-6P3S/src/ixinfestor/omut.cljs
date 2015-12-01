@@ -42,10 +42,17 @@
   (and (not (js/isNaN (js/parseFloat n))) (js/isFinite n)))
 
 
-(defn parse-int-or-nil [v]
+(defn parse-int-or [v dv]
   (if (is-numeric? v)
     (js/parseInt v)
-    nil))
+    dv))
+
+
+(defn parse-int-or-nil [v]
+  (parse-int-or v nil))
+
+(defn parse-int-or-zero [v]
+  (parse-int-or v 0))
 
 
 (defn on-click-com-fn [f]
@@ -1239,6 +1246,7 @@
 (def textarea-app-init
   {:value ""})
 
+(defn textarea-value [app] (get app :value))
 
 (defn textarea [app owner {:keys [class+
                                   onChange-valid?-fn
@@ -2097,13 +2105,12 @@
 ;;**************************************************************************************************
 
 (def virtual-pages-app-init
-  {:current :main
-   })
+  {:current :main})
 
 (defn virtual-pages-current [app]
-  (@app :current))
+  (app :current))
 
-(defn virtual-pages-go-to-page [app page]
+(defn virtual-pages-go-to-page!! [app page]
   (om/update! app :current page))
 
 (defn ui-virtual-page-<<
@@ -2111,12 +2118,12 @@
    (ui-virtual-page-<< app page-key nil body))
   ([app page-key back-key body]
    (dom/div #js {:style #js {:display
-                             (if (= (virtual-pages-current app) page-key)
+                             (if (= (virtual-pages-current @app) page-key)
                                "" "none") }}
             (when back-key
               (ui-button {:type :default
                           :on-click (fn [_]
-                                      (virtual-pages-go-to-page app back-key)
+                                      (virtual-pages-go-to-page!! app back-key)
                                       1)
                           :text (dom/span nil
                                           (dom/span #js {:className "glyphicon glyphicon-backward"
