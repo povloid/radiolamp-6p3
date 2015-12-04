@@ -2207,7 +2207,7 @@
 ;;**************************************************************************************************
 
 (defn ui-panel [{:keys [heading heading-glyphicon badge
-                        body after-body type]}]
+                        body after-body type style]}]
   (dom/div #js {:className (str "panel panel-"
                                 (get {:default "default"
                                       :primary "primary"
@@ -2215,7 +2215,8 @@
                                       :info "info"
                                       :warning "warning"
                                       :danger "danger"
-                                      } type "default"))}
+                                      } type "default"))
+                :style style}
            (when heading
              (dom/div #js {:className "panel-heading"}
                       (when heading-glyphicon
