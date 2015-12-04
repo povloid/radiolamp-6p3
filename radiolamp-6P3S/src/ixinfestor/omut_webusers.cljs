@@ -212,9 +212,10 @@
 (defn webusers-search-view [app own {:keys [selection-type
                                             webusers-edit-form-specific
                                             header app-to-tds-seq-fn
-                                            editable?]
+                                            editable?
+                                            show-add-button-fn?
+                                            get-spec-query-params-fn]
                                      :or {selection-type :one}}]
-  (println " selection-type: " selection-type)
   (reify
     om/IInitState
     (init-state [_]
@@ -232,8 +233,11 @@
                            :data-update-fn
                            (fn [app]
                              (ixnet/get-data "/tc/rb/webusers/list/transit"
-                                             {:fts-query (get-in @app [:fts-query :value])
-                                              :page (get-in @app [:page])}
+                                             (let [q {:fts-query (get-in @app [:fts-query :value])
+                                                      :page (get-in @app [:page])}]                                               
+                                               (if get-spec-query-params-fn
+                                                 (merge q (get-spec-query-params-fn app))
+                                                 q))
                                              (fn [response]
                                                (om/update! app :data (vec response)))))
                            :data-rendering-fn
@@ -276,9 +280,9 @@
                                                                }})
                                              }))
                            :add-button-fn
-                           #(do (omut/modal-show (:modal-add app))
-                                (put! chan-modal-add-id 0)
-                                )
+                           (when show-add-button-fn?
+                             #(do (omut/modal-show (:modal-add app))
+                                  (put! chan-modal-add-id 0)))
                            }})
 
                (when editable?

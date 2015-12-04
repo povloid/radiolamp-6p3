@@ -204,12 +204,14 @@
 
 
 
-(defn the-time-has-passed-from-the-date [date]
-  (let [now (new js/Date)
 
-        time-diff (.abs js/Math
-                        (- (.getTime now)
-                           (.getTime date)))
+
+
+
+(defn the-time-has-passed-from [date-1 date-2]
+  (let [time-diff (.abs js/Math
+                        (- (.getTime date-2)
+                           (.getTime date-1)))
 
         diff-ds (.floor js/Math
                         (/ time-diff
@@ -231,9 +233,14 @@
      (- diff-ms (* diff-hs 60))
      ]))
 
+(defn the-time-has-passed-from-the-date [date]
+  (the-time-has-passed-from date (new js/Date)))
+
 (defn the-time-has-passed-from-the-date-as-str [date]
   (let [[d h m]  (the-time-has-passed-from-the-date date)]
     (gstring/format "прошло: %d дн. %02d час. %02d мин." d h m)))
+
+
 
 ;; END date and time functions
 ;;..................................................................................................
@@ -2274,6 +2281,7 @@
                         body
                         button-do-fn
                         button-do-text
+                        heading-tag
                         ]}]
   (dom/div #js {:className "media" :style style
                 :onClick on-click-fn}
@@ -2288,7 +2296,7 @@
                     (when href (dom/a #js {:style #js {:float "right"}
                                            :href (or href "#") :target "_blank"}
                                       (dom/button #js {:className "btn btn-success"} "скачать")))
-                    (when heading (dom/h4 #js {:className "media-heading"} heading
+                    (when heading ((or heading-tag dom/h4) #js {:className "media-heading"} heading
                                           (when heading-2 (dom/small nil " - " heading-2 ))))
                     body)))
 
@@ -3086,6 +3094,7 @@
                                       multiselect-row-render-fn
                                       row-pk-fiels
                                       one--row-to-text-fn
+                                      multi-table-caption
                                       ]
                                :or {class+ ""
                                     selection-type :one
@@ -3096,6 +3105,7 @@
                                     ui-type--add-button--type :default
                                     ui-type--add-button--text "Выбрать..."
                                     row-pk-fiels [:id]
+                                    multi-table-caption "Наименование"
                                     }}]
   (fn [app _ {:keys [label-one
                      label-multi
@@ -3107,7 +3117,8 @@
                      label-class+
                      input-class+
                      search-view-opts
-                     main-div-params]
+                     main-div-params
+                     multi-table-caption]
               :or {label-one label-one
                    label-multi label-multi
                    selection-type selection-type
@@ -3115,9 +3126,10 @@
                    ui-type--add-button--type ui-type--add-button--type
                    ui-type--add-button--text ui-type--add-button--text
                    on-selected-fn on-selected-fn
-                   label-class+ "col-sm-3 col-md-2  col-lg-1"
-                   input-class+ "col-sm-9 col-md-10 col-lg-11"
-                   search-view-opts {}}}]
+                   label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                   input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                   search-view-opts {}
+                   multi-table-caption multi-table-caption}}]
 
 
     (reify
@@ -3162,7 +3174,7 @@
 
                       :multi
                       (dom/div
-                       #js {:className "col-sm-9 col-md-10 col-lg-11" :style #js {}}
+                       #js {:className input-class+ :style #js {}}
                        (dom/div
                         #js {:className (str "panel "
                                              ({:muted   "panel-muted"
@@ -3182,7 +3194,7 @@
                                    :striped? true
                                    ;;:responsive? true
                                    :style+ #js {:marginBottom 0}
-                                   :thead (ui-thead-tr [(dom/th nil "Наименование") (dom/th nil "Действие")])
+                                   :thead (ui-thead-tr [(dom/th nil multi-table-caption) (dom/th nil "Действие")])
                                    :tbody (om/build tbody-trs-sel (app :sel)
                                                     {:opts
                                                      {:app-to-tds-seq-fn

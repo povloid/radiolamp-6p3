@@ -226,7 +226,10 @@
 
 
 (defn rest-webusers-list [{{:keys [page page-size fts-query]
-                            :or {page 1 page-size 10 fts-query ""}} :params}]
+                            :or {page 1 page-size 10 fts-query ""}} :params
+                           :as request}
+
+                          {:keys [webusers-list-pred-fn]}]
   (-> ix/webuser-select*
       (ix/com-pred-page* (dec page) page-size)
 
@@ -235,6 +238,12 @@
             (if (empty? fts-query)
               query
               (ix/webdoc-pred-search? query fts-query))))
+
+
+      (as-> query
+          (if webusers-list-pred-fn
+            (webusers-list-pred-fn query request)
+            query))
 
       (korma.core/order :id :desc)
       ix/com-exec
@@ -282,7 +291,7 @@
       ix/webuser-save-for-username))
 
 
-(defn routes-webusers* [roles-set]
+(defn routes-webusers* [roles-set opts]
   (routes
    (context "/tc/rb/webusers" []
 
@@ -293,7 +302,7 @@
                   (friend/authorize
                    roles-set
                    (-> request
-                       rest-webusers-list
+                       (rest-webusers-list opts)
                        ring.util.response/response
                        cw/error-response-json)))
 
@@ -302,7 +311,7 @@
                   (friend/authorize
                    roles-set
                    (-> request
-                       rest-webusers-list
+                       (rest-webusers-list opts)
                        transit/response-transit)))
 
 

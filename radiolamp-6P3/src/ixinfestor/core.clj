@@ -626,6 +626,12 @@
       :cemerick.friend/identity
       :current))
 
+
+(defn webuser-get-from-request [request]
+  (-> request
+      webuser-get-username-from-request
+      webuser-find-by-username))
+
 ;; END entity webuser
 ;;..................................................................................................
 
