@@ -2207,7 +2207,7 @@
 ;;**************************************************************************************************
 
 (defn ui-panel [{:keys [heading heading-glyphicon badge
-                        body after-body type style]}]
+                        body after-body type style class+]}]
   (dom/div #js {:className (str "panel panel-"
                                 (get {:default "default"
                                       :primary "primary"
@@ -2215,7 +2215,8 @@
                                       :info "info"
                                       :warning "warning"
                                       :danger "danger"
-                                      } type "default"))
+                                      } type "default")
+                                (or (str " " class+) ""))
                 :style style}
            (when heading
              (dom/div #js {:className "panel-heading"}
@@ -2233,17 +2234,22 @@
 
            after-body))
 
-(defn ui-panel-with-table [{:keys [cols rows]
-                            :or {cols [] rows []}
+(defn ui-panel-with-table [{:keys [cols rows
+                                   striped? bordered? hover? responsive?]
+                            :or {cols [] rows []
+                                 striped? true
+                                 bordered? true
+                                 hover? true
+                                 responsive? true}
                             :as options}]
   (ui-panel
    (assoc options
           :after-body
           (ui-table
-           {:hover? true
-            :bordered? true
-            :striped? true
-            :responsive? true
+           {:hover? hover?
+            :bordered? bordered?
+            :striped? striped?
+            :responsive? responsive?
             :thead (->> cols
                         (map #(dom/th nil %))
                         ui-thead-tr)
