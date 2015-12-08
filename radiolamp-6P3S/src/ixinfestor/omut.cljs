@@ -1343,7 +1343,6 @@
                   :active? (@app :value)
                   :disabled? disabled?
                   :on-click (fn [_]
-                              (when before-onClick-fn (before-onClick-fn))
                               (om/transact! app :value not)
                               (when onClick-fn (onClick-fn)))
                   :text (if (@app :value) text-on text-off)}))))
