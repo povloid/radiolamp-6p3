@@ -225,31 +225,37 @@
 ;;**************************************************************************************************
 
 
+
 (defn rest-webusers-list [{{:keys [page page-size fts-query]
                             :or {page 1 page-size 10 fts-query ""}} :params
                            :as request}
 
-                          {:keys [webusers-list-pred-fn]}]
-  (-> ix/webuser-select*
-      (ix/com-pred-page* (dec page) page-size)
+                          {:keys [webusers-list-pred-fn view-role edit-role]}]
 
-      (as-> query
-          (let [fts-query (clojure.string/trim fts-query)]
-            (if (empty? fts-query)
-              query
-              (ix/webdoc-pred-search? query fts-query))))
+  (if (ix/is-allow-from-request request #{edit-role view-role})
+    (-> ix/webuser-select*
+        (ix/com-pred-page* (dec page) page-size)
+
+        (as-> query
+            (let [fts-query (clojure.string/trim fts-query)]
+              (if (empty? fts-query)
+                query
+                (ix/webdoc-pred-search? query fts-query))))
 
 
-      (as-> query
-          (if webusers-list-pred-fn
-            (webusers-list-pred-fn query request)
-            query))
+        (as-> query
+            (if webusers-list-pred-fn
+              (webusers-list-pred-fn query request)
+              query))
 
-      (korma.core/order :id :desc)
-      ix/com-exec
-      ((partial map #(dissoc % :password)))))
+        (korma.core/order :id :desc)
+        ix/com-exec)
+    []))
 
-(defn rest-webusers-find [{{id :id} :params}]
+(defn rest-webusers-find [{{id :id} :params :as request} {:keys [view-role]}]
+
+  (ix/throw-when-no-role-from-request request view-role)
+
   (let [webroles (ix/webrole-list true)]
     (-> (if id
           (-> id
@@ -262,21 +268,26 @@
               (assoc :troles-set
                      [webroles #{}]))))))
 
-(defn rest-webusers-save [request]
+(defn rest-webusers-save [request {:keys [edit-role]}]
+
+  (ix/throw-when-no-role-from-request request edit-role)
+
   (let [{:keys [row user-roles-keys-set]} (request :params)
         row (-> row
                 (as-> row
                     (if (empty? (:password row)) (dissoc row :password)
                         (update-in row [:password] creds/hash-bcrypt)))
-                ((partial ix/com-save-for-id ix/webuser))
-                (dissoc :password))]
+                ((partial ix/com-save-for-id ix/webuser)))]
 
     (when user-roles-keys-set
       (println (map keyword user-roles-keys-set))
       (ix/webuserwebrole-add-rels-for-keynames row (map keyword user-roles-keys-set)))
     row))
 
-(defn rest-webusers-delete [request]
+(defn rest-webusers-delete [request {:keys [edit-role]}]
+
+  (ix/throw-when-no-role-from-request request edit-role)
+
   (-> request
       :params
       :id
@@ -291,85 +302,70 @@
       ix/webuser-save-for-username))
 
 
-(defn routes-webusers* [roles-set opts]
+(defn routes-webusers* [{:keys [view-role
+                                edit-role]
+                         :as opts}]
   (routes
    (context "/tc/rb/webusers" []
 
 
-
             ;; JSON
             (POST "/list" request
-                  (friend/authorize
-                   roles-set
-                   (-> request
-                       (rest-webusers-list opts)
-                       ring.util.response/response
-                       cw/error-response-json)))
+                  (-> request
+                      (rest-webusers-list opts)
+                      ring.util.response/response
+                      cw/error-response-json))
 
             ;; TRANSIT
             (POST "/list/transit" request
-                  (friend/authorize
-                   roles-set
-                   (-> request
-                       (rest-webusers-list opts)
-                       transit/response-transit)))
+                  (-> request
+                      (rest-webusers-list opts)
+                      transit/response-transit))
 
 
 
             ;; JSON
             (POST "/find" request
-                  (friend/authorize
-                   roles-set
-                   (-> request
-                       rest-webusers-find
-                       ring.util.response/response
-                       cw/error-response-json)))
+                  (-> request
+                      (rest-webusers-find opts)
+                      ring.util.response/response
+                      cw/error-response-json))
 
             ;; TRANSIT
             (POST "/find/transit" request
-                  (friend/authorize
-                   roles-set
-                   (-> request
-                       rest-webusers-find
-                       transit/response-transit)))
+                  (-> request
+                      (rest-webusers-find opts)
+                      transit/response-transit))
 
 
 
             ;; JSON
             (POST "/save" request
-                  (friend/authorize
-                   roles-set
-                   (-> request
-                       rest-webusers-save
-                       ring.util.response/response
-                       cw/error-response-json)))
+                  (-> request
+                      (rest-webusers-save opts)
+                      ring.util.response/response
+                      cw/error-response-json))
 
             ;; TRANSIT
             (POST "/save/transit" request
-                  (friend/authorize
-                   roles-set
-                   (-> request
-                       rest-webusers-save
-                       transit/response-transit)))
+                  (-> request
+                      (rest-webusers-save opts)
+                      transit/response-transit))
 
 
 
             ;; JSON
             (POST "/delete" request
-                  (friend/authorize
-                   roles-set
-                   (-> request
-                       rest-webusers-delete
-                       ring.util.response/response
-                       cw/error-response-json)))
+                  (-> request
+                      (rest-webusers-delete opts)
+                      ring.util.response/response
+                      cw/error-response-json))
 
             ;; TRANSIT
             (POST "/delete/transit" request
-                  (friend/authorize
-                   roles-set
-                   (-> request
-                       rest-webusers-delete
-                       transit/response-transit)))
+                  (-> request
+                      (rest-webusers-delete opts)
+                      transit/response-transit))
 
 
 

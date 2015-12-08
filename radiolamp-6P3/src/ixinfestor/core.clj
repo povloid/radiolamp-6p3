@@ -592,29 +592,37 @@
 
 (kc/defentity webuser
   (kc/pk :id)
-  (kc/transform (fn [row] (dissoc row :fts)))
-  )
+  (kc/transform (fn [row] (dissoc row :fts :password))))
+
+(kc/defentity webuser!!!
+  (kc/table :webuser)
+  (kc/pk :id)
+  (kc/transform (fn [row] (dissoc row :fts))))
 
 
 (defn webuser-save
   "Сохранить пользователя"
   [webuser-row]
-  ;; SAVE
   (com-save-for-id webuser webuser-row))
 
 (defn webuser-save-for-username
   "Сохранить пользователя по имени"
   [webuser-row]
-  ;; SAVE
   (com-save-for-field webuser :username webuser-row))
 
 (def webuser-select* (kc/select* webuser))
 
 (defn webuser-find-by-username [username]
-  (-> (kc/select* webuser)
+  (-> webuser-select* 
       (kc/where (= :username username))
-      kc/exec
-      first))
+      com-exec-1))
+
+(defn webuser-find-by-username!!! [username]
+  (-> webuser!!!
+      kc/select*
+      (kc/where (= :username username))
+      com-exec-1))
+
 
 (defn webuser-pred-search? [select*-1 fts-query]
   (com-pred-full-text-search* select*-1 :fts fts-query))
@@ -728,6 +736,14 @@
   (if (contains-webroles? roles-keys-set roles)
     row (reduce dissoc row ks)))
 
+
+
+(defn is-allow-from-request [request roles]
+  (-> request
+      webuserwebrole-get-rels-set-from-request
+      (contains-webroles? roles)))
+
+
 (defn throw-when-no-role [roles-keys-set role]
   (when (not (contains? roles-keys-set (:keyname role)))
     (throw (Exception. "У вас нет прав доступа для данной функции!"))))
@@ -736,11 +752,12 @@
   (when (not (contains-webroles? roles-keys-set roles))
     (throw (Exception. "У вас нет прав доступа для данной функции!"))))
 
-
-(defn throw-when-no-roles-from-request [request webrole-row]
+(defn throw-when-no-role-from-request [request webrole-row]
   (throw-when-no-role
    (webuserwebrole-get-rels-set-from-request request)
    webrole-row))
+
+
 
 
 ;; дополнительный функционал
