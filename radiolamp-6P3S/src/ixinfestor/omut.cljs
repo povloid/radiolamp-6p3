@@ -1343,6 +1343,7 @@
                   :active? (@app :value)
                   :disabled? disabled?
                   :on-click (fn [_]
+                              (when before-onClick-fn (before-onClick-fn))
                               (om/transact! app :value not)
                               (when onClick-fn (onClick-fn)))
                   :text (if (@app :value) text-on text-off)}))))
@@ -1365,6 +1366,53 @@
                (dom/div #js {:className input-class+ :style #js {}}
                         (om/build toggle-button app {:opts spec-toggle-button})
                         (om/build helper-p app {}) )))))
+
+
+
+
+
+(defn toggle-buttons-selector-group-app-init [buttons]
+  {:buttons (vec (map
+                  (fn [{:keys [value key] :as b} i]
+                    (assoc b
+                           :value (if (nil? value) false value)
+                           :key key))
+                  buttons))})
+
+(defn toggle-buttons-selector-get-selected [app]
+  (->> app :buttons (filter :value) (map :key)))
+
+(defn toggle-buttons-selector-get-selected-one [app]
+  (first (toggle-buttons-selector-get-selected app)))
+
+
+(defn toggle-buttons-selector-group [app own {:keys [selection-type
+                                                     onClick-fn]}]
+  (reify
+    om/IRender
+    (render [_]
+      (->> app
+           :buttons
+           (map (fn [app-row]
+                  (let [{:keys [bs-type value disabled? text]} @app-row]
+                    (ui-button
+                     {:type (or bs-type :default)
+                      :active? value
+                      :disabled? disabled?
+                      :on-click
+                      (fn [_]
+                        (when (= selection-type :one)
+                          (om/transact!
+                           app :buttons
+                           (fn [app] (vec (map #(assoc % :value false) app)))))                        
+                        (om/transact! app-row :value not)
+                        (when onClick-fn (onClick-fn)))
+                      :text text}))))
+           (apply
+            dom/div #js {:className "btn-group" :role "group"})))))
+
+
+
 
 ;; END toggle batton
 ;;..................................................................................................
@@ -2304,7 +2352,7 @@
                                            :href (or href "#") :target "_blank"}
                                       (dom/button #js {:className "btn btn-success"} "скачать")))
                     (when heading ((or heading-tag dom/h4) #js {:className "media-heading"} heading
-                                          (when heading-2 (dom/small nil " - " heading-2 ))))
+                                   (when heading-2 (dom/small nil " - " heading-2 ))))
                     body)))
 
 
