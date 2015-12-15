@@ -378,7 +378,8 @@
                                header
                                body
                                footer
-                               class+]
+                               class+
+                               on-close-button-fn]
                         :or {label "Пустая пометка"
                              modal-size :default
                              class+ "" }
@@ -433,7 +434,10 @@
                                    (dom/div #js {:className "modal-header"}
                                             (dom/button #js {:type "button" :className "close"
                                                              :data-dismiss "modal" :aria-label "Close"
-                                                             :onClick (fn [_] (om/update! app :show false) 1)}
+                                                             :onClick (fn [_]
+                                                                        (when on-close-button-fn
+                                                                          (on-close-button-fn))
+                                                                        (om/update! app :show false) 1)}
                                                         (ui-glyphicon "remove"))
 
                                             (or header (dom/h4 #js {:className "modal-title"} label)))
@@ -443,7 +447,11 @@
                                                             "Пустое пространство диалога. Можно наполнить элементами")))
                                    (dom/div #js {:className "modal-footer"}
                                             (or footer (ui-button {:type :default
-                                                                   :on-click (fn [_] (om/update! app :show false) 1)
+                                                                   :on-click (fn [_]
+                                                                               (when on-close-button-fn
+                                                                                 (on-close-button-fn))
+                                                                               (om/update! app :show false)
+                                                                               1)
                                                                    :text "Закрыть"}))))))))))
 
 
@@ -1403,7 +1411,7 @@
                         (when (= selection-type :one)
                           (om/transact!
                            app :buttons
-                           (fn [app] (vec (map #(assoc % :value false) app)))))                        
+                           (fn [app] (vec (map #(assoc % :value false) app)))))
                         (om/transact! app-row :value not)
                         (when onClick-fn (onClick-fn)))
                       :text text}))))
