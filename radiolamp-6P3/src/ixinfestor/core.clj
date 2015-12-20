@@ -1345,3 +1345,22 @@
 
 ;; END anytext entity
 ;;..................................................................................................
+
+
+
+
+
+(defmacro try-catch [& body]
+  `(try
+     (do ~@body)
+     (catch java.sql.BatchUpdateException ex-buth#
+       (let [ex# (.getNextException ex-buth#)]
+         (-> ex#
+             .getMessage
+             ((fn [message#] (println message#) message#)))))
+     (catch Exception ex#
+       (do
+         (clojure.stacktrace/print-stack-trace ex#)
+         (-> ex#
+             .getMessage
+             ((fn [message#] (println message#) message#)))))))
