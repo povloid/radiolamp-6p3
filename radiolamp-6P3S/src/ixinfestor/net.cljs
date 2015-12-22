@@ -45,7 +45,7 @@
                      "---------------------------------------------------------\n"
                      (get-response-as-transit-or-text ee)
                      "\n---------------------------------------------------------\n\n")
-            (when show-alert
+            (when (and show-alert (not (empty? (.getStatus ee))))
               (js/alert (str
                          "ERROR IN [" s "]\n"
                          "Status: " (.getStatus ee) " - " (.getStatusText ee) "\n"
