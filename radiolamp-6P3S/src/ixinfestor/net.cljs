@@ -30,7 +30,7 @@
 
 
 
-(defn get-data [uri params success-fn & [error-fn complete-fn disable-progress-element?]]
+(defn get-data [uri params success-fn & [error-fn complete-fn disable-progress-element? my-error-alert-fn]]
   (letfn [(get-response-as-transit-or-text [ee]
             (try
               (t/read r (.getResponseText ee))
@@ -46,10 +46,12 @@
                      (get-response-as-transit-or-text ee)
                      "\n---------------------------------------------------------\n\n")
             (when (and show-alert  (not= 0 (.getStatus ee)))
-              (js/alert (str
-                         "ERROR IN [" s "]\n"
-                         "Status: " (.getStatus ee) " - " (.getStatusText ee) "\n"
-                         (get-response-as-transit-or-text ee)))))
+              (if my-error-alert-fn
+                (my-error-alert-fn (.getStatus ee) (.getStatusText ee))
+                (js/alert (str
+                           "ERROR IN [" s "]\n"
+                           "Status: " (.getStatus ee) " - " (.getStatusText ee) "\n"
+                           (get-response-as-transit-or-text ee))))))
 
           ;; (redirect-to-root-when-not-transit [ee]
           ;;   (let [ct (.getResponseHeader ee "Content-Type")]
@@ -76,14 +78,14 @@
                      (fn [e]
                        (print "REQUEST ERROR")
                        (let [ee (.-target e)]
-                         
+
                          (try
                            (make-reload-if-reload-client (t/read r (.getResponseText ee)))
                            (catch js/Error e
                              (println "ERR -1 " e)))
-                         
+
                          (print-error "ERROR" ee false)
-                         
+
                          (when error-fn
                            (let [rt (.getResponseText ee)]
                              (try
@@ -100,7 +102,7 @@
                            (let [r (t/read r (.getResponseText ee))]
                              (make-reload-if-reload-client r)
                              (when success-fn (success-fn r)))
-                           (catch js/Error e                             
+                           (catch js/Error e
                              (println (str "ERR 1 " e))
                              (print-error "ERRON IN REQUEST SUCCESS" ee false))))))
 
