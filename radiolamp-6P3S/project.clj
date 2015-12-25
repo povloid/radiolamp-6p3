@@ -1,4 +1,4 @@
-(defproject radiolamp-6P3S "0.2.0"
+(defproject radiolamp-6P3S "0.2.1"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -8,7 +8,7 @@
                  ;; CLOJURESCRIPT LIBRARIES
                  [org.clojure/clojurescript "1.7.170"]
 
-                 [com.cognitect/transit-cljs "0.8.232"]
+                 [com.cognitect/transit-cljs "0.8.237"]
                  [org.omcljs/om "0.9.0"]
                  ;;[sablono "0.3.4"]
                  [secretary "1.2.3"]

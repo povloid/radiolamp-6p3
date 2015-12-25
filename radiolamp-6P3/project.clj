@@ -1,4 +1,4 @@
-(defproject radiolamp-6P3 "0.2.0"
+(defproject radiolamp-6P3 "0.2.1"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -19,10 +19,10 @@
 
                  [clj-time "0.11.0"]
 
-                 [org.postgresql/postgresql "9.3-1102-jdbc41"]
+                 [org.postgresql/postgresql "9.4.1207"]
                  [korma "0.4.2"]
 
-                 [net.sourceforge.htmlcleaner/htmlcleaner "2.15"]
+                 [net.sourceforge.htmlcleaner/htmlcleaner "2.16"]
 
                  [com.draines/postal "1.11.4"]
                  [image-resizer "0.1.8"]                              
