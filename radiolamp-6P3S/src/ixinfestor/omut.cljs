@@ -163,18 +163,18 @@
 
 (def date-formats
   (let [f goog.i18n.DateTimeFormat.Format]
-    {:FULL_DATE (.-FULL_DATE f)
-     :FULL_DATETIME (.-FULL_DATETIME f)
-     :FULL_TIME (.-FULL_TIME f)
-     :LONG_DATE (.-LONG_DATE f)
-     :LONG_DATETIME (.-LONG_DATETIME f)
-     :LONG_TIME (.-LONG_TIME f)
-     :MEDIUM_DATE (.-MEDIUM_DATE f)
+    {:FULL_DATE       (.-FULL_DATE f)
+     :FULL_DATETIME   (.-FULL_DATETIME f)
+     :FULL_TIME       (.-FULL_TIME f)
+     :LONG_DATE       (.-LONG_DATE f)
+     :LONG_DATETIME   (.-LONG_DATETIME f)
+     :LONG_TIME       (.-LONG_TIME f)
+     :MEDIUM_DATE     (.-MEDIUM_DATE f)
      :MEDIUM_DATETIME (.-MEDIUM_DATETIME f)
-     :MEDIUM_TIME (.-MEDIUM_TIME f)
-     :SHORT_DATE (.-SHORT_DATE f)
-     :SHORT_DATETIME (.-SHORT_DATETIME f)
-     :SHORT_TIME (.-SHORT_TIME f)
+     :MEDIUM_TIME     (.-MEDIUM_TIME f)
+     :SHORT_DATE      (.-SHORT_DATE f)
+     :SHORT_DATETIME  (.-SHORT_DATETIME f)
+     :SHORT_TIME      (.-SHORT_TIME f)
      }))
 
 
@@ -203,27 +203,28 @@
       (format-date date-format (str-to-date s))))
 
 
+(defn date-com-format-date [d]
+  (format-date "yyyy-MM-dd" d))
 
-
-
-
+(defn date-com-format-datetime [d]
+  (format-date "yyyy-MM-dd HH:mm:ss z" d))
 
 (defn the-time-has-passed-from [date-1 date-2]
   (let [time-diff (.abs js/Math
                         (- (.getTime date-2)
                            (.getTime date-1)))
 
-        diff-ds (.floor js/Math
-                        (/ time-diff
-                           (* 1000 60 60 24)))
+        diff-ds   (.floor js/Math
+                          (/ time-diff
+                             (* 1000 60 60 24)))
 
-        diff-hs (.floor js/Math
-                        (/ time-diff
-                           (* 1000 60 60)))
+        diff-hs   (.floor js/Math
+                          (/ time-diff
+                             (* 1000 60 60)))
 
-        diff-ms (.floor js/Math
-                        (/ time-diff
-                           (* 1000 60)))]
+        diff-ms   (.floor js/Math
+                          (/ time-diff
+                             (* 1000 60)))]
     [
      ;; Дни
      diff-ds
@@ -237,7 +238,7 @@
   (the-time-has-passed-from date (new js/Date)))
 
 (defn the-time-has-passed-from-the-date-as-str [date]
-  (let [[d h m]  (the-time-has-passed-from-the-date date)]
+  (let [[d h m] (the-time-has-passed-from-the-date date)]
     (gstring/format "прошло: %d дн. %02d час. %02d мин." d h m)))
 
 
@@ -282,8 +283,8 @@
 ;;**************************************************************************************************
 
 (defn ui-glyphicon [name & [class+ size]]
-  (dom/span #js {:className (str "glyphicon glyphicon-" name " " (or class+ ""))
-                 :style #js {:fontSize size}
+  (dom/span #js {:className   (str "glyphicon glyphicon-" name " " (or class+ ""))
+                 :style       #js {:fontSize size}
                  :aria-hidden "true"}))
 
 ;; END icons
@@ -305,28 +306,28 @@
                          active?
                          on-click
                          style]
-                  :or {text "Кнопка"
-                       type :default}}]
-  (dom/button #js {:className (str "btn "
-                                   ({:default "btn-default"
-                                     :primary "btn-primary"
-                                     :success "btn-success"
-                                     :info    "btn-info"
-                                     :warning "btn-warning"
-                                     :danger  "btn-danger"
-                                     :link    "btn-link"} type)
-                                   (if size ({:lg " btn-lg"
-                                              :sm " btn-sm"
-                                              :xs " btn-xs"} size)
-                                       "")
-                                   (if block? " btn-block" "")
-                                   (if active? " active" "")
-                                   )
-                   :type "button"
-                   :disabled (if disabled? "disabled" "")
+                  :or   {text "Кнопка"
+                         type :default}}]
+  (dom/button #js {:className  (str "btn "
+                                    ({:default "btn-default"
+                                      :primary "btn-primary"
+                                      :success "btn-success"
+                                      :info    "btn-info"
+                                      :warning "btn-warning"
+                                      :danger  "btn-danger"
+                                      :link    "btn-link"} type)
+                                    (if size ({:lg " btn-lg"
+                                               :sm " btn-sm"
+                                               :xs " btn-xs"} size)
+                                        "")
+                                    (if block? " btn-block" "")
+                                    (if active? " active" "")
+                                    )
+                   :type       "button"
+                   :disabled   (if disabled? "disabled" "")
                    :onClick    (on-click-com-fn on-click)
                    :onTouchEnd (on-click-com-fn on-click)
-                   :style style
+                   :style      style
                    }
               text))
 
@@ -380,9 +381,9 @@
                                footer
                                class+
                                on-close-button-fn]
-                        :or {label "Пустая пометка"
-                             modal-size :default
-                             class+ "" }
+                        :or   {label      "Пустая пометка"
+                               modal-size :default
+                               class+     "" }
                         }]
   (reify
     om/IInitState
@@ -413,17 +414,17 @@
       ;;(println "modal id:" id)
       (let [show? (:show app)]
         (swap! modals-status (if show? conj disj) id)
-        (dom/div #js {:id id
-                      :aria-hidden "true"
+        (dom/div #js {:id              id
+                      :aria-hidden     "true"
                       :aria-labelledby label
-                      :style (if show?
-                               #js {:display "block"
-                                    :paddingLeft 0
-                                    :backgroundColor "rgba(0, 0, 0, 0.2)"}
-                               #js {:display "none" })
-                      :className (if show? "modal in" "modal")
-                      :role "dialog"
-                      :tabIndex "-1"}
+                      :style           (if show?
+                                         #js {:display         "block"
+                                              :paddingLeft     0
+                                              :backgroundColor "rgba(0, 0, 0, 0.2)"}
+                                         #js {:display "none" })
+                      :className       (if show? "modal in" "modal")
+                      :role            "dialog"
+                      :tabIndex        "-1"}
                  (dom/div #js {:className (str "modal-dialog"
                                                (condp = modal-size
                                                  :sm " modal-sm"
@@ -432,27 +433,27 @@
                                                " " class+)}
                           (dom/div #js {:className "modal-content"}
                                    (dom/div #js {:className "modal-header"}
-                                            (dom/button #js {:type "button" :className "close"
-                                                             :data-dismiss "modal" :aria-label "Close"
-                                                             :onClick (fn [_]
-                                                                        (when on-close-button-fn
-                                                                          (on-close-button-fn))
-                                                                        (om/update! app :show false) 1)}
+                                            (dom/button #js {:type         "button" :className  "close"
+                                                             :data-dismiss "modal"  :aria-label "Close"
+                                                             :onClick      (fn [_]
+                                                                             (when on-close-button-fn
+                                                                               (on-close-button-fn))
+                                                                             (om/update! app :show false) 1)}
                                                         (ui-glyphicon "remove"))
 
                                             (or header (dom/h4 #js {:className "modal-title"} label)))
                                    (dom/div #js {:className "modal-body"
-                                                 :style #js {:marginRight 40}}
+                                                 :style     #js {:marginRight 40}}
                                             (or body (dom/p #js {:className "text-info"}
                                                             "Пустое пространство диалога. Можно наполнить элементами")))
                                    (dom/div #js {:className "modal-footer"}
-                                            (or footer (ui-button {:type :default
+                                            (or footer (ui-button {:type     :default
                                                                    :on-click (fn [_]
                                                                                (when on-close-button-fn
                                                                                  (on-close-button-fn))
                                                                                (om/update! app :show false)
                                                                                1)
-                                                                   :text "Закрыть"}))))))))))
+                                                                   :text     "Закрыть"}))))))))))
 
 
 ;;------------------------------------------------------------------------------
@@ -464,15 +465,15 @@
 (defn actions-modal-button [app _ {:keys [text
                                           btn-type
                                           act-fn]
-                                   :or {text "Метка события"
-                                        btn-type :default}}]
+                                   :or   {text     "Метка события"
+                                          btn-type :default}}]
   (reify
     om/IRender
     (render [_]
-      (ui-button {:text text
-                  :type btn-type
-                  :block? true
-                  :size :lg
+      (ui-button {:text     text
+                  :type     btn-type
+                  :block?   true
+                  :size     :lg
                   :on-click (fn [_]
                               (modal-hide app)
                               (if act-fn
@@ -493,7 +494,7 @@
     (init-state [_]
       {:actions
        {:label "Пусто"
-        :acts []}})
+        :acts  []}})
     om/IWillMount
     (will-mount [this]
       (when chan-open
@@ -505,15 +506,15 @@
     om/IRenderState
     (render-state [_ {{:keys [label acts]} :actions}]
       (om/build modal app
-                {:opts {:label label
+                {:opts {:label      label
                         :modal-size :sm
-                        :body (let [buttons (map
-                                             (fn [opts]
-                                               (om/build actions-modal-button app {:opts opts}))
-                                             acts)]
-                                (if (empty? buttons)
-                                  (dom/h2 nil "Действий нет")
-                                  (apply dom/div nil buttons)))
+                        :body       (let [buttons (map
+                                                   (fn [opts]
+                                                     (om/build actions-modal-button app {:opts opts}))
+                                                   acts)]
+                                      (if (empty? buttons)
+                                        (dom/h2 nil "Действий нет")
+                                        (apply dom/div nil buttons)))
                         }}
                 ))))
 
@@ -529,8 +530,8 @@
 (def modal-yes-no-app-init modal-app-init)
 
 (defn modal-yes-no [app owner {:keys [act-yes-fn]
-                               :or {act-yes-fn #(js/alert "Действие еще не реализовано")}
-                               :as opts}]
+                               :or   {act-yes-fn #(js/alert "Действие еще не реализовано")}
+                               :as   opts}]
   (reify
     om/IRender
     (render [_]
@@ -538,14 +539,14 @@
                 {:opts (assoc opts :footer
                               (dom/div nil
 
-                                       (ui-button {:type :primary
+                                       (ui-button {:type     :primary
                                                    :on-click (fn [_]
                                                                (act-yes-fn)
                                                                (modal-hide app) 1)
-                                                   :text "Да"})
+                                                   :text     "Да"})
 
                                        (ui-button {:on-click (fn [_] (modal-hide app) 1)
-                                                   :text  "Нет"})
+                                                   :text     "Нет"})
 
                                        ))
                  } ))))
@@ -591,14 +592,14 @@
                   {:opts {:header (dom/h1 #js {:className type-class+}
                                           (when icon (ui-glyphicon icon "1em"))
                                           (or (@app :title) title-default))
-                          :body (dom/p #js {:className type-class+}
-                                       " " (@app :message))}})))))
+                          :body   (dom/p #js {:className type-class+}
+                                         " " (@app :message))}})))))
 
 
 (defn show-in-message-modal [type {:keys [title message] :as message-row}]
   (let [_ (or (by-id message-modal-id)
               (let [error-div (.createElement js/document "div")
-                    tag-body (aget (query "body") 0)]
+                    tag-body  (aget (query "body") 0)]
                 (set! (.-id error-div) message-modal-id)
                 (.appendChild tag-body error-div)
 
@@ -648,12 +649,12 @@
       (omut-row-if-not-init-init!! app))
     om/IRender
     (render [_]
-      (let [text (app k "")
+      (let [text       (app k "")
             text-count (count text)]
         (dom/p nil
-               (ui-button {:text "..."
-                           :size :xs
-                           :active? (not (omut-row-collapsed? @app k))
+               (ui-button {:text     "..."
+                           :size     :xs
+                           :active?  (not (omut-row-collapsed? @app k))
                            :on-click #(omut-row-set-collapsed-not!! app k)})
 
                (if (and (omut-row-collapsed? @app k) (> text-count 90))
@@ -674,9 +675,9 @@
                                         ;TODO: Перемиеноывать в ui-hidder
 (defn ui-collapser [app text k show? collapsed-body]
   (dom/p #js {:style #js {:display (if show? "" "none")}}
-         (ui-button {:text text
-                     :type :info
-                     :active? (not (omut-row-collapsed? @app k))
+         (ui-button {:text     text
+                     :type     :info
+                     :active?  (not (omut-row-collapsed? @app k))
                      :on-click #(omut-row-set-collapsed-not!! app k)})
 
          (dom/div #js {:style #js {:display (if (omut-row-collapsed? @app k) "none" "")}}
@@ -701,11 +702,11 @@
                                   (get {:default "default"
                                         :primary "primary"
                                         :success "success"
-                                        :info "info"
+                                        :info    "info"
                                         :warning "warning"
-                                        :danger "danger"
+                                        :danger  "danger"
                                         } type "default"))
-                 :style #js {:whiteSpace "normal"}} text))
+                 :style     #js {:whiteSpace "normal"}} text))
 
 ;; END label
 ;;..................................................................................................
@@ -720,12 +721,12 @@
 ;;**************************************************************************************************
 
 (def helper-p-app-init
-  {:text-muted nil
+  {:text-muted   nil
    :text-primary nil
    :text-success nil
-   :text-info nil
+   :text-info    nil
    :text-warning nil
-   :text-danger nil})
+   :text-danger  nil})
 
 
 (defn helper-p [app _]
@@ -790,12 +791,12 @@
 ;;**************************************************************************************************
 
 (def alert-app-init
-  {:alert-muted nil
+  {:alert-muted   nil
    :alert-primary nil
    :alert-success nil
-   :alert-info nil
+   :alert-info    nil
    :alert-warning nil
-   :alert-danger nil})
+   :alert-danger  nil})
 
 
 (defn alert [app _]
@@ -867,14 +868,14 @@
 (def input-css-string-has?-app-init
   {:has-success? nil
    :has-warning? nil
-   :has-error? nil})
+   :has-error?   nil})
 
 
 (defn input-css-string-has? [{:keys [has-success?
                                      has-warning?
                                      has-error?]}]
   (condp = true
-    has-error?  "has-error"
+    has-error?   "has-error"
     has-warning? "has-warning"
     has-success? "has-success"
     ""))
@@ -924,9 +925,9 @@
 
 
 (defn ui-form-group [{:keys [label label-class+ input-class+ body]
-                      :or {label "метка"
-                           label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                           input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"}}]
+                      :or   {label        "метка"
+                             label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                             input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"}}]
   (dom/div #js {:className "form-group"}
            (dom/label #js {:className (str "control-label " label-class+) } label)
            (dom/div #js {:className input-class+ :style #js {}}
@@ -974,40 +975,40 @@
                                onKeyPress-fn
                                placeholder
                                min max step]
-                        :or {class+ ""
-                             type "text"
-                             onChange-valid?-fn (fn [_ _] true)
-                             onKeyPress-fn (fn [_] nil)
-                             placeholder ""
-                             }}]
+                        :or   {class+             ""
+                               type               "text"
+                               onChange-valid?-fn (fn [_ _] true)
+                               onKeyPress-fn      (fn [_] nil)
+                               placeholder        ""
+                               }}]
   (reify
     om/IRender
     (render [this]
       (let [value (or (:value @app) "")]
-        (dom/input #js {:value value
-                        :onChange (fn [e]
-                                    (let [new-value (.. e -target -value)]
-                                      (if (onChange-valid?-fn app new-value)
-                                        (om/update! app :value new-value)
-                                        (om/update! app :value value))
-                                      (when onChange-updated-fn
-                                        (onChange-updated-fn))
-                                      ))
-                        :onKeyPress onKeyPress-fn
-                        :type type
-                        :min min :max max :step step
+        (dom/input #js {:value       value
+                        :onChange    (fn [e]
+                                       (let [new-value (.. e -target -value)]
+                                         (if (onChange-valid?-fn app new-value)
+                                           (om/update! app :value new-value)
+                                           (om/update! app :value value))
+                                         (when onChange-updated-fn
+                                           (onChange-updated-fn))
+                                         ))
+                        :onKeyPress  onKeyPress-fn
+                        :type        type
+                        :min         min :max max :step step
                         :placeholder placeholder
-                        :className (str "form-control " class+)})))))
+                        :className   (str "form-control " class+)})))))
 
 (defn input-form-group  [app owner {:keys [label
                                            type
                                            label-class+
                                            input-class+
                                            spec-input]
-                                    :or {label "Метка"
-                                         label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                                         input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
-                                         spec-input {}}}]
+                                    :or   {label        "Метка"
+                                           label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                           input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                                           spec-input   {}}}]
   (reify
     om/IRender
     (render [this]
@@ -1061,7 +1062,7 @@
 
 (def select-app-init
   {:selected no-select-v
-   :list []})
+   :list     []})
 
 (defn select-app-list [app]
   (app :list))
@@ -1093,18 +1094,18 @@
                             disabled?
                             alert-warn-on-not-selected?
                             title-field-key]
-                     :or {value-field-key :id
-                          title-field-key :keyname
-                          first-item-text "Выбрать..."}}]
+                     :or   {value-field-key :id
+                            title-field-key :keyname
+                            first-item-text "Выбрать..."}}]
   (reify
     om/IRender
     (render [_]
       ;;(println "SELECT APP:" @app)
       (apply
        dom/select
-       #js {:value (@app :selected)
+       #js {:value     (@app :selected)
             :className "form-control"
-            :disabled (when disabled? "disabled")
+            :disabled  (when disabled? "disabled")
             :onChange
             (fn [e]
               (let [v (-> e .-target .-value)]
@@ -1129,10 +1130,10 @@
                                         label-class+
                                         input-class+
                                         spec-select]
-                                 :or {label "Метка"
-                                      label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                                      input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
-                                      spec-select {}}}]
+                                 :or   {label        "Метка"
+                                        label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                        input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                                        spec-select  {}}}]
   (reify
     om/IRender
     (render [_]
@@ -1168,10 +1169,10 @@
                                                  label-class+
                                                  input-class+
                                                  spec-select]
-                                          :or {label "Метка"
-                                               label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                                               input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
-                                               spec-select {}}}]
+                                          :or   {label        "Метка"
+                                                 label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                                 input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                                                 spec-select  {}}}]
   (reify
     om/IRender
     (render [_]
@@ -1231,9 +1232,9 @@
         (dom/div
          nil
 
-         (om/build input (:password-1 app) {:opts {:type "password"
+         (om/build input (:password-1 app) {:opts {:type                "password"
                                                    :onChange-updated-fn onChange-updated-fn}})
-         (om/build input (:password-2 app) {:opts {:type "password"
+         (om/build input (:password-2 app) {:opts {:type                "password"
                                                    :onChange-updated-fn onChange-updated-fn}})
          (om/build helper-p app {})
 
@@ -1244,10 +1245,10 @@
                                                       label-class+
                                                       input-class+
                                                       spec-input]
-                                               :or {label "Пароль"
-                                                    label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                                                    input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
-                                                    spec-input {}}}]
+                                               :or   {label        "Пароль"
+                                                      label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                                      input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                                                      spec-input   {}}}]
   (reify
     om/IRender
     (render [this]
@@ -1286,33 +1287,33 @@
                                   rows
                                   wrap
                                   cols]
-                           :or {class+ ""
-                                onChange-valid?-fn (fn [_ _] true)
-                                onKeyPress-fn (fn [_] nil)
-                                placeholder ""
-                                readonly ""
-                                required ""
-                                maxlength 1000
-                                rows "5"
-                                wrap ""
-                                cols "40"}}]
+                           :or   {class+             ""
+                                  onChange-valid?-fn (fn [_ _] true)
+                                  onKeyPress-fn      (fn [_] nil)
+                                  placeholder        ""
+                                  readonly           ""
+                                  required           ""
+                                  maxlength          1000
+                                  rows               "5"
+                                  wrap               ""
+                                  cols               "40"}}]
   (reify
     om/IRender
     (render [this]
-      (dom/textarea #js {:value (or (:value @app) "")
-                         :onChange (fn [e]
-                                     (let [v (.. e -target -value)]
-                                       (when (onChange-valid?-fn app v)
-                                         (om/update! app :value v))))
-                         :onKeyPress onKeyPress-fn
+      (dom/textarea #js {:value       (or (:value @app) "")
+                         :onChange    (fn [e]
+                                        (let [v (.. e -target -value)]
+                                          (when (onChange-valid?-fn app v)
+                                            (om/update! app :value v))))
+                         :onKeyPress  onKeyPress-fn
                          :placeholder placeholder
-                         :className (str "form-control " class+)
-                         :readOnly readonly
-                         :required required
-                         :maxLength maxlength
-                         :rows rows
-                         :wrap wrap
-                         :cols cols
+                         :className   (str "form-control " class+)
+                         :readOnly    readonly
+                         :required    required
+                         :maxLength   maxlength
+                         :rows        rows
+                         :wrap        wrap
+                         :cols        cols
                          }))))
 
 (defn textarea-form-group  [app owner {:keys [label
@@ -1320,10 +1321,10 @@
                                               label-class+
                                               input-class+
                                               spec-textarea]
-                                       :or {label "Метка"
-                                            label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                                            input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
-                                            spec-textarea {}}}]
+                                       :or   {label         "Метка"
+                                              label-class+  "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                              input-class+  "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                                              spec-textarea {}}}]
   (reify
     om/IRender
     (render [this]
@@ -1354,19 +1355,19 @@
                                    text-on
                                    text-off
                                    disabled?]
-                            :or {bs-type :default
-                                 class+ ""
-                                 text-on "вкл." text-off "выкл."}}]
+                            :or   {bs-type :default
+                                   class+  ""
+                                   text-on "вкл." text-off "выкл."}}]
   (reify
     om/IRender
     (render [_]
-      (ui-button {:type bs-type
-                  :active? (@app :value)
+      (ui-button {:type      bs-type
+                  :active?   (@app :value)
                   :disabled? disabled?
-                  :on-click (fn [_]
-                              (om/transact! app :value not)
-                              (when onClick-fn (onClick-fn)))
-                  :text (if (@app :value) text-on text-off)}))))
+                  :on-click  (fn [_]
+                               (om/transact! app :value not)
+                               (when onClick-fn (onClick-fn)))
+                  :text      (if (@app :value) text-on text-off)}))))
 
 
 (defn toggle-button-form-group [app owner {:keys [label
@@ -1374,10 +1375,10 @@
                                                   label-class+
                                                   input-class+
                                                   spec-toggle-button]
-                                           :or {label "Метка"
-                                                label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                                                input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
-                                                spec-toggle-button {}}}]
+                                           :or   {label              "Метка"
+                                                  label-class+       "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                                  input-class+       "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                                                  spec-toggle-button {}}}]
   (reify
     om/IRender
     (render [this]
@@ -1416,8 +1417,8 @@
            (map (fn [app-row]
                   (let [{:keys [bs-type value disabled? text]} @app-row]
                     (ui-button
-                     {:type (or bs-type :default)
-                      :active? value
+                     {:type      (or bs-type :default)
+                      :active?   value
                       :disabled? disabled?
                       :on-click
                       (fn [_]
@@ -1427,7 +1428,7 @@
                            (fn [app] (vec (map #(assoc % :value false) app)))))
                         (om/transact! app-row :value not)
                         (when onClick-fn (onClick-fn)))
-                      :text text}))))
+                      :text      text}))))
            (apply
             dom/div #js {:className "btn-group" :role "group"})))))
 
@@ -1458,15 +1459,15 @@
                         style+
                         thead
                         tbody]
-                 :or {responsive-class+ ""
-                      class+ ""}}]
+                 :or   {responsive-class+ ""
+                        class+            ""}}]
   (let [table (dom/table #js {:className (str "table "
                                               (if striped? "table-striped " "")
                                               (if bordered? "table-bordered " "")
                                               (if condensed? "table-condensed " "")
                                               (if hover? "table-hover " "")
                                               class+)
-                              :style style+}
+                              :style     style+}
                          thead
                          tbody)]
     (if responsive?
@@ -1484,13 +1485,13 @@
 (defn tr-sel [app owner {:keys [app-to-tds-seq-fn
                                 clear-selections-fn
                                 on-select-fn]
-                         :or {app-to-tds-seq-fn
-                              (fn [row]
-                                (map
-                                 #(dom/td nil %)
-                                 (-> row
-                                     (select-keys [:id :keyname :description])
-                                     vals)))}}]
+                         :or   {app-to-tds-seq-fn
+                                (fn [row]
+                                  (map
+                                   #(dom/td nil %)
+                                   (-> row
+                                       (select-keys [:id :keyname :description])
+                                       vals)))}}]
   (letfn [(on-click [app e]
             (.preventDefault e)
             (.stopPropagation e)
@@ -1511,8 +1512,8 @@
         (omut-row-if-not-init-init!! app))
       om/IRender
       (render [_]
-        (apply dom/tr #js {:className  (if (omut-row-selected? @app) "info" "")
-                           :onClick    (partial on-click app)
+        (apply dom/tr #js {:className (if (omut-row-selected? @app) "info" "")
+                           :onClick   (partial on-click app)
                            ;;:onTouchEnd (partial on-click app) ;; недает проматывать
                            }
                (app-to-tds-seq-fn app) )))))
@@ -1521,8 +1522,8 @@
 
 
 (defn tbody-trs-sel [app owner {:keys [selection-type]
-                                :or {selection-type :one}
-                                :as opts}]
+                                :or   {selection-type :one}
+                                :as   opts}]
   (reify
     om/IRender
     (render [_]
@@ -1559,7 +1560,7 @@
 
 
 (def paginator-app-init
-  {:page 1
+  {:page      1
    :page-size 10
    :count-all nil})
 
@@ -1568,32 +1569,32 @@
     om/IRender
     (render [this]
       (dom/div #js {:className (str  "input-group " (if class+ class+ ""))
-                    :style #js {:textAlign "center"
-                                :maxWidth 500
-                                :float "none"
-                                :margin "0 auto"}}
+                    :style     #js {:textAlign "center"
+                                    :maxWidth  500
+                                    :float     "none"
+                                    :margin    "0 auto"}}
                (dom/span #js {:className "input-group-btn"}
-                         (ui-button {:type :default
+                         (ui-button {:type     :default
                                      :on-click (fn [_]
                                                  (om/update! app :page 1)
                                                  (when chan-update
                                                    (put! chan-update 1))
                                                  1)
-                                     :text (dom/span #js {:className "glyphicon glyphicon-fast-backward"
-                                                          :aria-hidden "true"})
+                                     :text     (dom/span #js {:className   "glyphicon glyphicon-fast-backward"
+                                                              :aria-hidden "true"})
                                      })
 
-                         (ui-button {:type :default
+                         (ui-button {:type     :default
                                      :on-click (fn [_]
                                                  (om/transact! app :page
                                                                #(if (= 1 %) % (dec %)))
                                                  (when chan-update
                                                    (put! chan-update 1))
                                                  1)
-                                     :text (dom/span nil
-                                                     (dom/span #js {:className "glyphicon glyphicon-step-backward"
-                                                                    :aria-hidden "true"})
-                                                     " Назад")
+                                     :text     (dom/span nil
+                                                         (dom/span #js {:className   "glyphicon glyphicon-step-backward"
+                                                                        :aria-hidden "true"})
+                                                         " Назад")
                                      })
                          )
 
@@ -1607,15 +1608,15 @@
                                " (" count-all ") "))))
 
                (dom/span #js {:className "input-group-btn"}
-                         (ui-button {:type :default
+                         (ui-button {:type     :default
                                      :on-click (fn [_]
                                                  (om/transact! app :page inc)
                                                  (when chan-update
                                                    (put! chan-update 1))
                                                  1)
-                                     :text (dom/span nil "Вперед "
-                                                     (dom/span #js {:className "glyphicon glyphicon-step-forward"
-                                                                    :aria-hidden "true"}))
+                                     :text     (dom/span nil "Вперед "
+                                                         (dom/span #js {:className   "glyphicon glyphicon-step-forward"
+                                                                        :aria-hidden "true"}))
                                      })
 
                          )))))
@@ -1635,7 +1636,7 @@
 
 (def search-view-app-init
   (merge {:fts-query input-app-init
-          :data []}
+          :data      []}
          paginator-app-init))
 
 (defn search-view-app-data [app]
@@ -1657,14 +1658,14 @@
                            data-rendering-fn
                            add-button-fn
                            tools]
-                    :or {input-placeholder "введите сюда поисковый запрос"
-                         data-update-fn (fn [app]
-                                          (println "Неопределена функция запроса обновления данных (data-update-fn [app] ...)")
-                                          (println "параметр на входе: " (str app)))
-                         data-rendering-fn (fn [app]
-                                             (println "Неопределена функция запроса перерисовки данных (data-rendering-fn [app] ...)")
-                                             (println "параметр на входе: " (str app)))
-                         }}]
+                    :or   {input-placeholder "введите сюда поисковый запрос"
+                           data-update-fn    (fn [app]
+                                               (println "Неопределена функция запроса обновления данных (data-update-fn [app] ...)")
+                                               (println "параметр на входе: " (str app)))
+                           data-rendering-fn (fn [app]
+                                               (println "Неопределена функция запроса перерисовки данных (data-rendering-fn [app] ...)")
+                                               (println "параметр на входе: " (str app)))
+                           }}]
   (reify
     om/IInitState
     (init-state [_]
@@ -1695,17 +1696,17 @@
         #js {:className "row"}
         (dom/div #js {:className "input-group" :style #js {:marginBottom 6}}
                  (dom/span #js {:className "input-group-btn"}
-                           (ui-button {:type :default
+                           (ui-button {:type     :default
                                        :on-click (fn [_]
                                                    (om/update! app :page 1)
                                                    (om/update! app [:fts-query :value] "")
                                                    (put! chan-update 1)
                                                    1)
-                                       :text (dom/span #js {:className "glyphicon glyphicon-remove"
-                                                            :aria-hidden "true"})
+                                       :text     (dom/span #js {:className   "glyphicon glyphicon-remove"
+                                                                :aria-hidden "true"})
                                        }))
                  (om/build input (:fts-query app)
-                           {:opts {:placeholder input-placeholder
+                           {:opts {:placeholder   input-placeholder
                                    :onKeyPress-fn #(do #_(println
                                                           (.-type %)
                                                           (.-which %)
@@ -1719,22 +1720,22 @@
                                    }})
 
                  (dom/span #js {:className "input-group-btn"}
-                           (ui-button {:type :success
+                           (ui-button {:type     :success
                                        :on-click (fn [_]
                                                    (om/update! app :page 1)
                                                    (put! chan-update 1)
                                                    1)
-                                       :text (dom/span #js {:className "glyphicon glyphicon-search"
-                                                            :aria-hidden "true"})
+                                       :text     (dom/span #js {:className   "glyphicon glyphicon-search"
+                                                                :aria-hidden "true"})
                                        })
 
                            (when add-button-fn
-                             (ui-button {:type :danger
+                             (ui-button {:type     :danger
                                          :on-click (fn [_]
                                                      (add-button-fn)
                                                      1)
-                                         :text (dom/span #js {:className "glyphicon glyphicon-plus"
-                                                              :aria-hidden "true"})
+                                         :text     (dom/span #js {:className   "glyphicon glyphicon-plus"
+                                                                  :aria-hidden "true"})
                                          }))
 
                            )
@@ -1764,16 +1765,16 @@
 
 (defn ui-nav [{:keys [brand
                       brand-href]
-               :or {brand "IX"
-                    brand-href "#/"}}
+               :or   {brand      "IX"
+                      brand-href "#/"}}
               & body]
   (dom/nav #js {:className "navbar navbar-default navbar-fixed-top"}
            (dom/div #js {:className "container-fluid"}
                     (dom/div #js {:className "navbar-header"}
-                             (dom/button #js {:className "navbar-toggle collapsed"
-                                              :type "button"
-                                              :data-toggle "collapse"
-                                              :data-target "#navbar-collapse-1"
+                             (dom/button #js {:className     "navbar-toggle collapsed"
+                                              :type          "button"
+                                              :data-toggle   "collapse"
+                                              :data-target   "#navbar-collapse-1"
                                               :aria-expanded "false"}
                                          (dom/span #js {:className "sr-only"} "Toggle navigation")
                                          (dom/span #js {:className "icon-bar"})
@@ -1783,7 +1784,7 @@
                                     brand))
 
 
-                    (apply dom/div #js {:id "navbar-collapse-1"
+                    (apply dom/div #js {:id        "navbar-collapse-1"
                                         :className "collapse navbar-collapse"}
                            body))))
 
@@ -1801,23 +1802,23 @@
   (dom/li nil
           (dom/a #js {:href href}
                  (when glyphicon
-                   (dom/span #js {:style #js {:paddingRight 4}
-                                  :className (str "glyphicon " glyphicon)
+                   (dom/span #js {:style       #js {:paddingRight 4}
+                                  :className   (str "glyphicon " glyphicon)
                                   :aria-hidden "true"}))
                  text)))
 
 
 (defn ui-navbar-li-dropdown [{:keys [glyphicon text]} & body]
   (dom/li #js {:className "dropdown"}
-          (dom/a #js {:href "#"
-                      :className "dropdown-toggle"
-                      :data-toggle "dropdown"
-                      :role "button"
+          (dom/a #js {:href          "#"
+                      :className     "dropdown-toggle"
+                      :data-toggle   "dropdown"
+                      :role          "button"
                       :aria-haspopup "true"
                       :aria-expanded "false"}
                  (when glyphicon
-                   (dom/span #js {:style #js {:paddingRight 4}
-                                  :className (str "glyphicon " glyphicon)
+                   (dom/span #js {:style       #js {:paddingRight 4}
+                                  :className   (str "glyphicon " glyphicon)
                                   :aria-hidden "true"}))
                  text
                  (dom/span #js {:className "caret"}))
@@ -1858,8 +1859,8 @@
 
 (def nav-tabs-app-state
   {:active-tab 0
-   :tabs [;;{:text "item 1"}
-          ]})
+   :tabs       [;;{:text "item 1"}
+                ]})
 
 
 
@@ -1899,7 +1900,7 @@
 (defn nav-tabs [app _ {:keys [justified?
                               type
                               chan-update]
-                       :or {type "nav-pills"}}]
+                       :or   {type "nav-pills"}}]
   (letfn [(on-click [i]
             (on-click-com-fn
              (fn []
@@ -1921,14 +1922,14 @@
                 (fn [{:keys [glyphicon text href disabled?]} i]
                   (dom/li #js {:className (if disabled? "disabled"
                                               (if (= i (app :active-tab)) "active" ""))
-                               :role "presentation"}
-                          (dom/a #js {:href href
+                               :role      "presentation"}
+                          (dom/a #js {:href       href
                                       :onClick    (on-click i)
                                       :onTouchEnd (on-click i)
                                       }
                                  (when glyphicon
-                                   (dom/span #js {:style #js {:paddingRight 4}
-                                                  :className (str "glyphicon " glyphicon)
+                                   (dom/span #js {:style       #js {:paddingRight 4}
+                                                  :className   (str "glyphicon " glyphicon)
                                                   :aria-hidden "true"}))
                                  text)))
 
@@ -1977,16 +1978,16 @@
                                           fill-app-fn
                                           app-to-row-fn
                                           ]
-                                   :or {url-params+ {}
-                                        fill-app-fn
-                                        (fn [row]
-                                          (println "Функция (fill-app-fn) формирования зароса не определена!"
-                                                   " Пришел ответ вида: " row))
-                                        app-to-row-fn
-                                        (fn []
-                                          (println "Функция (app-to-row-fn) формирования зароса не определена!")
-                                          {})
-                                        }}]
+                                   :or   {url-params+ {}
+                                          fill-app-fn
+                                          (fn [row]
+                                            (println "Функция (fill-app-fn) формирования зароса не определена!"
+                                                     " Пришел ответ вида: " row))
+                                          app-to-row-fn
+                                          (fn []
+                                            (println "Функция (app-to-row-fn) формирования зароса не определена!")
+                                            {})
+                                          }}]
   (reify
     om/IInitState
     (init-state [_]
@@ -2079,28 +2080,28 @@
 
 (defn modal-edit-form-for-id--YN- [app _ {:keys [new-or-edit-fn?
                                                  edit-form-for-id]
-                                          :or {edit-form-for-id
-                                               (fn [_ _]
-                                                 (reify
-                                                   om/IRender
-                                                   (render [_]
-                                                     (dom/h1 nil "Форма диалога еще не указана"))))
-                                               }
-                                          :as opts}]
+                                          :or   {edit-form-for-id
+                                                 (fn [_ _]
+                                                   (reify
+                                                     om/IRender
+                                                     (render [_]
+                                                       (dom/h1 nil "Форма диалога еще не указана"))))
+                                                 }
+                                          :as   opts}]
   (reify
     om/IInitState
     (init-state [_]
       {:chan-save (chan)})
     om/IRenderState
-    (render-state [_ {:keys[chan-save]}]
+    (render-state [_ {:keys [chan-save]}]
       (om/build modal app
                 {:opts {:modal-size :lg
-                        :label (if new-or-edit-fn?
-                                 (condp = (new-or-edit-fn?)
-                                   :new "Создание новой записи"
-                                   :edit "Редактирование записи"
-                                   "???")
-                                 "Редактирование записи")
+                        :label      (if new-or-edit-fn?
+                                      (condp = (new-or-edit-fn?)
+                                        :new  "Создание новой записи"
+                                        :edit "Редактирование записи"
+                                        "???")
+                                      "Редактирование записи")
                         ;;:modal-size :lg
                         :body
                         (dom/div #js {:className "row"}
@@ -2114,14 +2115,14 @@
                                                              (post-save-fn-2 r))))}))
                         :footer
                         (dom/div nil
-                                 (ui-button {:type :primary
+                                 (ui-button {:type     :primary
                                              :on-click (fn [_]
                                                          (put! chan-save 1)
                                                          1)
-                                             :text "Принять"})
-                                 (ui-button {:type :default
+                                             :text     "Принять"})
+                                 (ui-button {:type     :default
                                              :on-click (fn [_] (modal-hide app) 1)
-                                             :text "Отмена"})
+                                             :text     "Отмена"})
                                  )
                         }}))))
 
@@ -2132,37 +2133,37 @@
 (defn modal-edit-form-for-id--CLOSE- [app _ {:keys [new-or-edit-fn?
                                                     edit-form-for-id
                                                     post-save-fn]
-                                             :or {edit-form-for-id
-                                                  (fn [_ _]
-                                                    (reify
-                                                      om/IRender
-                                                      (render [_]
-                                                        (dom/h1 nil "Форма диалога еще не указана"))))
-                                                  }
-                                             :as opts}]
+                                             :or   {edit-form-for-id
+                                                    (fn [_ _]
+                                                      (reify
+                                                        om/IRender
+                                                        (render [_]
+                                                          (dom/h1 nil "Форма диалога еще не указана"))))
+                                                    }
+                                             :as   opts}]
   (reify
     om/IRender
     (render [_]
       (om/build modal app
                 {:opts {:modal-size :lg
-                        :label (if new-or-edit-fn?
-                                 (condp = (new-or-edit-fn?)
-                                   :new "Создание новой записи"
-                                   :edit "Редактирование записи"
-                                   "???")
-                                 "Редактирование записи")
+                        :label      (if new-or-edit-fn?
+                                      (condp = (new-or-edit-fn?)
+                                        :new  "Создание новой записи"
+                                        :edit "Редактирование записи"
+                                        "???")
+                                      "Редактирование записи")
                         ;;:modal-size :lg
                         :body
                         (dom/div
                          #js {:className "row"}
                          (om/build edit-form-for-id app {:opts opts}))
                         :footer
-                        (ui-button {:type :default
+                        (ui-button {:type     :default
                                     :on-click (fn [_]
                                                 (when post-save-fn
                                                   (post-save-fn {}))
                                                 (modal-hide app) 1)
-                                    :text "Закрыть"})
+                                    :text     "Закрыть"})
                         }}))))
 
 
@@ -2196,14 +2197,14 @@
                              (if (= (virtual-pages-current @app) page-key)
                                "" "none") }}
             (when back-key
-              (ui-button {:type :default
+              (ui-button {:type     :default
                           :on-click (fn [_]
                                       (virtual-pages-go-to-page!! app back-key)
                                       1)
-                          :text (dom/span nil
-                                          (dom/span #js {:className "glyphicon glyphicon-backward"
-                                                         :aria-hidden "true"})
-                                          " Назад")
+                          :text     (dom/span nil
+                                              (dom/span #js {:className   "glyphicon glyphicon-backward"
+                                                             :aria-hidden "true"})
+                                              " Назад")
                           }))
             body)))
 
@@ -2221,7 +2222,7 @@
 (defn ui-list-group [list-groups-items & [class+]]
   (apply dom/ul #js {:className (str "list-group "
                                      (or class+ ""))
-                     :style #js {:marginTop 10}}
+                     :style     #js {:marginTop 10}}
          list-groups-items))
 
 (defn ui-list-group-item [{:keys [text type badge active? class+]}]
@@ -2241,8 +2242,8 @@
 
 (defn ui-list-group--counts-by [points f
                                 {:keys [text nil-text]
-                                 :or {text "метка в заголовке"
-                                      nil-text "не указано"}}]
+                                 :or   {text     "метка в заголовке"
+                                        nil-text "не указано"}}]
   (let [items (->> points
                    (group-by f)
                    seq)]
@@ -2280,12 +2281,12 @@
                                 (get {:default "default"
                                       :primary "primary"
                                       :success "success"
-                                      :info "info"
+                                      :info    "info"
                                       :warning "warning"
-                                      :danger "danger"
+                                      :danger  "danger"
                                       } type "default")
                                 (or (str " " class+) ""))
-                :style style}
+                :style     style}
            (when heading
              (dom/div #js {:className "panel-heading"}
                       (when heading-glyphicon
@@ -2293,7 +2294,7 @@
                       (when heading-glyphicon " ")
                       heading
                       (when badge (dom/span #js {:className "badge"
-                                                 :style #js {:float "right"}} badge))))
+                                                 :style     #js {:float "right"}} badge))))
 
            (when body
              (apply
@@ -2304,29 +2305,29 @@
 
 (defn ui-panel-with-table [{:keys [cols rows
                                    striped? bordered? hover? responsive?]
-                            :or {cols [] rows []
-                                 striped? true
-                                 bordered? true
-                                 hover? true
-                                 responsive? true}
-                            :as options}]
+                            :or   {cols        [] rows []
+                                   striped?    true
+                                   bordered?   true
+                                   hover?      true
+                                   responsive? true}
+                            :as   options}]
   (ui-panel
    (assoc options
           :after-body
           (ui-table
-           {:hover? hover?
-            :bordered? bordered?
-            :striped? striped?
+           {:hover?      hover?
+            :bordered?   bordered?
+            :striped?    striped?
             :responsive? responsive?
-            :thead (->> cols
-                        (map #(dom/th nil %))
-                        ui-thead-tr)
-            :tbody (->> rows
-                        (map (fn [row]
-                               (apply
-                                dom/tr nil
-                                (vec (map #(dom/td nil %) row)))))
-                        (apply dom/tbody nil))
+            :thead       (->> cols
+                              (map #(dom/th nil %))
+                              ui-thead-tr)
+            :tbody       (->> rows
+                              (map (fn [row]
+                                     (apply
+                                      dom/tr nil
+                                      (vec (map #(dom/td nil %) row)))))
+                              (apply dom/tbody nil))
             }))))
 
 
@@ -2344,8 +2345,8 @@
 
 (defn ui-media-object [{:keys [src class+ style]}]
   (dom/img #js {:className (str "media-object " (or class+ ""))
-                :style style
-                :src src
+                :style     style
+                :src       src
                 }))
 
 (defn ui-media [{:keys [media-object
@@ -2359,17 +2360,17 @@
                         heading-tag
                         ]}]
   (dom/div #js {:className "media" :style style
-                :onClick on-click-fn}
+                :onClick   on-click-fn}
            (dom/div #js {:className "media-left"}
                     (dom/a #js {:href (or href "#")}
                            media-object))
            (dom/div #js {:className "media-body"}
-                    (when button-do-fn (ui-button {:style #js {:float "right"}
-                                                   :type :primary
-                                                   :text (or button-do-text "Действие")
+                    (when button-do-fn (ui-button {:style    #js {:float "right"}
+                                                   :type     :primary
+                                                   :text     (or button-do-text "Действие")
                                                    :on-click button-do-fn}))
                     (when href (dom/a #js {:style #js {:float "right"}
-                                           :href (or href "#") :target "_blank"}
+                                           :href  (or href "#") :target "_blank"}
                                       (dom/button #js {:className "btn btn-success"} "скачать")))
                     (when heading ((or heading-tag dom/h4) #js {:className "media-heading"} heading
                                    (when heading-2 (dom/small nil " - " heading-2 ))))
@@ -2395,18 +2396,18 @@
                                   update-fn
                                   success-fn
                                   accept]
-                           :or {uri "/file-uploder/uri"
-                                accept "*.*"}}]
+                           :or   {uri    "/file-uploder/uri"
+                                  accept "*.*"}}]
   (reify
     om/IInitState
     (init-state [_]
       {:chan-upload (chan)
-       :form-id (uniq-id "file-uploder-form")
+       :form-id     (uniq-id "file-uploder-form")
        :uploader-id (uniq-id "uploder")
        :in-progress false})
     om/IWillMount
     (will-mount [this]
-      (let [{:keys[chan-upload form-id uploader-id]} (om/get-state own)]
+      (let [{:keys [chan-upload form-id uploader-id]} (om/get-state own)]
         (go
           (while true
             (let [_ (<! chan-upload)]
@@ -2417,7 +2418,7 @@
                (.getElementById js/document form-id)
                (.getElementById js/document uploader-id)
                (if get-uri-fn (get-uri-fn) uri)
-               {:success success-fn
+               {:success  success-fn
                 :complete #(do
                              (when update-fn (update-fn))
                              (om/set-state! own :in-progress false))
@@ -2425,16 +2426,16 @@
 
     om/IRenderState
     (render-state [_ {:keys [chan-upload form-id uploader-id in-progress]}]
-      (dom/form #js {:id form-id
+      (dom/form #js {:id      form-id
                      :encType "multipart/form-data"
-                     :method "POST"}
+                     :method  "POST"}
                 (dom/span #js {:className "btn btn-default btn-file btn-primary"}
                           "Загрузить"
-                          (dom/input #js {:id uploader-id
-                                          :name "uploader"
-                                          :type "file"
+                          (dom/input #js {:id       uploader-id
+                                          :name     "uploader"
+                                          :type     "file"
                                           :multiple true
-                                          :accept accept
+                                          :accept   accept
                                           :onChange #(put! chan-upload 1)
                                           }))
                 (when in-progress
@@ -2466,7 +2467,7 @@
 
 
 (defn one-image-uploader [app own {:keys [class+]
-                                   :as  opts}]
+                                   :as   opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -2476,31 +2477,31 @@
       (dom/div #js {:className class+}
                (om/build file-uploder app
                          {:opts (merge opts
-                                       {:accept "image/gif, image/jpeg, image/png, image/*"
-                                        :update-fn #(put! chan-upload 1)
+                                       {:accept     "image/gif, image/jpeg, image/png, image/*"
+                                        :update-fn  #(put! chan-upload 1)
                                         :success-fn #(om/update! app :image %)
                                         })})
 
                (dom/div
                 #js {:className "well well-sm"
-                     :style #js {:marginTop 4
-                                 :display "inline-block"}}
+                     :style     #js {:marginTop 4
+                                     :display   "inline-block"}}
                 (let [image (@app :image)]
                   (if (empty? image)
                     (ui-glyphicon "camera" "" "8em")
                     (ui-media-object {:class+ "img-rounded"
-                                      :style #js {:maxWidth 300}
-                                      :src (@app :image)}))))
+                                      :style  #js {:maxWidth 300}
+                                      :src    (@app :image)}))))
                ))))
 
 (defn one-image-uploader-form-group  [app owner {:keys [label
                                                         label-class+
                                                         input-class+
                                                         spec-one-image-uploader]
-                                                 :or {label "Метка"
-                                                      label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                                                      input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
-                                                      spec-one-image-uploader {}}}]
+                                                 :or   {label                   "Метка"
+                                                        label-class+            "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                                        input-class+            "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                                                        spec-one-image-uploader {}}}]
   (reify
     om/IRender
     (render [this]
@@ -2532,10 +2533,10 @@
 
 
 (defonce thumb-show-in-full-screen-app-state
-  (atom {:src nil
+  (atom {:src         nil
          :description nil :top_description nil
-         :zoom? false
-         :deg 0}))
+         :zoom?       false
+         :deg         0}))
 
 (defn- thumb-show-in-full-screen [app]
   (reify
@@ -2553,39 +2554,39 @@
     (render [_]
       (when-let [src (@app :src)]
         (let [{:keys [deg zoom?]} @app
-              deg-2 (str  "rotate(" deg "deg)")]
+              deg-2               (str  "rotate(" deg "deg)")]
           (dom/div
-           #js {:style #js {:position "fixed" :zIndex 3000
-                            :top 0 :bottom 0 :left 0 :right 0
-                            :overflow "auto" :background-color "rgba(0, 0, 0, 0.7)"}}
+           #js {:style #js {:position "fixed" :zIndex           3000
+                            :top      0       :bottom           0 :left 0 :right 0
+                            :overflow "auto"  :background-color "rgba(0, 0, 0, 0.7)"}}
 
            (dom/div #js {:style #js {:position "fixed" :left 0 :top 0 :zIndex 3005}}
                     (dom/button #js {:className "close"
-                                     :onClick #(om/transact! app :zoom? not)}
+                                     :onClick   #(om/transact! app :zoom? not)}
                                 (ui-glyphicon (if zoom? "zoom-out" "zoom-in")
                                               "" "3em"))
                     (dom/button #js {:className "close"
-                                     :onClick #(om/transact!
-                                                app :deg (fn [deg]
-                                                           (let [deg (+ deg 90)]
-                                                             (if (> deg 270) 0 deg))))}
+                                     :onClick   #(om/transact!
+                                                  app :deg (fn [deg]
+                                                             (let [deg (+ deg 90)]
+                                                               (if (> deg 270) 0 deg))))}
                                 (ui-glyphicon "retweet" "" "3em")))
 
            (dom/button #js {:className "close"
-                            :style #js {:position "fixed" :right 0 :top 0 :zIndex 3005}
-                            :onClick (fn []
-                                       (om/transact!
-                                        app #(assoc % :src nil :descrioption nil
-                                                    :top_description nil))
-                                       1)}
+                            :style     #js {:position "fixed" :right 0 :top 0 :zIndex 3005}
+                            :onClick   (fn []
+                                         (om/transact!
+                                          app #(assoc % :src nil :descrioption nil
+                                                      :top_description nil))
+                                         1)}
                        (ui-glyphicon "remove" "" "3em"))
 
-           (dom/img #js {:src src
-                         :style #js {:msTransform deg-2
+           (dom/img #js {:src   src
+                         :style #js {:msTransform     deg-2
                                      :WebkitTransform deg-2
-                                     :transform deg-2
+                                     :transform       deg-2
                                      ;;:height (if (#{90 270} deg) (if zoom? nil (.-innerWidth js/window)) nil)
-                                     :width  (if zoom? nil (.-innerWidth  js/window))}})))))))
+                                     :width           (if zoom? nil (.-innerWidth  js/window))}})))))))
 
 
 ;; Инициализация
@@ -2619,33 +2620,33 @@
 
 
 (def thumbnail-app-init
-  {:id nil
-   :path nil
+  {:id              nil
+   :path            nil
    :top_description nil
-   :description nil
-   :galleria false
+   :description     nil
+   :galleria        false
    })
 
 
 (defn thumbnail [app _ {:keys [class+ onClick-fn]
-                        :or {class+ "col-xs-12 col-sm-6 col-md-4 col-lg-4"}}]
+                        :or   {class+ "col-xs-12 col-sm-6 col-md-4 col-lg-4"}}]
   (reify
     om/IRender
     (render [_]
       (let [{:keys [id path top_description description galleria] :as row} app
-            on-click (on-click-com-fn #(when onClick-fn (onClick-fn row)))]
+            on-click                                                       (on-click-com-fn #(when onClick-fn (onClick-fn row)))]
         (dom/div
          #js {:className class+}
          (dom/div
-          #js {:className "thumbnail"
+          #js {:className  "thumbnail"
                :onClick    on-click
                :onTouchEnd on-click
-               :style #js {:cursor "pointer"}}
+               :style      #js {:cursor "pointer"}}
           (when galleria
-            (dom/span #js {:className "glyphicon glyphicon-film"
-                           :style #js {:position "absolute"
-                                       :top 10 :left 5
-                                       :fontSize "2em"}
+            (dom/span #js {:className   "glyphicon glyphicon-film"
+                           :style       #js {:position "absolute"
+                                             :top      10 :left 5
+                                             :fontSize "2em"}
                            :aria-hidden "true"}))
           (dom/a nil (dom/img #js {:src (str path "_as_300.png") :alt "фото"
                                    ;;:style #js {:width "100%"}
@@ -2658,11 +2659,11 @@
                               (dom/p nil description))
 
                             (dom/span #js {:className "label label-default"
-                                           :style #js {:width "15%" :fontSize "0.7em"}} "URL")
+                                           :style     #js {:width "15%" :fontSize "0.7em"}} "URL")
                             " "
-                            (dom/input #js {:type "text"
-                                            :style #js {:width "65%" :fontSize "0.7em"}
-                                            :value path
+                            (dom/input #js {:type        "text"
+                                            :style       #js {:width "65%" :fontSize "0.7em"}
+                                            :value       path
                                             :onMouseDown (fn [e] (.select (.-target e)))
                                             }))
                    )))))))
@@ -2670,8 +2671,8 @@
 (def thumbnails-edit-form-app-init
   (merge edit-form-for-id-app-init
          {:top_description input-app-init
-          :description textarea-app-init
-          :galleria toggle-button-app-init
+          :description     textarea-app-init
+          :galleria        toggle-button-app-init
           }))
 
 
@@ -2709,7 +2710,7 @@
                                 {:opts {:label "Наименование"}})
 
                       (om/build toggle-button-form-group (get-in app [:galleria])
-                                {:opts{:label "Отображать в галерее"}})
+                                {:opts {:label "Отображать в галерее"}})
 
                       (om/build textarea-form-group (get-in app [:description])
                                 {:opts {:label "Описание"}})
@@ -2730,22 +2731,22 @@
 
 
 (def thumbnails-view-app-init
-  {:list []
-   :last-params {}
-   :modal-act actions-modal-app-init
+  {:list         []
+   :last-params  {}
+   :modal-act    actions-modal-app-init
    :modal-yes-no (assoc modal-yes-no-app-init
                         :row {})
-   :modal thumbnails-modal-edit-form-app-init})
+   :modal        thumbnails-modal-edit-form-app-init})
 
 (defn thumbnails-view [app owner {:keys [uri params
                                          uri-upload
                                          uri-delete
                                          chan-update]
-                                  :or {params {}}}]
+                                  :or   {params {}}}]
   (reify
     om/IInitState
     (init-state [_]
-      {:chan-modal-act (chan)
+      {:chan-modal-act                              (chan)
        :chan-thumbnails-modal-edit-form-open-for-id (chan)})
     om/IWillMount
     (will-mount [this]
@@ -2753,7 +2754,7 @@
         (go
           (while true
             (let [cparams (<! chan-update)
-                  p (if (map? cparams) cparams params)]
+                  p       (if (map? cparams) cparams params)]
               (ixnet/get-data uri p
                               (fn [list]
                                 (om/transact!
@@ -2774,7 +2775,7 @@
                                  }})
                (apply
                 dom/div #js {:className "row"
-                             :style #js {:margin 5}}
+                             :style     #js {:margin 5}}
                 (map
                  (fn [{:as row}]
                    (om/build thumbnail row
@@ -2805,17 +2806,17 @@
 
                (om/build modal-yes-no (:modal-yes-no app)
                          {:opts {:modal-size :sm
-                                 :label "Желаете удалить изображение?"
+                                 :label      "Желаете удалить изображение?"
                                  :body
                                  (dom/div
                                   #js{:className "row"}
                                   (dom/img #js{:className "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-                                               :src (get-in @app [:modal-yes-no :row :path])}))
+                                               :src       (get-in @app [:modal-yes-no :row :path])}))
                                  :act-yes-fn
                                  (fn []
                                    (ixnet/get-data
                                     uri-delete ;;"/tc/rb/product/files_rel/delete"
-                                    {:id (get-in @app [:last-params :id])
+                                    {:id      (get-in @app [:last-params :id])
                                      :file-id (get-in @app [:modal-yes-no :row :id])}
                                     (fn [_]
                                       (when chan-update
@@ -2824,12 +2825,12 @@
 
                (om/build thumbnails-modal-edit-form (:modal app)
                          {:opts {:chan-load-for-id chan-thumbnails-modal-edit-form-open-for-id
-                                 :uri      "/files/find/transit"
-                                 :uri-save "/files/edit/transit"
-                                 :post-save-fn #(do
-                                                  (when chan-update
-                                                    (put! chan-update (:last-params @app)))
-                                                  1)}})
+                                 :uri              "/files/find/transit"
+                                 :uri-save         "/files/edit/transit"
+                                 :post-save-fn     #(do
+                                                      (when chan-update
+                                                        (put! chan-update (:last-params @app)))
+                                                      1)}})
 
                ))))
 
@@ -2851,36 +2852,36 @@
          #js {}
          (dom/b #js {:style #js {:fontSize "26px"}} "Изображение " (inc i) " из " (count @app))
          (dom/div #js {:className "btn-group" :style #js {:float "right"}}
-                  (ui-button {:type :default
-                              :size :lg
+                  (ui-button {:type     :default
+                              :size     :lg
                               :on-click (fn [_]
                                           (om/update-state!
                                            own :i
                                            #(let [i (dec %)]
                                               (if (< i 0) (dec (count @app)) i)))
                                           1)
-                              :text (dom/span nil
-                                              (dom/span #js {:className "glyphicon glyphicon-chevron-left"
-                                                             :aria-hidden "true"}))
+                              :text     (dom/span nil
+                                                  (dom/span #js {:className   "glyphicon glyphicon-chevron-left"
+                                                                 :aria-hidden "true"}))
                               })
-                  (ui-button {:type :default
-                              :size :lg
+                  (ui-button {:type     :default
+                              :size     :lg
                               :on-click (fn [_]
                                           (om/update-state!
                                            own :i
                                            #(let [i (inc %)]
                                               (if (= i (count @app)) 0  i)))
                                           1)
-                              :text (dom/span nil
-                                              (dom/span #js {:className "glyphicon glyphicon-chevron-right"
-                                                             :aria-hidden "true"}))
+                              :text     (dom/span nil
+                                                  (dom/span #js {:className   "glyphicon glyphicon-chevron-right"
+                                                                 :aria-hidden "true"}))
                               }))
          (dom/br nil)
          (dom/br nil)
          (dom/div
           #js {:className "thumbnail"}
           (dom/img #js {:className ""
-                        :src (get-in @app [i :path] "")}))
+                        :src       (get-in @app [i :path] "")}))
          (dom/h2 nil (get-in @app [i :top_description] ""))
          (dom/p nil (get-in @app [i :description] "")))))))
 
@@ -2896,35 +2897,35 @@
 ;;**************************************************************************************************
 
 (def file-thumb-app-init
-  {:id nil
-   :path nil
+  {:id              nil
+   :path            nil
    :top_description nil
-   :description nil
-   :galleria false
+   :description     nil
+   :galleria        false
    })
 
 
 (defn file-thumb [app _ {:keys [class+
                                 onClick-fn]
-                         :or {class+ "col-xs-12 col-sm-12 col-md-12 col-lg-12"}}]
+                         :or   {class+ "col-xs-12 col-sm-12 col-md-12 col-lg-12"}}]
   (reify
     om/IRender
     (render [_]
       (let [{:keys [id path top_description description galleria] :as row} app
-            on-click (on-click-com-fn #(when onClick-fn (onClick-fn row)))]
+            on-click                                                       (on-click-com-fn #(when onClick-fn (onClick-fn row)))]
         (dom/div
          #js {:className class+}
          (dom/div
-          #js {:className "thumbnail"
+          #js {:className  "thumbnail"
                :onClick    on-click
                :onTouchEnd on-click
-               :style #js {:cursor "pointer"
-                           :minHeight 75 }}
+               :style      #js {:cursor    "pointer"
+                                :minHeight 75 }}
 
           (dom/span #js {:className "glyphicon glyphicon-file"
-                         :style #js {:fontSize "5em"
-                                     :float "left"
-                                     :ariaHidden "true"}})
+                         :style     #js {:fontSize   "5em"
+                                         :float      "left"
+                                         :ariaHidden "true"}})
 
           (dom/div #js {:className "caption"}
                    (when (not (clojure.string/blank? top_description))
@@ -2935,9 +2936,9 @@
 
                             (dom/span #js {:className "label label-default"} "URL")
                             " "
-                            (dom/input #js {:type "text"
-                                            :style #js {:width "70%" :fontSize "0.7em"}
-                                            :value path
+                            (dom/input #js {:type        "text"
+                                            :style       #js {:width "70%" :fontSize "0.7em"}
+                                            :value       path
                                             :onMouseDown (fn [e] (.select (.-target e)))
                                             }))
                    )))))))
@@ -2948,8 +2949,8 @@
 (def files-edit-form-app-init
   (merge edit-form-for-id-app-init
          {:top_description input-app-init
-          :description textarea-app-init
-          :galleria toggle-button-app-init
+          :description     textarea-app-init
+          :galleria        toggle-button-app-init
           }))
 
 
@@ -3003,22 +3004,22 @@
 
 
 (def files-view-app-init
-  {:list []
-   :last-params {}
-   :modal-act actions-modal-app-init
+  {:list         []
+   :last-params  {}
+   :modal-act    actions-modal-app-init
    :modal-yes-no (assoc modal-yes-no-app-init
                         :row {})
-   :modal files-modal-edit-form-app-init})
+   :modal        files-modal-edit-form-app-init})
 
 (defn files-view [app owner {:keys [uri params
                                     uri-upload
                                     uri-delete
                                     chan-update]
-                             :or {params {}}}]
+                             :or   {params {}}}]
   (reify
     om/IInitState
     (init-state [_]
-      {:chan-modal-act (chan)
+      {:chan-modal-act                         (chan)
        :chan-files-modal-edit-form-open-for-id (chan)})
     om/IWillMount
     (will-mount [this]
@@ -3026,7 +3027,7 @@
         (go
           (while true
             (let [cparams (<! chan-update)
-                  p (if (map? cparams) cparams params)]
+                  p       (if (map? cparams) cparams params)]
               (ixnet/get-data uri p
                               (fn [list]
                                 (om/transact!
@@ -3046,7 +3047,7 @@
                                  }})
                (apply
                 dom/div #js {:className "row"
-                             :style #js {:margin 5}}
+                             :style     #js {:margin 5}}
                 (map
                  (fn [{:as row}]
                    (om/build file-thumb row
@@ -3055,11 +3056,11 @@
                                        (put! chan-modal-act
                                              {:label (str "Выбор действий над записью №" id)
                                               :acts
-                                              [{:text "Редактировать" :btn-type :primary
+                                              [{:text   "Редактировать" :btn-type :primary
                                                 :act-fn (fn []
                                                           (put! chan-files-modal-edit-form-open-for-id id)
                                                           (modal-show (:modal app)))}
-                                               {:text "Удалить" :btn-type :danger
+                                               {:text   "Удалить" :btn-type :danger
                                                 :act-fn #(do
                                                            (om/update! app [:modal-yes-no :row] r)
                                                            (modal-show (:modal-yes-no app)))}]
@@ -3070,14 +3071,14 @@
 
                (om/build modal-yes-no (:modal-yes-no app)
                          {:opts {:modal-size :sm
-                                 :label "Желаете удалить Фаил?"
+                                 :label      "Желаете удалить Фаил?"
                                  :body
                                  (dom/h4 nil (get-in @app [:modal-yes-no :row :filename]))
                                  :act-yes-fn
                                  (fn []
                                    (ixnet/get-data
                                     uri-delete ;;"/tc/rb/product/files_rel/delete"
-                                    {:id (get-in @app [:last-params :id])
+                                    {:id      (get-in @app [:last-params :id])
                                      :file-id (get-in @app [:modal-yes-no :row :id])}
                                     (fn [_]
                                       (when chan-update
@@ -3086,12 +3087,12 @@
 
                (om/build files-modal-edit-form (:modal app)
                          {:opts {:chan-load-for-id chan-files-modal-edit-form-open-for-id
-                                 :uri      "/files/find/transit"
-                                 :uri-save "/files/edit/transit"
-                                 :post-save-fn #(do
-                                                  (when chan-update
-                                                    (put! chan-update (:last-params @app)))
-                                                  1)}})
+                                 :uri              "/files/find/transit"
+                                 :uri-save         "/files/edit/transit"
+                                 :post-save-fn     #(do
+                                                      (when chan-update
+                                                        (put! chan-update (:last-params @app)))
+                                                      1)}})
 
                ))))
 
@@ -3106,26 +3107,26 @@
       (if (empty? @app)
         (dom/h2 nil "Нет файлов")
         (ui-panel
-         {:heading " Список файлов"
-          :badge (str (count @app))
+         {:heading           " Список файлов"
+          :badge             (str (count @app))
           :heading-glyphicon "folder-open"
-          :type :primary
+          :type              :primary
           :after-body
           (ui-table
-           {:hover? true
-            :bordered? true
-            :striped? true
+           {:hover?      true
+            :bordered?   true
+            :striped?    true
             :responsive? true
             :tbody
             (->> @app
                  (map (fn [{:keys [filename path top_description description size]}]
                         (dom/tr nil
                                 (dom/td nil
-                                        (ui-media {:href path
+                                        (ui-media {:href         path
                                                    :media-object (ui-glyphicon "file" nil "5em")
-                                                   :heading filename
-                                                   :heading-2 top_description
-                                                   :body (dom/p nil description)})))))
+                                                   :heading      filename
+                                                   :heading-2    top_description
+                                                   :body         (dom/p nil description)})))))
                  (apply dom/tbody nil))})})))))
 
 ;; END files
@@ -3145,7 +3146,7 @@
 (defn input-form-search-view-app-init [search-view-app-init]
   {:modal (assoc modal-app-init
                  :search-view search-view-app-init)
-   :sel []
+   :sel   []
    })
 
 (defn input-form-search-view-get-selected [app]
@@ -3171,17 +3172,17 @@
                                       one--row-to-text-fn
                                       multi-table-caption
                                       ]
-                               :or {class+ ""
-                                    selection-type :one
-                                    label-one   "Выбрать ???"
-                                    label-multi "Выбрано ???"
-                                    placeholder "Выберите...."
-                                    ui-type :input-select
-                                    ui-type--add-button--type :default
-                                    ui-type--add-button--text "Выбрать..."
-                                    row-pk-fiels [:id]
-                                    multi-table-caption "Наименование"
-                                    }}]
+                               :or   {class+                    ""
+                                      selection-type            :one
+                                      label-one                 "Выбрать ???"
+                                      label-multi               "Выбрано ???"
+                                      placeholder               "Выберите...."
+                                      ui-type                   :input-select
+                                      ui-type--add-button--type :default
+                                      ui-type--add-button--text "Выбрать..."
+                                      row-pk-fiels              [:id]
+                                      multi-table-caption       "Наименование"
+                                      }}]
   (fn [app _ {:keys [label-one
                      label-multi
                      selection-type
@@ -3194,17 +3195,17 @@
                      search-view-opts
                      main-div-params
                      multi-table-caption]
-              :or {label-one label-one
-                   label-multi label-multi
-                   selection-type selection-type
-                   ui-type ui-type
-                   ui-type--add-button--type ui-type--add-button--type
-                   ui-type--add-button--text ui-type--add-button--text
-                   on-selected-fn on-selected-fn
-                   label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                   input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
-                   search-view-opts {}
-                   multi-table-caption multi-table-caption}}]
+              :or   {label-one                 label-one
+                     label-multi               label-multi
+                     selection-type            selection-type
+                     ui-type                   ui-type
+                     ui-type--add-button--type ui-type--add-button--type
+                     ui-type--add-button--text ui-type--add-button--text
+                     on-selected-fn            on-selected-fn
+                     label-class+              "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                     input-class+              "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                     search-view-opts          {}
+                     multi-table-caption       multi-table-caption}}]
 
 
     (reify
@@ -3218,9 +3219,9 @@
          (condp = ui-type
 
            :add-button
-           (ui-button {:type ui-type--add-button--type
+           (ui-button {:type     ui-type--add-button--type
                        :on-click #(modal-show (:modal app))
-                       :text ui-type--add-button--text })
+                       :text     ui-type--add-button--text })
 
            :input-select
            (dom/div #js {:className (str "form-group " class+ " "(input-css-string-has? @app))}
@@ -3232,19 +3233,19 @@
                       :one
                       (dom/div
                        #js {:className input-class+
-                            :style #js {}}
+                            :style     #js {}}
                        (dom/div #js {:className "input-group"}
-                                (dom/input #js {:value (let [r (get-in @app [:sel 0])]
-                                                         (if one--row-to-text-fn
-                                                           (one--row-to-text-fn r)
-                                                           (:keyname r)))
+                                (dom/input #js {:value       (let [r (get-in @app [:sel 0])]
+                                                               (if one--row-to-text-fn
+                                                                 (one--row-to-text-fn r)
+                                                                 (:keyname r)))
                                                 :placeholder placeholder
-                                                :className "form-control"})
+                                                :className   "form-control"})
                                 (dom/span #js {:className "input-group-btn"}
-                                          (ui-button {:type :default
+                                          (ui-button {:type     :default
                                                       :on-click #(modal-show (:modal app))
-                                                      :text (dom/span #js {:className "glyphicon glyphicon-list-alt"
-                                                                           :aria-hidden "true"})})))
+                                                      :text     (dom/span #js {:className   "glyphicon glyphicon-list-alt"
+                                                                               :aria-hidden "true"})})))
                        (om/build helper-p app))
 
                       :multi
@@ -3264,45 +3265,45 @@
                                  (om/build helper-p app))
                         (dom/div #js {:className "panel-body" :style #js {:padding 2}}
                                  (ui-table
-                                  {:hover? true
+                                  {:hover?    true
                                    :bordered? true
-                                   :striped? true
+                                   :striped?  true
                                    ;;:responsive? true
-                                   :style+ #js {:marginBottom 0}
-                                   :thead (ui-thead-tr [(dom/th nil multi-table-caption) (dom/th nil "Действие")])
-                                   :tbody (om/build tbody-trs-sel (app :sel)
-                                                    {:opts
-                                                     {:app-to-tds-seq-fn
-                                                      (fn [row]
-                                                        (list
-                                                         (if multiselect-row-render-fn
-                                                           (multiselect-row-render-fn row)
-                                                           (dom/td nil (str @row)))
-                                                         (dom/td
-                                                          #js {:style #js {:width "5%"}}
-                                                          (ui-button
-                                                           {:text "Удалить"
-                                                            :on-click
-                                                            (fn [_]
-                                                              (om/transact!
-                                                               app :sel
-                                                               (fn [selected]
-                                                                 (let [pk (select-keys @row row-pk-fiels)]
-                                                                   (->> selected
-                                                                        (filter
-                                                                         #(not
-                                                                           (= (select-keys % row-pk-fiels)
-                                                                              pk)))
-                                                                        vec))))
+                                   :style+    #js {:marginBottom 0}
+                                   :thead     (ui-thead-tr [(dom/th nil multi-table-caption) (dom/th nil "Действие")])
+                                   :tbody     (om/build tbody-trs-sel (app :sel)
+                                                        {:opts
+                                                         {:app-to-tds-seq-fn
+                                                          (fn [row]
+                                                            (list
+                                                             (if multiselect-row-render-fn
+                                                               (multiselect-row-render-fn row)
+                                                               (dom/td nil (str @row)))
+                                                             (dom/td
+                                                              #js {:style #js {:width "5%"}}
+                                                              (ui-button
+                                                               {:text "Удалить"
+                                                                :on-click
+                                                                (fn [_]
+                                                                  (om/transact!
+                                                                   app :sel
+                                                                   (fn [selected]
+                                                                     (let [pk (select-keys @row row-pk-fiels)]
+                                                                       (->> selected
+                                                                            (filter
+                                                                             #(not
+                                                                               (= (select-keys % row-pk-fiels)
+                                                                                  pk)))
+                                                                            vec))))
 
-                                                              1)}))))
-                                                      }})
+                                                                  1)}))))
+                                                          }})
                                    }))
 
                         (dom/div #js {:className "panel-footer"}
-                                 (ui-button {:type ui-type--add-button--type
+                                 (ui-button {:type     ui-type--add-button--type
                                              :on-click #(modal-show (:modal app))
-                                             :text ui-type--add-button--text }))))
+                                             :text     ui-type--add-button--text }))))
 
 
 
@@ -3318,51 +3319,51 @@
 
          (om/build modal (:modal app)
                    {:opts {:modal-size :lg
-                           :body (om/build search-view (get-in app [:modal :search-view])
-                                           {:opts (merge {:selection-type selection-type} search-view-opts)})
-                           :footer (dom/div #js {:className "btn-toolbar  pull-right"}
-                                            (ui-button
-                                             {:type :primary
-                                              :on-click
-                                              (fn [_]
-                                                (let [selected (->> @app
-                                                                    :modal
-                                                                    :search-view
-                                                                    :data
-                                                                    (filter omut-row-selected?))]
+                           :body       (om/build search-view (get-in app [:modal :search-view])
+                                                 {:opts (merge {:selection-type selection-type} search-view-opts)})
+                           :footer     (dom/div #js {:className "btn-toolbar  pull-right"}
+                                                (ui-button
+                                                 {:type :primary
+                                                  :on-click
+                                                  (fn [_]
+                                                    (let [selected (->> @app
+                                                                        :modal
+                                                                        :search-view
+                                                                        :data
+                                                                        (filter omut-row-selected?))]
 
-                                                  (condp = selection-type
-                                                    :multi (om/transact!
-                                                            app :sel
-                                                            (fn [app]
-                                                              (->> app
-                                                                   (map #(omut-row-set-selected! % false))
-                                                                   (into selected)
-                                                                   (reduce
-                                                                    #(assoc %1
-                                                                            (select-keys %2 row-pk-fiels)
-                                                                            %2)
-                                                                    {})
-                                                                   vals
-                                                                   (sort-by #(-> (select-keys % row-pk-fiels)
-                                                                                 vals
-                                                                                 sort
-                                                                                 vec))
-                                                                   reverse
-                                                                   vec)))
+                                                      (condp = selection-type
+                                                        :multi (om/transact!
+                                                                app :sel
+                                                                (fn [app]
+                                                                  (->> app
+                                                                       (map #(omut-row-set-selected! % false))
+                                                                       (into selected)
+                                                                       (reduce
+                                                                        #(assoc %1
+                                                                                (select-keys %2 row-pk-fiels)
+                                                                                %2)
+                                                                        {})
+                                                                       vals
+                                                                       (sort-by #(-> (select-keys % row-pk-fiels)
+                                                                                     vals
+                                                                                     sort
+                                                                                     vec))
+                                                                       reverse
+                                                                       vec)))
 
-                                                    :one   (om/update! app :sel (vec selected)))
+                                                        :one   (om/update! app :sel (vec selected)))
 
-                                                  (modal-hide (:modal app))
+                                                      (modal-hide (:modal app))
 
-                                                  (when on-selected-fn (on-selected-fn))
+                                                      (when on-selected-fn (on-selected-fn))
 
-                                                  1))
-                                              :text "Выбрать"})
+                                                      1))
+                                                  :text "Выбрать"})
 
-                                            (ui-button {:on-click (fn [_] (modal-hide (:modal app)) 1)
-                                                        :text "Закрыть"})
-                                            )
+                                                (ui-button {:on-click (fn [_] (modal-hide (:modal app)) 1)
+                                                            :text     "Закрыть"})
+                                                )
                            }})
          )))))
 
