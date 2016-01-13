@@ -1047,6 +1047,50 @@
   true)
 
 
+
+
+(def input-datetime--date-str-format "yyyy-MM-ddTHH:mmZ")
+
+(defn input-datetime-form-group--set-date! [app d]
+  (assoc app :value (format-date input-datetime--date-str-format d)))
+
+(defn input-datetime-form-group--date [app]
+  (str-to-date (@app :value)))
+
+
+
+(defn input-datetime-form-group  [app owner {:keys [label
+                                                    type
+                                                    label-class+
+                                                    input-class+
+                                                    spec-input]
+                                             :or   {label        "Метка"
+                                                    label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                                                    input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                                                    spec-input   {}}}]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className (str "control-label " label-class+) } label)
+               (dom/div #js {:className input-class+ :style #js {}}
+                        (dom/b nil "введено: "
+                               (date-com-format-datetime (str-to-date (@app :value))))
+                        (om/build
+                         input app
+                         {:opts (assoc spec-input
+                                       :type                "datetime"
+                                       :placeholder         input-datetime--date-str-format
+                                       :onChange-valid?-fn  input-vldfn-not-empty-date)})
+                        (om/build helper-p app {})
+                        )))))
+
+
+
+
+
+
+
 ;; END input
 ;;..................................................................................................
 
