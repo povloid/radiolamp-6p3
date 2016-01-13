@@ -25,11 +25,11 @@
 
 (def webusers-edit-form-app-init
   (merge omut/edit-form-for-id-app-init
-         {:username (assoc omut/input-app-init :has-warning? true)
-          :password omut/input-change-password-app-init
+         {:username    (assoc omut/input-app-init :has-warning? true)
+          :password    omut/input-change-password-app-init
           :description omut/textarea-app-init
-          :troles []
-          :tabs omut/nav-tabs-app-state
+          :troles      []
+          :tabs        omut/nav-tabs-app-state
           }))
 
 
@@ -37,9 +37,9 @@
 (defn webusers-edit-form [app _ {{:keys [app->row-fn row->app-fn
                                          nav-tabs-items-map
                                          abody-fn]
-                                  :or {nav-tabs-items-map {0 {:text "Логин"}
-                                                           1 {:text "Роли"}}}} :specific
-                                 :as opts}]
+                                  :or   {nav-tabs-items-map {0 {:text "Логин"}
+                                                             1   {:text "Роли"}}}} :specific
+                                 :as                                           opts}]
 
   (reify
     om/IWillMount
@@ -52,7 +52,7 @@
        omut/edit-form-for-id app
        {:opts
         (merge opts
-               {:uri "/tc/rb/webusers/find/transit"
+               {:uri      "/tc/rb/webusers/find/transit"
                 :fill-app-fn
                 (fn [row]
                   (om/transact!
@@ -65,20 +65,20 @@
                          (assoc-in [:description :value] (get-in row [:description] ""))
                          (update-in [:password] omut/input-change-password-clean)
                          (assoc :troles (let [[roles-list user-roles-set] (row :troles-set)
-                                              roles-list (seq (group-by :id_2 roles-list))]
+                                              roles-list                  (seq (group-by :id_2 roles-list))]
                                           {:groups (reduce
                                                     (fn [a [id_2 r]]
                                                       (assoc a id_2 (-> r first :title_2)))
                                                     {} roles-list)
-                                           :roles (->> roles-list
-                                                       (reduce
-                                                        (fn [a [g-id groups]]
-                                                          (assoc a g-id
-                                                                 (vec
-                                                                  (map
-                                                                   #(assoc-in % [:user-role? :value] (contains? user-roles-set (% :keyname)))
-                                                                   groups))))
-                                                        {}))}
+                                           :roles  (->> roles-list
+                                                        (reduce
+                                                         (fn [a [g-id groups]]
+                                                           (assoc a g-id
+                                                                  (vec
+                                                                   (map
+                                                                    #(assoc-in % [:user-role? :value] (contains? user-roles-set (% :keyname)))
+                                                                    groups))))
+                                                         {}))}
                                           ))
 
                          ;; SPECIFIC
@@ -95,15 +95,15 @@
 
                   (omut/input-change-password-check (@app :password))
 
-                  {:row (-> (if-let [id (@app :id)] {:id id} {})
-                            (assoc
-                             :username      (get-in @app [:username :value])
-                             :description   (get-in @app [:description :value])
-                             :password (omut/input-change-password-value (@app :password)) )
-                            ;; SPECIFIC
-                            (as-> row
-                                (if app->row-fn
-                                  (app->row-fn @app row) row)))
+                  {:row                 (-> (if-let [id (@app :id)] {:id id} {})
+                                            (assoc
+                                             :username      (get-in @app [:username :value])
+                                             :description   (get-in @app [:description :value])
+                                             :password (omut/input-change-password-value (@app :password)) )
+                                            ;; SPECIFIC
+                                            (as-> row
+                                                (if app->row-fn
+                                                  (app->row-fn @app row) row)))
                    :user-roles-keys-set (->> @app
                                              :troles
                                              :roles
@@ -131,7 +131,7 @@
                      (dom/legend nil "Основные данные")
 
                      (om/build omut/input-form-group (get-in app [:username])
-                               {:opts {:label "Наименование"
+                               {:opts {:label      "Наименование"
                                        :spec-input {:onChange-valid?-fn
                                                     omut/input-vldfn-not-empty}}})
 
@@ -150,7 +150,7 @@
                      (dom/legend nil "Роли пользователя")
                      (apply dom/div #js {:className "col-sm-12 col-md-12 col-lg-12"}
 
-                            (let [roles (get-in @app [:troles :roles])
+                            (let [roles  (get-in @app [:troles :roles])
                                   groups (get-in @app [:troles :groups])]
                               (map
                                (fn [[g-id title]]
@@ -204,8 +204,8 @@
 (def webusers-search-view-app-init
   (merge
    omut/search-view-app-init
-   {:modal-add webusers-modal-edit-form-app-init
-    :modal-act omut/actions-modal-app-init
+   {:modal-add    webusers-modal-edit-form-app-init
+    :modal-act    omut/actions-modal-app-init
     :modal-yes-no (assoc omut/modal-yes-no-app-init :row {})
     }))
 
@@ -215,17 +215,17 @@
                                             editable?
                                             show-add-button-fn?
                                             get-spec-query-params-fn]
-                                     :or {selection-type :one}}]
+                                     :or   {selection-type :one}}]
   (reify
     om/IInitState
     (init-state [_]
-      {:chan-update (chan)
-       :chan-modal-act (chan)
+      {:chan-update       (chan)
+       :chan-modal-act    (chan)
        :chan-modal-add-id (chan)})
     om/IRenderState
-    (render-state [_ {:keys[chan-modal-act
-                            chan-modal-add-id
-                            chan-update]}]
+    (render-state [_ {:keys [chan-modal-act
+                             chan-modal-add-id
+                             chan-update]}]
       (dom/div nil
                (om/build omut/search-view app
                          {:opts
@@ -234,7 +234,7 @@
                            (fn [app]
                              (ixnet/get-data "/tc/rb/webusers/list/transit"
                                              (let [q {:fts-query (get-in @app [:fts-query :value])
-                                                      :page (get-in @app [:page])}]                                               
+                                                      :page      (get-in @app [:page])}]
                                                (if get-spec-query-params-fn
                                                  (merge q (get-spec-query-params-fn app))
                                                  q))
@@ -242,15 +242,15 @@
                                                (om/update! app :data (vec response)))))
                            :data-rendering-fn
                            (fn [app-2]
-                             (omut/ui-table {:hover? true
-                                             :bordered? true
-                                             :striped? true
+                             (omut/ui-table {:hover?      true
+                                             :bordered?   true
+                                             :striped?    true
                                              :responsive? true
-                                             :thead (omut/ui-thead-tr
-                                                     (or header
-                                                         [(dom/th nil "№")
-                                                          (dom/th nil "Наименование")
-                                                          (dom/th nil "Описание")]))
+                                             :thead       (omut/ui-thead-tr
+                                                           (or header
+                                                               [(dom/th nil "№")
+                                                                (dom/th nil "Наименование")
+                                                                (dom/th nil "Описание")]))
                                              :tbody
                                              (om/build omut/tbody-trs-sel (:data app-2)
                                                        {:opts {:selection-type selection-type
@@ -267,11 +267,11 @@
                                                                    (put! chan-modal-act
                                                                          {:label (str "Выбор действий над записью №" id)
                                                                           :acts
-                                                                          [{:text "Редактировать" :btn-type :primary
+                                                                          [{:text   "Редактировать" :btn-type :primary
                                                                             :act-fn (fn []
                                                                                       (put! chan-modal-add-id id)
                                                                                       (omut/modal-show (:modal-add app)))}
-                                                                           {:text "Удалить" :btn-type :danger
+                                                                           {:text   "Удалить" :btn-type :danger
                                                                             :act-fn #(do
                                                                                        (om/update! app [:modal-yes-no :row] row)
                                                                                        (omut/modal-show (:modal-yes-no app)))}]
@@ -289,18 +289,18 @@
                  (om/build omut/actions-modal (:modal-act app) {:opts {:chan-open chan-modal-act}}))
 
                (om/build webusers-modal-edit-form (:modal-add app)
-                         {:opts {:specific webusers-edit-form-specific
+                         {:opts {:specific         webusers-edit-form-specific
                                  :chan-load-for-id chan-modal-add-id
-                                 :post-save-fn #(do
-                                                  (when chan-update
-                                                    (put! chan-update 1))
-                                                  1)
+                                 :post-save-fn     #(do
+                                                      (when chan-update
+                                                        (put! chan-update 1))
+                                                      1)
                                  }})
 
                (when editable?
                  (om/build omut/modal-yes-no (:modal-yes-no app)
                            {:opts {:modal-size :sm
-                                   :label "Желаете удалить запись?"
+                                   :label      "Желаете удалить запись?"
                                    :body
                                    (dom/div
                                     #js{:className "row"}
@@ -346,7 +346,7 @@
       (om/build
        omut/edit-form-for-id app
        {:opts
-        {:uri-save "/tc/rb/webusers/change-password/transit"
+        {:uri-save  "/tc/rb/webusers/change-password/transit"
          :chan-save chan-save
          :app-to-row-fn
          (fn []
@@ -359,10 +359,10 @@
           (om/build omut/input-change-password-group (get-in app [:password]))
 
           (dom/button #js {:className "btn btn-primary"
-                           :type "button"
-                           :onClick (fn [_]
-                                      (put! chan-save 1)
-                                      1)
+                           :type      "button"
+                           :onClick   (fn [_]
+                                        (put! chan-save 1)
+                                        1)
                            }
                       "Сохранить пароль")
           )

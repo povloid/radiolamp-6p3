@@ -41,21 +41,21 @@
                    (fn [e]
                      (.log js/console "ERROR!")
                      (do (.log js/console "ERROR!!")
-                             (js/alert (str  "Произошла ошибка. файлы небыли выгружены.  ERROR!: "
-                                             (.getLastErrorCode io) " - "(.getLastError io) ))
-                             (when error (error)))
+                         (js/alert (str  "Произошла ошибка. файлы небыли выгружены.  ERROR!: "
+                                         (.getLastErrorCode io) " - "(.getLastError io) ))
+                         (when error (error)))
                      (when error (error))))
 
     (events/listen io goog.net.EventType.COMPLETE
                    (fn [e]
                      (let [iframeIo (.-target e)
-                           file (.-value form-e-uploader)]
+                           file     (.-value form-e-uploader)]
 
                        (if (.isSuccess io)
                          (do
                            (.log js/console "UPLOADING SUCCESS! --> " (.getResponseText io))
                            (when success (success (.getResponseText io))))
-                         
+
                          (do (.log js/console "ERROR!")
                              (js/alert (str  "Произошла ошибка. файлы небыли выгружены.  ERROR!!: "
                                              (.getLastErrorCode io) " - "(.getLastError io) ))

@@ -42,17 +42,17 @@
                           balloon-content-body
                           icon-content hint-content
                           preset]
-                   :or {type "Point"}}]
+                   :or   {type "Point"}}]
   (new js/ymaps.GeoObject
        ;;feature
-       (clj->js { "geometry" (clj->js {:coordinates coordinates
-                                       :type type})
-                  "properties" (clj->js {:balloonContentHeader balloon-content-header
-                                         :balloonContentBody balloon-content-body
-                                         :iconContent icon-content
-                                         :hintContent hint-content
-                                         })
-                  })
+       (clj->js { "geometry"   (clj->js {:coordinates coordinates
+                                         :type          type})
+                 "properties" (clj->js {:balloonContentHeader balloon-content-header
+                                        :balloonContentBody   balloon-content-body
+                                        :iconContent          icon-content
+                                        :hintContent          hint-content
+                                        })
+                 })
 
        ;; options
        (clj->js {:preset (or preset  "islands#redStretchyIcon")})))
@@ -66,14 +66,14 @@
                               click-fn click-coords-fn
                               width
                               height]
-                       :or {width "100%"
-                            height "600px"}}]
+                       :or   {width "100%"
+                              height  "600px"}}]
   (reify
     om/IInitState
     (init-state [_]
-      {:id (get-id)
+      {:id          (get-id)
        :chan-update (or chan-update (chan))
-       :map-object nil
+       :map-object  nil
        :show-route? false
        })
     om/IDidMount
@@ -84,7 +84,7 @@
          (fn []
            (let [map-object (new js/ymaps.Map id
                                  (clj->js {"center" (clj->js [59.95  30.316666666666666])
-                                           "zoom" 8
+                                           "zoom"   8
                                            }))]
 
 
@@ -92,18 +92,18 @@
 
              ;; Кнопка маршрута
              (let [b (new js/ymaps.control.Button
-                          (clj->js {:data {:content "Маршрут"}
+                          (clj->js {:data    {:content "Маршрут"}
                                     :options {:selectOnClick true}}))]
                (-> b .-events (.add "select"
                                     (fn []
                                       (println "show route..." )
                                       (om/set-state! owner :show-route? true))))
-               
+
                (-> b .-events (.add "deselect"
                                     (fn []
                                       (println "show route..." )
                                       (om/set-state! owner :show-route? false))))
-               
+
                (-> map-object .-controls (.add b)))
 
              (when (or click-fn click-coords-fn)
@@ -179,21 +179,21 @@
                                      [[60.10166 30.41011]])
                                     vec
                                     (#(conj % [60.10166 30.41011])))
-                  mr (new js/ymaps.multiRouter.MultiRoute
-                          (clj->js {:referencePoints
-                                    (clj->js route-points)})
-                          (clj->js {:editorDrawOver false
-                                    :wayPointDraggable true
-                                    :viaPointDraggable true})
-                          )]
+                  mr           (new js/ymaps.multiRouter.MultiRoute
+                                    (clj->js {:referencePoints
+                                              (clj->js route-points)})
+                                    (clj->js {:editorDrawOver    false
+                                              :wayPointDraggable true
+                                              :viaPointDraggable true})
+                                    )]
 
               (-> map-object .-geoObjects (.add mr))))))
 
 
 
 
-      (dom/div #js {:id id
-                    :style #js {:width width
+      (dom/div #js {:id    id
+                    :style #js {:width  width
                                 :height height
                                 }}) )))
 
@@ -238,62 +238,62 @@
                    (dom/div
                     #js {:className "input-group"}
                     (dom/div #js {:className "input-group-addon"
-                                  :style #js {:width 60}} "LAT")
+                                  :style     #js {:width 60}} "LAT")
                     (dom/input
-                     #js {:className "form-control"
-                          :value lat
-                          :onChange (fn [e]
-                                      (let [v (.. e -target -value)]
-                                        (when (omut/is-numeric? v)
-                                          (om/update! app [:geo-objects i :coordinates 0]
-                                                      (new js/Number v))))
-                                      1)
+                     #js {:className   "form-control"
+                          :value       lat
+                          :onChange    (fn [e]
+                                         (let [v (.. e -target -value)]
+                                           (when (omut/is-numeric? v)
+                                             (om/update! app [:geo-objects i :coordinates 0]
+                                                         (new js/Number v))))
+                                         1)
 
                           :placeholder "Координата"
-                          :type "number" :min "0.000000000000000" :step "0.00001"})
+                          :type        "number" :min "0.000000000000000" :step "0.00001"})
 
                     (dom/div #js {:className "input-group-addon"} "°")
                     (dom/input
-                     #js {:className "form-control"
-                          :style #js {:width 70}
-                          :value lat-g
-                          :onChange (fn [e]
-                                      (let [v (.. e -target -value)]
-                                        (when (omut/is-numeric? v)
-                                          (om/update! app [:geo-objects i :coordinates 0]
-                                                      (dms-to-dd [(new js/Number v) lat-m lat-s]))))
-                                      1)
+                     #js {:className   "form-control"
+                          :style       #js {:width 70}
+                          :value       lat-g
+                          :onChange    (fn [e]
+                                         (let [v (.. e -target -value)]
+                                           (when (omut/is-numeric? v)
+                                             (om/update! app [:geo-objects i :coordinates 0]
+                                                         (dms-to-dd [(new js/Number v) lat-m lat-s]))))
+                                         1)
                           :placeholder "Координата"
-                          :type "number" :min "0.0" :step "1.0"})
+                          :type        "number" :min "0.0" :step "1.0"})
 
                     (dom/div #js {:className "input-group-addon"} "'")
                     (dom/input
-                     #js {:className "form-control"
-                          :style #js {:width 70}
-                          :value lat-m
-                          :onChange (fn [e]
-                                      (let [v (.. e -target -value)]
-                                        (when (omut/is-numeric? v)
-                                          (om/update! app [:geo-objects i :coordinates 0]
-                                                      (dms-to-dd [lat-g (new js/Number v) lat-s]))))
-                                      1)
+                     #js {:className   "form-control"
+                          :style       #js {:width 70}
+                          :value       lat-m
+                          :onChange    (fn [e]
+                                         (let [v (.. e -target -value)]
+                                           (when (omut/is-numeric? v)
+                                             (om/update! app [:geo-objects i :coordinates 0]
+                                                         (dms-to-dd [lat-g (new js/Number v) lat-s]))))
+                                         1)
                           :placeholder "Координата"
-                          :type "number" :min "0" :step "1" :max "60"})
+                          :type        "number" :min "0" :step "1" :max "60"})
 
                     (dom/div #js {:className "input-group-addon"} "''")
                     (dom/input
-                     #js {:className "form-control"
-                          :style #js {:width 100}
-                          :value lat-s
-                          :onChange (fn [e]
-                                      (let [v (.. e -target -value)]
-                                        (when (omut/is-numeric? v)
-                                          (om/update! app [:geo-objects i :coordinates 0]
-                                                      (dms-to-dd [lat-g lat-m (new js/Number v)]))))
-                                      1)
+                     #js {:className   "form-control"
+                          :style       #js {:width 100}
+                          :value       lat-s
+                          :onChange    (fn [e]
+                                         (let [v (.. e -target -value)]
+                                           (when (omut/is-numeric? v)
+                                             (om/update! app [:geo-objects i :coordinates 0]
+                                                         (dms-to-dd [lat-g lat-m (new js/Number v)]))))
+                                         1)
 
                           :placeholder "Координата"
-                          :type "number" :min "0.0" :step "0.1" :max "60.0"})
+                          :type        "number" :min "0.0" :step "0.1" :max "60.0"})
                     )
 
                    ;; LNG ---------------------------------------------------------------------------
@@ -302,62 +302,62 @@
                     #js {:className "input-group"}
 
                     (dom/div #js {:className "input-group-addon"
-                                  :style #js {:width 60}} "LNG")
+                                  :style     #js {:width 60}} "LNG")
                     (dom/input
-                     #js {:className "form-control"
-                          :value lng
-                          :onChange (fn [e]
-                                      (let [v (.. e -target -value)]
-                                        (when (omut/is-numeric? v)
-                                          (om/update! app [:geo-objects i :coordinates 1]
-                                                      (new js/Number v))))
-                                      1)
+                     #js {:className   "form-control"
+                          :value       lng
+                          :onChange    (fn [e]
+                                         (let [v (.. e -target -value)]
+                                           (when (omut/is-numeric? v)
+                                             (om/update! app [:geo-objects i :coordinates 1]
+                                                         (new js/Number v))))
+                                         1)
 
                           :placeholder "Координата"
-                          :type "number" :min "0.000000000000000" :step "0.00001"})
+                          :type        "number" :min "0.000000000000000" :step "0.00001"})
 
                     (dom/div #js {:className "input-group-addon"} "°")
                     (dom/input
-                     #js {:className "form-control"
-                          :style #js {:width 70}
-                          :value lng-g
-                          :onChange (fn [e]
-                                      (let [v (.. e -target -value)]
-                                        (when (omut/is-numeric? v)
-                                          (om/update! app [:geo-objects i :coordinates 1]
-                                                      (dms-to-dd [(new js/Number v) lng-m lng-s]))))
-                                      1)
+                     #js {:className   "form-control"
+                          :style       #js {:width 70}
+                          :value       lng-g
+                          :onChange    (fn [e]
+                                         (let [v (.. e -target -value)]
+                                           (when (omut/is-numeric? v)
+                                             (om/update! app [:geo-objects i :coordinates 1]
+                                                         (dms-to-dd [(new js/Number v) lng-m lng-s]))))
+                                         1)
                           :placeholder "Координата"
-                          :type "number" :min "0.0" :step "1.0"})
+                          :type        "number" :min "0.0" :step "1.0"})
 
                     (dom/div #js {:className "input-group-addon"} "'")
                     (dom/input
-                     #js {:className "form-control"
-                          :style #js {:width 70}
-                          :value lng-m
-                          :onChange (fn [e]
-                                      (let [v (.. e -target -value)]
-                                        (when (omut/is-numeric? v)
-                                          (om/update! app [:geo-objects i :coordinates 1]
-                                                      (dms-to-dd [lng-g (new js/Number v) lng-s]))))
-                                      1)
+                     #js {:className   "form-control"
+                          :style       #js {:width 70}
+                          :value       lng-m
+                          :onChange    (fn [e]
+                                         (let [v (.. e -target -value)]
+                                           (when (omut/is-numeric? v)
+                                             (om/update! app [:geo-objects i :coordinates 1]
+                                                         (dms-to-dd [lng-g (new js/Number v) lng-s]))))
+                                         1)
                           :placeholder "Координата"
-                          :type "number" :min "0" :step "1" :max "60"})
+                          :type        "number" :min "0" :step "1" :max "60"})
 
                     (dom/div #js {:className "input-group-addon"} "''")
                     (dom/input
-                     #js {:className "form-control"
-                          :style #js {:width 100}
-                          :value lng-s
-                          :onChange (fn [e]
-                                      (let [v (.. e -target -value)]
-                                        (when (omut/is-numeric? v)
-                                          (om/update! app [:geo-objects i :coordinates 1]
-                                                      (dms-to-dd [lng-g lng-m (new js/Number v)]))))
-                                      1)
+                     #js {:className   "form-control"
+                          :style       #js {:width 100}
+                          :value       lng-s
+                          :onChange    (fn [e]
+                                         (let [v (.. e -target -value)]
+                                           (when (omut/is-numeric? v)
+                                             (om/update! app [:geo-objects i :coordinates 1]
+                                                         (dms-to-dd [lng-g lng-m (new js/Number v)]))))
+                                         1)
 
                           :placeholder "Координата"
-                          :type "number" :min "0.0" :step "0.1" :max "60.0"})
+                          :type        "number" :min "0.0" :step "0.1" :max "60.0"})
                     )
                    )
                   ))) (range))) ))))

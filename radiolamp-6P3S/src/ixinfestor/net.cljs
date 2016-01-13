@@ -64,7 +64,7 @@
               (do (js/alert "СЕРВЕР ПРИСЛАЛ СИГНАЛ НА ОБНОВЛЕНИЕ")
                   (set! (.-location js/window) "/"))))]
 
-    (let [req (goog.net.XhrIo.)
+    (let [req              (goog.net.XhrIo.)
           progress-element (if disable-progress-element?
                              false
                              (.getElementById js/document progress-element-id))]

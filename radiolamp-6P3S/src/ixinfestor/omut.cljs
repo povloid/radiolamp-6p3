@@ -209,6 +209,9 @@
 (defn date-com-format-datetime [d]
   (format-date "yyyy-MM-dd HH:mm:ss z" d))
 
+(defn date-com-format-datetime-to-min [d]
+  (format-date "yyyy-MM-dd HH:mm z" d))
+
 (defn the-time-has-passed-from [date-1 date-2]
   (let [time-diff (.abs js/Math
                         (- (.getTime date-2)
