@@ -1100,7 +1100,7 @@
                (dom/label #js {:className (str "control-label " label-class+) } label)
                (dom/div #js {:className input-class+ :style #js {}}
                         (dom/b nil "введено: "
-                               (date-com-format-datetime (input-datetime--parse-str-to-date (@app :value))))
+                               (date-com-format-datetime-to-min (input-datetime--parse-str-to-date (@app :value))))
                         (om/build
                          input app
                          {:opts (assoc spec-input
