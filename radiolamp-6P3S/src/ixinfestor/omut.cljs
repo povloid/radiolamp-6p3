@@ -15,6 +15,8 @@
             [clojure.string :as clojstr]
 
             [goog.i18n.DateTimeFormat :as dtf]
+            [goog.i18n.DateTimeParse :as dtp]
+            
             [goog.string :as gstring]
             [goog.string.format]
             )
@@ -1052,13 +1054,33 @@
 
 
 
+
+
+
+
 (def input-datetime--date-str-format "yyyy-MM-ddTHH:mmZ")
 
 (defn input-datetime-form-group--set-date! [app d]
   (assoc app :value (format-date input-datetime--date-str-format d)))
 
+(defn input-datetime--parse-str-to-date [s] 
+  (let [parser (new goog.i18n.DateTimeParse input-datetime--date-str-format)
+        d (new js/Date)]    
+    (.parse parser s d)
+    d))
+
+
 (defn input-datetime-form-group--date [app]
-  (str-to-date (@app :value)))
+  (input-datetime--parse-str-to-date (@app :value)))
+
+
+(defn input-vldfn-not-empty-datetime [app v]
+  (helper-p-clean app)
+  (input-css-string-has?-clean app)
+  (when-not (input-datetime--parse-str-to-date v)
+    (om/transact! app #(assoc % :has-warning? true :text-warning "Неправильная дата")))
+  true)
+
 
 
 
@@ -1078,15 +1100,14 @@
                (dom/label #js {:className (str "control-label " label-class+) } label)
                (dom/div #js {:className input-class+ :style #js {}}
                         (dom/b nil "введено: "
-                               (date-com-format-datetime (str-to-date (@app :value))))
+                               (date-com-format-datetime (input-datetime--parse-str-to-date (@app :value))))
                         (om/build
                          input app
                          {:opts (assoc spec-input
                                        :type                "datetime"
                                        :placeholder         input-datetime--date-str-format
-                                       :onChange-valid?-fn  input-vldfn-not-empty-date)})
-                        (om/build helper-p app {})
-                        )))))
+                                       :onChange-valid?-fn  input-vldfn-not-empty-datetime)})
+                        (om/build helper-p app {}))))))
 
 
 
