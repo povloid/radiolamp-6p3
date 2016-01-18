@@ -44,17 +44,47 @@
   (and (not (js/isNaN (js/parseFloat n))) (js/isFinite n)))
 
 
+
 (defn parse-int-or [v dv]
   (if (is-numeric? v)
     (js/parseInt v)
     dv))
-
 
 (defn parse-int-or-nil [v]
   (parse-int-or v nil))
 
 (defn parse-int-or-zero [v]
   (parse-int-or v 0))
+
+
+(defn parse-float-or [v dv]
+  (if (is-numeric? v)
+    (js/parseFloat v)
+    dv))
+
+(defn parse-float-or-nil [v]
+  (parse-float-or v nil))
+
+(defn parse-float-or-zero [v]
+  (parse-float-or v 0))
+
+
+
+(defn parse-number-or [v dv]
+  (if (is-numeric? v)
+    (new js/Number v)
+    dv))
+
+(defn parse-number-or-nil [v]
+  (parse-number-or v nil))
+
+(defn parse-number-or-zero [v]
+  (parse-number-or v 0))
+
+
+
+
+
 
 
 (defn on-click-com-fn [f]
@@ -1071,7 +1101,7 @@
 
 
 (defn input-datetime-form-group--date [app]
-  (input-datetime--parse-str-to-date (@app :value)))
+  (input-datetime--parse-str-to-date (app :value)))
 
 
 (defn input-vldfn-not-empty-datetime [app v]
@@ -1725,6 +1755,7 @@
                            data-update-fn
                            data-rendering-fn
                            add-button-fn
+                           tools-top
                            tools]
                     :or   {input-placeholder "введите сюда поисковый запрос"
                            data-update-fn    (fn [app]
@@ -1762,7 +1793,10 @@
        #js {:className "container-fluid"}
        (dom/div
         #js {:className "row"}
-        (dom/div #js {:className "input-group" :style #js {:marginBottom 6}}
+
+        (when tools-top tools-top)
+        
+        (dom/div #js {:className "input-group col-xs-12 col-sm-12 col-md-12 col-lg-12" :style #js {:marginBottom 6}}
                  (dom/span #js {:className "input-group-btn"}
                            (ui-button {:type     :default
                                        :on-click (fn [_]
