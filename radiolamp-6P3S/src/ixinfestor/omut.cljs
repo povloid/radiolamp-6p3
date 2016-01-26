@@ -16,7 +16,7 @@
 
             [goog.i18n.DateTimeFormat :as dtf]
             [goog.i18n.DateTimeParse :as dtp]
-            
+
             [goog.string :as gstring]
             [goog.string.format]
             )
@@ -94,6 +94,37 @@
     (f)
     1))
 
+
+
+;; Работа с фалами и расширениями
+
+(defn file-ext [filename]
+  (let [m (js->clj (.split filename "."))]
+    (when (< 1 (count m)) (last m))))
+
+(defn file-type [filename]
+  (let [ext (file-ext filename)]
+    (assoc (condp = ext
+             nil   {:type :dir  :title "Папка"}
+             "jpg" {:type :file :title "Фаил изображения"}
+             {:type :file :title "Фаил"})
+           :ext ext)))
+
+
+
+(defn path-up [path]
+  (let [p (clojure.string/split path "/")
+        c (count p)]
+    ;;(println p c)
+    (if (< c 3) "/"
+        (->> p
+             reverse
+             rest
+             reverse
+             (reduce (fn [a s]
+                       (if (or (empty? s) (= s "/")) a
+                           (str a "/" s)))
+                     "")))))
 
 ;; END Common functions and tools
 ;;..................................................................................................
@@ -1093,9 +1124,9 @@
 (defn input-datetime-form-group--set-date! [app d]
   (assoc app :value (format-date input-datetime--date-str-format d)))
 
-(defn input-datetime--parse-str-to-date [s] 
+(defn input-datetime--parse-str-to-date [s]
   (let [parser (new goog.i18n.DateTimeParse input-datetime--date-str-format)
-        d (new js/Date)]    
+        d (new js/Date)]
     (.parse parser s d)
     d))
 
@@ -1795,7 +1826,7 @@
         #js {:className "row"}
 
         (when tools-top tools-top)
-        
+
         (dom/div #js {:className "input-group col-xs-12 col-sm-12 col-md-12 col-lg-12" :style #js {:marginBottom 6}}
                  (dom/span #js {:className "input-group-btn"}
                            (ui-button {:type     :default
