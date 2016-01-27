@@ -1693,7 +1693,7 @@
    :page-size 10
    :count-all nil})
 
-(defn paginator [app owner {:keys [chan-update class+]}]
+(defn paginator [app owner {:keys [chan-update class+ on-click-fn]}]
   (reify
     om/IRender
     (render [this]
@@ -1708,6 +1708,8 @@
                                                  (om/update! app :page 1)
                                                  (when chan-update
                                                    (put! chan-update 1))
+
+                                                 (when on-click-fn (on-click-fn))
                                                  1)
                                      :text     (dom/span #js {:className   "glyphicon glyphicon-fast-backward"
                                                               :aria-hidden "true"})
@@ -1719,6 +1721,8 @@
                                                                #(if (= 1 %) % (dec %)))
                                                  (when chan-update
                                                    (put! chan-update 1))
+
+                                                 (when on-click-fn (on-click-fn))
                                                  1)
                                      :text     (dom/span nil
                                                          (dom/span #js {:className   "glyphicon glyphicon-step-backward"
@@ -1727,14 +1731,19 @@
                                      })
                          )
 
-               (dom/h4 nil
-                       (str " стр." (@app :page)
-                            (when-let [count-all (:count-all @app)]
-                              (str
-                               (if-let [page-size (:page-size @app)]
-                                 (str " из " (inc (quot count-all page-size)))
-                                 "")
-                               " (" count-all ") "))))
+
+               (let [{:keys [page page-size count-all]} @app]
+                 (dom/div
+                  #js {:className "input-control"
+                       :style #js {:lineHeight 1.2}}
+                  " страница "
+                  (dom/b nil page)                  
+                  (when (and count-all page-size) " из ")
+                  (when (and count-all page-size) (dom/b nil (inc (quot count-all page-size))))
+                  
+                  (when count-all (dom/br nil))
+                  (when count-all "всего записей ")
+                  (when count-all (dom/b nil (str count-all)))))
 
                (dom/span #js {:className "input-group-btn"}
                          (ui-button {:type     :default
@@ -1742,6 +1751,8 @@
                                                  (om/transact! app :page inc)
                                                  (when chan-update
                                                    (put! chan-update 1))
+
+                                                 (when on-click-fn (on-click-fn))
                                                  1)
                                      :text     (dom/span nil "Вперед "
                                                          (dom/span #js {:className   "glyphicon glyphicon-step-forward"
@@ -1876,11 +1887,25 @@
 
         ;;(dom/br nil)
         (when tools tools)
+
+        ;; top paginator
         (dom/div #js {:className "input-group col-xs-12 col-sm-12"}
                  (om/build paginator app {:opts {:chan-update chan-update}}))
+
         (dom/br nil)
+
         ;; data rendering component
-        (data-rendering-fn app))))))
+        (data-rendering-fn app)
+
+
+        ;; bottom paginator
+        (dom/div #js {:className "input-group col-xs-12 col-sm-12"}
+                 (om/build
+                  paginator app
+                  {:opts {:chan-update chan-update
+                          ;; При отрабатывании прокручивать страницу на верх
+                          :on-click-fn #(.scrollTo js/window 0 0)}}))
+        (dom/br nil))))))
 
 
 ;; END Search view
