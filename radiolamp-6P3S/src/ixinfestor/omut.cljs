@@ -308,6 +308,20 @@
     (gstring/format "прошло: %d дн. %02d час. %02d мин." d h m)))
 
 
+(declare ui-glyphicon)
+
+
+(defn ui-cdate-udate [{:keys [cdate udate]}]
+  (dom/span
+   #js {:className "text-muted"}
+   (ui-glyphicon "time") " создан "
+   (date-com-format-datetime cdate) " "
+   (ui-glyphicon "time") " обновлен "
+   (date-com-format-datetime udate)))
+
+
+
+
 
 ;; END date and time functions
 ;;..................................................................................................
@@ -1737,10 +1751,10 @@
                   #js {:className "input-control"
                        :style #js {:lineHeight 1.2}}
                   " страница "
-                  (dom/b nil page)                  
+                  (dom/b nil page)
                   (when (and count-all page-size) " из ")
                   (when (and count-all page-size) (dom/b nil (inc (quot count-all page-size))))
-                  
+
                   (when count-all (dom/br nil))
                   (when count-all "всего записей ")
                   (when count-all (dom/b nil (str count-all)))))
@@ -2510,6 +2524,7 @@
 (defn ui-media [{:keys [media-object
                         heading heading-2
                         on-click-fn
+                        on-click-in-image-fn
                         href
                         style
                         body
@@ -2520,7 +2535,12 @@
   (dom/div #js {:className "media" :style style
                 :onClick   on-click-fn}
            (dom/div #js {:className "media-left"}
-                    (dom/a #js {:href (or href "#")}
+                    (dom/a #js {:href    href
+                                :onClick (fn [e]
+                                           (when on-click-in-image-fn (on-click-in-image-fn))
+                                           ;; Далее прервать выполнение события для родительского
+                                           ;; компонента
+                                           (.stopPropagation e))}
                            media-object))
            (dom/div #js {:className "media-body"}
                     (when button-do-fn (ui-button {:style    #js {:float "right"}
@@ -3289,6 +3309,60 @@
 
 ;; END files
 ;;..................................................................................................
+
+
+;;;**************************************************************************************************
+;;;* BEGIN images and files list viewer with button collapser
+;;;* tag: <image-and-files-btn-viewer>
+;;;*
+;;;* description: Компонент для отображения привязанных файлов и картинок в виде выпадающего через кнопку списка
+;;;*
+;;;**************************************************************************************************
+
+(defn image-and-files-btn-viewer [app own {:keys [chan-thumb-show-in-full-screen]}]
+  (reify
+    om/IRender
+    (render [_]
+      (let [{:keys [images files]} @app]
+        (ui-collapser
+         app (str "изображений (" (count images) ") файлов (" (count files) ")")
+         :k (or (not (empty? images)) (not (empty? files)))
+         (apply
+          dom/ul #js {:className "list-group"}
+          (into
+           (reduce
+            (fn [a {:keys [id path top_description description] :as row}]
+              (conj a (dom/li #js {:className "list-group-item"}
+                              (ui-media
+                               {:media-object         (ui-media-object
+                                                       {:src (str path "_as_60.png")})
+                                :heading              top_description
+                                :on-click-in-image-fn #(put! chan-thumb-show-in-full-screen row)
+                                :button-do-text       "cмотреть"
+                                :button-do-fn         #(put! chan-thumb-show-in-full-screen row)
+                                :body                 description
+                                }))))
+            [] images)
+           (reduce
+            (fn [a {:keys [id path filename top_description description] :as row}]
+              (conj a (dom/li #js {:className "list-group-item"}
+                              (ui-media
+                               {:media-object (ui-glyphicon "file" "" "2em")
+                                :href         path
+                                :on-click-fn
+                                (fn [e]
+                                  ;; Далее прервать выполнение события для родительского
+                                  ;; компонента
+                                  (.stopPropagation e))
+                                :heading      (dom/span nil top_description
+                                                        " " (dom/small nil filename))
+                                :body         description
+                                }))))
+            [] files))))))))
+
+;;; END images and files list viewer with button collapser
+;;;..................................................................................................
+
 
 
 
