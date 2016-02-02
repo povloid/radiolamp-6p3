@@ -1576,10 +1576,78 @@
             dom/div #js {:className "btn-group" :role "group"})))))
 
 
-
-
 ;; END toggle batton
 ;;..................................................................................................
+
+;;;**************************************************************************************************
+;;;* BEGIN many to many input checkers
+;;;* tag: <nany to many input checkres>
+;;;*
+;;;* description: Элемент ввода данных на основании многие ко многим
+;;;*
+;;;**************************************************************************************************
+
+
+(def input-select-checkboxes-app-init
+  {:data []})
+
+
+(defn input-select-checkboxes--make-data [app key-text key-value rows]
+  (assoc app :data (->> rows
+                        (map (fn [row]
+                               (assoc row
+                                      :value (get row key-value false)
+                                      :text  (get row key-text "..."))))
+                        vec)))
+
+
+(defn input-select-checkboxes--get-selected [app]
+  (->> app :data (filter :value)))
+
+
+
+(defn input-select-checkboxes [app own
+                               {:keys [on-click-fn]
+                                :or   { }
+                                :as   opts}]
+  (reify
+    om/IRender
+    (render [_]
+      (->> app
+           :data
+           (map (fn [app-row]
+                  (letfn [(on-click [_]
+                            (om/transact! app-row :value not)
+                            (when on-click-fn (on-click-fn)))]
+                    (let [{:keys [value text]} @app-row]
+                      #_(ui-button
+                         {:type      (if value :success :default)
+                          :active?   value
+                          :disabled? disabled?
+                          :block?    true
+                          :style     #js {:textAlign "left"}
+                          :on-click  (fn [_]
+                                       (om/transact! app-row :value not)
+                                       (when onClick-fn (onClick-fn)))
+                          :text      text})
+                      (dom/div
+                       #js {:className "checkbox"}
+                       (dom/label
+                        nil
+                        (dom/input #js {:type       "checkbox"
+                                        :checked    value
+                                        :onClick    (on-click-com-fn on-click)
+                                        :onTouchEnd (on-click-com-fn on-click)
+                                        })
+                        text))))))
+           (apply dom/div #js {:className ""})))))
+
+
+;;; END many to many input checkers
+;;;..................................................................................................
+
+
+
 
 
 ;;**************************************************************************************************
@@ -1689,6 +1757,7 @@
 
 ;; END table
 ;;..................................................................................................
+
 
 
 
