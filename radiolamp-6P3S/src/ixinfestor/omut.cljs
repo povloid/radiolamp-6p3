@@ -2430,6 +2430,16 @@
 
 
 
+(defn form-show-invalid-messages!! [app message & [input-app input-message]]
+  (alert-clean-and-set!! app :alert-danger (or message "Ошибка ввода данных"))
+  (when input-app
+    (input-css-string-has?-clean-and-set!! input-app :has-error?)
+    (helper-p-clean-and-set!!
+     input-app :text-danger (or input-message "ошибка ввода"))))
+
+
+
+
 ;; END Edit form functional
 ;;..................................................................................................
 
@@ -3696,3 +3706,38 @@
 
 ;; END Ввод элементов из справочника
 ;;..................................................................................................
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
