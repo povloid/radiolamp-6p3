@@ -25,7 +25,7 @@
                  [net.sourceforge.htmlcleaner/htmlcleaner "2.16"]
 
                  [com.draines/postal "1.11.4"]
-                 [image-resizer "0.1.8"]                              
+                 [image-resizer "0.1.9"]
                  ]
 
   :aot :all

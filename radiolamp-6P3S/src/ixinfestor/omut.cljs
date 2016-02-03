@@ -1601,8 +1601,8 @@
                         vec)))
 
 
-(defn input-select-checkboxes--get-selected [app]
-  (->> app :data (filter :value)))
+(defn input-select-checkboxes--get-selected [key-value app]
+  (->> app :data (filter key-value)))
 
 
 

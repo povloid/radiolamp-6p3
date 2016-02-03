@@ -406,6 +406,24 @@
                    (if not? (not p) p))))
      select*-1 entity-2-rows)))
 
+
+
+
+(defn com-defn-select-all-many-to-many--and-add-true-value-to-each-row-if-row-selected
+  "создание функции соединения двух сущностей по типу many-to-many"
+  [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2 entity-2 row-selected-field]
+  (fn [{entity-1-id field-id-1}]
+    (let [s-selected (->> (kc/select rel-entity
+                                      (kc/where (=  field-fk-id-1 entity-1-id)))
+                          (reduce (fn [a {id field-fk-id-2}] (conj a id)) #{}))]
+      
+      (->> (kc/select entity-2)
+           (map (fn [{id field-id-2 :as row}]
+                  (assoc row row-selected-field (contains? s-selected id))))))))
+
+
+
+
 ;; END SQL TOOLS
 ;;..................................................................................................
 
