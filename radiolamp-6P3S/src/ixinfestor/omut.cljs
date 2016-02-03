@@ -1608,7 +1608,7 @@
 
 (defn input-select-checkboxes [app own
                                {:keys [on-click-fn]
-                                :or   { }
+                                :or   {}
                                 :as   opts}]
   (reify
     om/IRender
@@ -1641,6 +1641,27 @@
                                         })
                         text))))))
            (apply dom/div #js {:className ""})))))
+
+
+(defn input-select-checkboxes-form-group
+  [app own {:keys [label
+                   type
+                   label-class+
+                   input-class+
+                   spec-input-select-checkboxes]
+            :or   {label                        "Метка"
+                   label-class+                 "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                   input-class+                 "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                   spec-input-select-checkboxes {}}}]
+  (reify
+    om/IRender
+    (render [this]
+      (dom/div #js {:className (str "form-group " (input-css-string-has? app))}
+               (dom/label #js {:className (str "control-label " label-class+) } label)
+               (dom/div #js {:className input-class+ :style #js {}}
+                        (om/build input-select-checkboxes app {:opts spec-input-select-checkboxes})
+                        (om/build helper-p app {}))))))
+
 
 
 ;;; END many to many input checkers
