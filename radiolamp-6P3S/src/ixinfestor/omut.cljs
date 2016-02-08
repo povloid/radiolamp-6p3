@@ -311,6 +311,15 @@
 (declare ui-glyphicon)
 
 
+(defn ui-datetime [d]
+  (dom/span
+   #js {:className "text-muted"}
+   (ui-glyphicon "time") " "
+   (date-com-format-datetime d)))
+
+
+   
+
 (defn ui-cdate-udate [{:keys [cdate udate]}]
   (dom/span
    #js {:className "text-muted"}
@@ -363,7 +372,8 @@
 ;;**************************************************************************************************
 
 (defn ui-glyphicon [name & [class+ size]]
-  (dom/span #js {:className   (str "glyphicon glyphicon-" name " " (or class+ ""))
+  (dom/span #js {:className   (str "glyphicon glyphicon-"
+                                   name " " (or class+ ""))
                  :style       #js {:fontSize size}
                  :aria-hidden "true"}))
 
