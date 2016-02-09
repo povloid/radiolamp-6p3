@@ -3144,8 +3144,7 @@
 
     om/IRenderState
     (render-state [_ {:keys [i deg div-id div-height img-id img-margin-top img-height]}]
-      (letfn [(img-on-load []
-                (println "IMG loaded")
+      (letfn [(img-setup []
                 (om/update-state!
                  own (fn [{:keys [div-id img-id deg] :as state}]
                        (let [r?    (or (= deg 90) (= deg 270))
@@ -3154,8 +3153,7 @@
                              img-w (-> img-id by-id .-clientWidth)
                              img-h (-> img-id by-id .-clientHeight)
                              fat?  (>= img-w img-h)]
-                         (println "REP!")
-                         (assoc state                                
+                         (assoc state
                                 :img-margin-top (when r?
                                                   (if fat?
                                                     (* 0.5 (- img-w img-h))
@@ -3184,10 +3182,16 @@
                                  :on-click
                                  (fn []
                                    (om/update-state!
-                                     own :deg
-                                     #(let [deg (+ % 90)]
-                                        (if (> deg 270) 0 deg)))
-                                   (img-on-load))}))
+                                    own :deg
+                                    #(let [deg (+ % 90)]
+                                       (if (> deg 270) 0 deg)))
+                                   (img-setup))})
+                               (dom/div #js {:className "btn-group"}
+                                        (ui-button
+                                         {:text     (ui-glyphicon "fullscreen")
+                                          :type     :default
+                                          :size     :lg
+                                          :on-click #(put! chan-thumb-show-in-full-screen-app-init {:src src})})))
 
                       (dom/div #js {:className "btn-group"}
                                (ui-button {:text     (ui-glyphicon "chevron-left")
@@ -3197,7 +3201,7 @@
                                                        (om/update-state!
                                                         own :i
                                                         #(let [i (dec %)]
-                                                          (if (< i 0) (dec (count @app)) i)))
+                                                           (if (< i 0) (dec (count @app)) i)))
                                                        1)})
                                (ui-button {:text     (ui-glyphicon "chevron-right")
                                            :type     :default
@@ -3221,7 +3225,7 @@
                                             :marginTop       img-margin-top
                                             :height          img-height}
                             :onClick   #(put! chan-thumb-show-in-full-screen-app-init {:src src})
-                            :onLoad    img-on-load}))
+                            :onLoad    img-setup}))
              (dom/h2 nil (get-in @app [i :top_description] ""))
              (dom/p nil (get-in @app [i :description] "")))))))))
 
