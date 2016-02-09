@@ -318,7 +318,7 @@
    (date-com-format-datetime d)))
 
 
-   
+
 
 (defn ui-cdate-udate [{:keys [cdate udate]}]
   (dom/span
@@ -2851,8 +2851,7 @@
            (dom/div #js {:style #js {:position "fixed" :left 0 :top 0 :zIndex 3005}}
                     (dom/button #js {:className "close"
                                      :onClick   #(om/transact! app :zoom? not)}
-                                (ui-glyphicon (if zoom? "zoom-out" "zoom-in")
-                                              "" "3em"))
+                                (ui-glyphicon (if zoom? "zoom-out" "zoom-in") "" "3em"))
                     (dom/button #js {:className "close"
                                      :onClick   #(om/transact!
                                                   app :deg (fn [deg]
@@ -3126,52 +3125,83 @@
 
 (defn images-gallery-1 [app own]
   (reify
+
     om/IInitState
     (init-state [_]
-      {:i 0})
+      {:i          0               :deg            0
+       :div-id     (uniq-id "div") :img-id         (uniq-id "img")
+       :div-height nil             :img-margin-top nil})
+
     om/IWillReceiveProps
     (will-receive-props [_ next-props]
       (om/set-state! own :i 0))
+
     om/IRenderState
-    (render-state [_ {:keys [i]}]
-      (if (empty? @app)
-        (dom/h2 nil "Изображений нет")
-        (dom/div
-         #js {}
-         (dom/b #js {:style #js {:fontSize "26px"}} "Изображение " (inc i) " из " (count @app))
-         (dom/div #js {:className "btn-group" :style #js {:float "right"}}
-                  (ui-button {:type     :default
-                              :size     :lg
-                              :on-click (fn [_]
-                                          (om/update-state!
-                                           own :i
-                                           #(let [i (dec %)]
-                                              (if (< i 0) (dec (count @app)) i)))
-                                          1)
-                              :text     (dom/span nil
-                                                  (dom/span #js {:className   "glyphicon glyphicon-chevron-left"
-                                                                 :aria-hidden "true"}))
-                              })
-                  (ui-button {:type     :default
-                              :size     :lg
-                              :on-click (fn [_]
-                                          (om/update-state!
-                                           own :i
-                                           #(let [i (inc %)]
-                                              (if (= i (count @app)) 0  i)))
-                                          1)
-                              :text     (dom/span nil
-                                                  (dom/span #js {:className   "glyphicon glyphicon-chevron-right"
-                                                                 :aria-hidden "true"}))
-                              }))
-         (dom/br nil)
-         (dom/br nil)
-         (dom/div
-          #js {:className "thumbnail"}
-          (dom/img #js {:className ""
-                        :src       (get-in @app [i :path] "")}))
-         (dom/h2 nil (get-in @app [i :top_description] ""))
-         (dom/p nil (get-in @app [i :description] "")))))))
+    (render-state [_ {:keys [i deg div-id div-height img-id img-margin-top]}]
+      (let [deg-2 (str  "rotate(" deg "deg)")
+            src (get-in @app [i :path] "")]
+        (if (empty? @app)
+          (dom/h2 nil "Изображений нет")
+          (dom/div
+           #js {}
+           (dom/b #js {:style #js {:fontSize "26px"}} "Изображение " (inc i) " из " (count @app))
+
+
+           (dom/div #js {:className "btn-toolbar" :style #js {:float "right"}}
+                    (dom/div #js {:className "btn-group"}
+                             (ui-button
+                              {:text (ui-glyphicon "retweet")
+                               :type :default
+                               :size :lg
+                               :on-click
+                               #(om/update-state!
+                                 own
+                                 (fn [{:keys [deg div-id img-id] :as state}]
+                                   (let [deg (+ deg 90)
+                                         deg (if (> deg 270) 0 deg)
+                                         r? (or (= deg 90) (= deg 270))
+                                         img-w (-> img-id by-id .-clientWidth)
+                                         img-h (-> img-id by-id .-clientHeight)]
+                                     (assoc state
+                                            :deg deg
+                                            :img-margin-top
+                                            (when r? (js/Math.abs (* 0.5 (- img-h img-w))))
+                                            :div-height (when r? (+ 12 img-w))))))}))
+
+                    (dom/div #js {:className "btn-group"}
+                             (ui-button {:text     (ui-glyphicon "chevron-left")
+                                         :type     :default
+                                         :size     :lg
+                                         :on-click (fn [_]
+                                                     (om/update-state!
+                                                      own :i
+                                                      #(let [i (dec %)]
+                                                         (if (< i 0) (dec (count @app)) i)))
+                                                     1)})
+                             (ui-button {:text     (ui-glyphicon "chevron-right")
+                                         :type     :default
+                                         :size     :lg
+                                         :on-click (fn [_]
+                                                     (om/update-state!
+                                                      own :i
+                                                      #(let [i (inc %)]
+                                                         (if (= i (count @app)) 0  i)))
+                                                     1)})))
+           (dom/br nil)
+           (dom/br nil)
+           (dom/div
+            #js {:id div-id :className "thumbnail" :style #js {:height div-height}}
+            (dom/img #js {:id        img-id
+                          :className ""
+                          :src       src
+                          :style     #js {:msTransform     deg-2
+                                          :WebkitTransform deg-2
+                                          :transform       deg-2
+                                          :marginTop       img-margin-top
+                                          }
+                          :onClick #(put! chan-thumb-show-in-full-screen-app-init {:src src})}))
+           (dom/h2 nil (get-in @app [i :top_description] ""))
+           (dom/p nil (get-in @app [i :description] ""))))))))
 
 ;; END Thumbs
 ;;..................................................................................................
@@ -3716,38 +3746,3 @@
 
 ;; END Ввод элементов из справочника
 ;;..................................................................................................
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
