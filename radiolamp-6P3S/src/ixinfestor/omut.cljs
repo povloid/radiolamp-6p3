@@ -3130,78 +3130,100 @@
     (init-state [_]
       {:i          0               :deg            0
        :div-id     (uniq-id "div") :img-id         (uniq-id "img")
-       :div-height nil             :img-margin-top nil})
+       :div-height nil             :img-margin-top nil
+       :img-height nil
+       })
+
+    om/IDidUpdate
+    (did-update [_ _ _]
+      )
 
     om/IWillReceiveProps
     (will-receive-props [_ next-props]
       (om/set-state! own :i 0))
 
     om/IRenderState
-    (render-state [_ {:keys [i deg div-id div-height img-id img-margin-top]}]
-      (let [deg-2 (str  "rotate(" deg "deg)")
-            src (get-in @app [i :path] "")]
-        (if (empty? @app)
-          (dom/h2 nil "Изображений нет")
-          (dom/div
-           #js {}
-           (dom/b #js {:style #js {:fontSize "26px"}} "Изображение " (inc i) " из " (count @app))
+    (render-state [_ {:keys [i deg div-id div-height img-id img-margin-top img-height]}]
+      (letfn [(img-on-load []
+                (println "IMG loaded")
+                (om/update-state!
+                 own (fn [{:keys [div-id img-id deg] :as state}]
+                       (let [r?    (or (= deg 90) (= deg 270))
+                             div-w (-> div-id by-id .-clientWidth)
+                             div-h (-> div-id by-id .-clientHeight)
+                             img-w (-> img-id by-id .-clientWidth)
+                             img-h (-> img-id by-id .-clientHeight)
+                             fat?  (>= img-w img-h)]
+                         (println "REP!")
+                         (assoc state                                
+                                :img-margin-top (when r?
+                                                  (if fat?
+                                                    (* 0.5 (- img-w img-h))
+                                                    nil))
+                                :div-height (when r?
+                                              (if fat?
+                                                (+ 12 img-w)
+                                                nil))
+                                :img-height (when (and r? (not fat?))
+                                              div-w))))))]
+        (let [deg-2 (str  "rotate(" deg "deg)")
+              src   (get-in @app [i :path] "")]
+          (if (empty? @app)
+            (dom/h2 nil "Изображений нет")
+            (dom/div
+             #js {}
+             (dom/b #js {:style #js {:fontSize "26px"}} "Изображение " (inc i) " из " (count @app))
 
 
-           (dom/div #js {:className "btn-toolbar" :style #js {:float "right"}}
-                    (dom/div #js {:className "btn-group"}
-                             (ui-button
-                              {:text (ui-glyphicon "retweet")
-                               :type :default
-                               :size :lg
-                               :on-click
-                               #(om/update-state!
-                                 own
-                                 (fn [{:keys [deg div-id img-id] :as state}]
-                                   (let [deg (+ deg 90)
-                                         deg (if (> deg 270) 0 deg)
-                                         r? (or (= deg 90) (= deg 270))
-                                         img-w (-> img-id by-id .-clientWidth)
-                                         img-h (-> img-id by-id .-clientHeight)]
-                                     (assoc state
-                                            :deg deg
-                                            :img-margin-top
-                                            (when r? (js/Math.abs (* 0.5 (- img-h img-w))))
-                                            :div-height (when r? (+ 12 img-w))))))}))
+             (dom/div #js {:className "btn-toolbar" :style #js {:float "right"}}
+                      (dom/div #js {:className "btn-group"}
+                               (ui-button
+                                {:text (ui-glyphicon "retweet")
+                                 :type :default
+                                 :size :lg
+                                 :on-click
+                                 (fn []
+                                   (om/update-state!
+                                     own :deg
+                                     #(let [deg (+ % 90)]
+                                        (if (> deg 270) 0 deg)))
+                                   (img-on-load))}))
 
-                    (dom/div #js {:className "btn-group"}
-                             (ui-button {:text     (ui-glyphicon "chevron-left")
-                                         :type     :default
-                                         :size     :lg
-                                         :on-click (fn [_]
-                                                     (om/update-state!
-                                                      own :i
-                                                      #(let [i (dec %)]
-                                                         (if (< i 0) (dec (count @app)) i)))
-                                                     1)})
-                             (ui-button {:text     (ui-glyphicon "chevron-right")
-                                         :type     :default
-                                         :size     :lg
-                                         :on-click (fn [_]
-                                                     (om/update-state!
-                                                      own :i
-                                                      #(let [i (inc %)]
-                                                         (if (= i (count @app)) 0  i)))
-                                                     1)})))
-           (dom/br nil)
-           (dom/br nil)
-           (dom/div
-            #js {:id div-id :className "thumbnail" :style #js {:height div-height}}
-            (dom/img #js {:id        img-id
-                          :className ""
-                          :src       src
-                          :style     #js {:msTransform     deg-2
-                                          :WebkitTransform deg-2
-                                          :transform       deg-2
-                                          :marginTop       img-margin-top
-                                          }
-                          :onClick #(put! chan-thumb-show-in-full-screen-app-init {:src src})}))
-           (dom/h2 nil (get-in @app [i :top_description] ""))
-           (dom/p nil (get-in @app [i :description] ""))))))))
+                      (dom/div #js {:className "btn-group"}
+                               (ui-button {:text     (ui-glyphicon "chevron-left")
+                                           :type     :default
+                                           :size     :lg
+                                           :on-click (fn [_]
+                                                       (om/update-state!
+                                                        own :i
+                                                        #(let [i (dec %)]
+                                                          (if (< i 0) (dec (count @app)) i)))
+                                                       1)})
+                               (ui-button {:text     (ui-glyphicon "chevron-right")
+                                           :type     :default
+                                           :size     :lg
+                                           :on-click (fn [_]
+                                                       (om/update-state!
+                                                        own :i
+                                                        #(let [i (inc %)]
+                                                           i (if (= i (count @app)) 0 i)))
+                                                       1)})))
+             (dom/br nil)
+             (dom/br nil)
+             (dom/div
+              #js {:id div-id :className "thumbnail" :style #js {:height div-height}}
+              (dom/img #js {:id        img-id
+                            :className ""
+                            :src       src
+                            :style     #js {:msTransform     deg-2
+                                            :WebkitTransform deg-2
+                                            :transform       deg-2
+                                            :marginTop       img-margin-top
+                                            :height          img-height}
+                            :onClick   #(put! chan-thumb-show-in-full-screen-app-init {:src src})
+                            :onLoad    img-on-load}))
+             (dom/h2 nil (get-in @app [i :top_description] ""))
+             (dom/p nil (get-in @app [i :description] "")))))))))
 
 ;; END Thumbs
 ;;..................................................................................................
