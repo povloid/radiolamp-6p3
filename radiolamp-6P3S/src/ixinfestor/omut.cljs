@@ -3127,23 +3127,26 @@
   (letfn [(img-setup []
                 (om/update-state!
                  own (fn [{:keys [div-id img-id deg] :as state}]
-                       (let [r?    (or (= deg 90) (= deg 270))
-                             div-w (-> div-id by-id .-clientWidth)
-                             div-h (-> div-id by-id .-clientHeight)
-                             img-w (-> img-id by-id .-clientWidth)
-                             img-h (-> img-id by-id .-clientHeight)
-                             fat?  (>= img-w img-h)]
-                         (assoc state
-                                :img-margin-top (when r?
+                       (let [div (by-id div-id)
+                             img (by-id img-id)]
+                         (when (and div img)
+                           (let [r?    (or (= deg 90) (= deg 270))
+                                 div-w (.-clientWidth  div)
+                                 div-h (.-clientHeight div)
+                                 img-w (.-clientWidth  img)
+                                 img-h (.-clientHeight img)
+                                 fat?  (>= img-w img-h)]
+                             (assoc state
+                                    :img-margin-top (when r?
+                                                      (if fat?
+                                                        (* 0.5 (- img-w img-h))
+                                                        nil))
+                                    :div-height (when r?
                                                   (if fat?
-                                                    (* 0.5 (- img-w img-h))
+                                                    (+ 12 img-w)
                                                     nil))
-                                :div-height (when r?
-                                              (if fat?
-                                                (+ 12 img-w)
-                                                nil))
-                                :img-height (when (and r? (not fat?))
-                                              div-w))))))]
+                                    :img-height (when (and r? (not fat?))
+                                                  div-w))))))))]
     (reify
 
       om/IInitState
