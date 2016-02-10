@@ -3124,27 +3124,7 @@
 
 
 (defn images-gallery-1 [app own]
-  (reify
-
-    om/IInitState
-    (init-state [_]
-      {:i          0               :deg            0
-       :div-id     (uniq-id "div") :img-id         (uniq-id "img")
-       :div-height nil             :img-margin-top nil
-       :img-height nil
-       })
-
-    om/IDidUpdate
-    (did-update [_ _ _]
-      )
-
-    om/IWillReceiveProps
-    (will-receive-props [_ next-props]
-      (om/set-state! own :i 0))
-
-    om/IRenderState
-    (render-state [_ {:keys [i deg div-id div-height img-id img-margin-top img-height]}]
-      (letfn [(img-setup []
+  (letfn [(img-setup []
                 (om/update-state!
                  own (fn [{:keys [div-id img-id deg] :as state}]
                        (let [r?    (or (= deg 90) (= deg 270))
@@ -3164,6 +3144,26 @@
                                                 nil))
                                 :img-height (when (and r? (not fat?))
                                               div-w))))))]
+    (reify
+
+      om/IInitState
+      (init-state [_]
+        {:i          0               :deg            0
+         :div-id     (uniq-id "div") :img-id         (uniq-id "img")
+         :div-height nil             :img-margin-top nil
+         :img-height nil
+         })
+
+      om/IDidUpdate
+      (did-update [_ _ _]
+        (img-setup))
+
+      om/IWillReceiveProps
+      (will-receive-props [_ next-props]
+        (om/set-state! own :i 0))
+
+      om/IRenderState
+      (render-state [_ {:keys [i deg div-id div-height img-id img-margin-top img-height]}]
         (let [deg-2 (str  "rotate(" deg "deg)")
               src   (get-in @app [i :path] "")]
           (if (empty? @app)
