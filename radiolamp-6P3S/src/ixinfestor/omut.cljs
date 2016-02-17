@@ -1912,7 +1912,8 @@
                            data-rendering-fn
                            add-button-fn
                            tools-top
-                           tools]
+                           tools
+                           show-search-input?]
                     :or   {input-placeholder "введите сюда поисковый запрос"
                            data-update-fn    (fn [app]
                                                (println "Неопределена функция запроса обновления данных (data-update-fn [app] ...)")
@@ -1920,7 +1921,7 @@
                            data-rendering-fn (fn [app]
                                                (println "Неопределена функция запроса перерисовки данных (data-rendering-fn [app] ...)")
                                                (println "параметр на входе: " (str app)))
-                           }}]
+                           show-search-input? true}}]
   (reify
     om/IInitState
     (init-state [_]
@@ -1952,52 +1953,53 @@
 
         (when tools-top tools-top)
 
-        (dom/div #js {:className "input-group col-xs-12 col-sm-12 col-md-12 col-lg-12" :style #js {:marginBottom 6}}
-                 (dom/span #js {:className "input-group-btn"}
-                           (ui-button {:type     :default
-                                       :on-click (fn [_]
-                                                   (om/update! app :page 1)
-                                                   (om/update! app [:fts-query :value] "")
-                                                   (put! chan-update 1)
-                                                   1)
-                                       :text     (dom/span #js {:className   "glyphicon glyphicon-remove"
-                                                                :aria-hidden "true"})
-                                       }))
-                 (om/build input (:fts-query app)
-                           {:opts {:placeholder   input-placeholder
-                                   :onKeyPress-fn #(do #_(println
-                                                          (.-type %)
-                                                          (.-which %)
-                                                          (.-timeStamp %))
-
-                                                       (when (= 13 (.-which %))
-                                                         (do
-                                                           (om/update! app :page 1)
-                                                           (put! chan-update 1)))
-                                                       1)
-                                   }})
-
-                 (dom/span #js {:className "input-group-btn"}
-                           (ui-button {:type     :success
-                                       :on-click (fn [_]
-                                                   (om/update! app :page 1)
-                                                   (put! chan-update 1)
-                                                   1)
-                                       :text     (dom/span #js {:className   "glyphicon glyphicon-search"
-                                                                :aria-hidden "true"})
-                                       })
-
-                           (when add-button-fn
-                             (ui-button {:type     :danger
+        (when show-search-input?
+          (dom/div #js {:className "input-group col-xs-12 col-sm-12 col-md-12 col-lg-12" :style #js {:marginBottom 6}}
+                   (dom/span #js {:className "input-group-btn"}
+                             (ui-button {:type     :default
                                          :on-click (fn [_]
-                                                     (add-button-fn)
+                                                     (om/update! app :page 1)
+                                                     (om/update! app [:fts-query :value] "")
+                                                     (put! chan-update 1)
                                                      1)
-                                         :text     (dom/span #js {:className   "glyphicon glyphicon-plus"
+                                         :text     (dom/span #js {:className   "glyphicon glyphicon-remove"
                                                                   :aria-hidden "true"})
                                          }))
+                   (om/build input (:fts-query app)
+                             {:opts {:placeholder   input-placeholder
+                                     :onKeyPress-fn #(do #_(println
+                                                            (.-type %)
+                                                            (.-which %)
+                                                            (.-timeStamp %))
 
-                           )
-                 )
+                                                         (when (= 13 (.-which %))
+                                                           (do
+                                                             (om/update! app :page 1)
+                                                             (put! chan-update 1)))
+                                                         1)
+                                     }})
+
+                   (dom/span #js {:className "input-group-btn"}
+                             (ui-button {:type     :success
+                                         :on-click (fn [_]
+                                                     (om/update! app :page 1)
+                                                     (put! chan-update 1)
+                                                     1)
+                                         :text     (dom/span #js {:className   "glyphicon glyphicon-search"
+                                                                  :aria-hidden "true"})
+                                         })
+
+                             (when add-button-fn
+                               (ui-button {:type     :danger
+                                           :on-click (fn [_]
+                                                       (add-button-fn)
+                                                       1)
+                                           :text     (dom/span #js {:className   "glyphicon glyphicon-plus"
+                                                                    :aria-hidden "true"})
+                                           }))
+
+                             )
+                   ))
 
         ;;(dom/br nil)
         (when tools tools)
