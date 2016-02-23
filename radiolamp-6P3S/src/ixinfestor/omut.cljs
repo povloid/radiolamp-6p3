@@ -1064,6 +1064,7 @@
                                onChange-updated-fn
                                onKeyPress-fn
                                placeholder
+                               readonly?
                                min max step]
                         :or   {class+             ""
                                type               "text"
@@ -1088,6 +1089,7 @@
                         :type        type
                         :min         min :max max :step step
                         :placeholder placeholder
+                        :disabled    (@app :disabled?)
                         :className   (str "form-control " class+)})))))
 
 (defn input-form-group  [app owner {:keys [label
