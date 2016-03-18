@@ -1277,7 +1277,7 @@
 
        (doall
         (map (fn [row]
-               (dom/option #js {:value (str (value-field-key row))} (title-field-key row)))
+               (dom/option #js {:value (str (value-field-key row))} (str (title-field-key row))))
              (into [{value-field-key no-select-v title-field-key first-item-text}] (@app :list)))) ))))
 
 (defn select-form-group  [app _ {:keys [label
@@ -1728,7 +1728,8 @@
 
 (defn tr-sel [app owner {:keys [app-to-tds-seq-fn
                                 clear-selections-fn
-                                on-select-fn]
+                                on-select-fn
+                                class-fn]
                          :or   {app-to-tds-seq-fn
                                 (fn [row]
                                   (map
@@ -1756,9 +1757,11 @@
         (omut-row-if-not-init-init!! app))
       om/IRender
       (render [_]
-        (apply dom/tr #js {:className (if (omut-row-selected? @app) "info" "")
+        (apply dom/tr #js {:className (str
+                                       (if class-fn (class-fn @app) "") " "
+                                       (if (omut-row-selected? @app) "info" ""))
                            :onClick   (partial on-click app)
-                           ;;:onTouchEnd (partial on-click app) ;; недает проматывать
+                           ;;:onTouchEnd (partial on-click app) ;; недает проматывать                           
                            }
                (app-to-tds-seq-fn app) )))))
 
