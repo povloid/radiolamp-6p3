@@ -4,7 +4,14 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [r6p3s.net :as rnet]
-            [r6p3s.core :as rc]))
+            [r6p3s.core :as rc]
+
+            [r6p3s.ui.table :as table]
+            [r6p3s.ui.thead-tr :as thead-tr]
+            [r6p3s.ui.nav-tab :as nav-tab]
+
+
+            ))
 
 ;;**************************************************************************************************
 ;;* BEGIN Webusers
@@ -122,7 +129,7 @@
                    (om/build rc/nav-tabs (app :tabs)
                              {:opts {}})
 
-                   (rc/ui-nav-tab
+                   (nav-tab/render
                     (app :tabs) 0
                     (dom/fieldset
                      nil
@@ -141,7 +148,7 @@
 
                      ))
 
-                   (rc/ui-nav-tab
+                   (nav-tab/render
                     (app :tabs) 1
                     (dom/fieldset
                      nil
@@ -231,52 +238,52 @@
                            :data-update-fn
                            (fn [app]
                              (rnet/get-data "/tc/rb/webusers/list/transit"
-                                             (let [q {:fts-query (get-in @app [:fts-query :value])
-                                                      :page      (get-in @app [:page])}]
-                                               (if get-spec-query-params-fn
-                                                 (merge q (get-spec-query-params-fn app))
-                                                 q))
-                                             (fn [response]
-                                               (om/update! app :data (vec response)))))
+                                            (let [q {:fts-query (get-in @app [:fts-query :value])
+                                                     :page      (get-in @app [:page])}]
+                                              (if get-spec-query-params-fn
+                                                (merge q (get-spec-query-params-fn app))
+                                                q))
+                                            (fn [response]
+                                              (om/update! app :data (vec response)))))
                            :data-rendering-fn
                            (fn [app-2]
-                             (rc/ui-table {:hover?      true
-                                             :bordered?   true
-                                             :striped?    true
-                                             :responsive? true
-                                             :thead       (rc/ui-thead-tr
-                                                           (or header
-                                                               [(dom/th nil "№")
-                                                                (dom/th nil "Наименование")
-                                                                (dom/th nil "Описание")]))
-                                             :tbody
-                                             (om/build rc/tbody-trs-sel (:data app-2)
-                                                       {:opts {:selection-type selection-type
-                                                               :app-to-tds-seq-fn
-                                                               (or app-to-tds-seq-fn
-                                                                   (fn [{:keys [id username description]}]
-                                                                     [(dom/td nil id)
-                                                                      (dom/td nil username)
-                                                                      (dom/td #js{:style #js {:whiteSpace "normal"}}
-                                                                              description)]))
-                                                               :on-select-fn
-                                                               (fn [{:keys [id] :as row}]
-                                                                 (when editable?
-                                                                   (put! chan-modal-act
-                                                                         {:label (str "Выбор действий над записью №" id)
-                                                                          :acts
-                                                                          [{:text   "Редактировать" :btn-type :primary
-                                                                            :act-fn (fn []
-                                                                                      (put! chan-modal-add-id id)
-                                                                                      (rc/modal-show (:modal-add app)))}
-                                                                           {:text   "Удалить" :btn-type :danger
-                                                                            :act-fn #(do
-                                                                                       (om/update! app [:modal-yes-no :row] row)
-                                                                                       (rc/modal-show (:modal-yes-no app)))}]
-                                                                          }))
-                                                                 )
-                                                               }})
-                                             }))
+                             (table/render {:hover?      true
+                                            :bordered?   true
+                                            :striped?    true
+                                            :responsive? true
+                                            :thead       (thead-tr/render
+                                                          (or header
+                                                              [(dom/th nil "№")
+                                                               (dom/th nil "Наименование")
+                                                               (dom/th nil "Описание")]))
+                                            :tbody
+                                            (om/build rc/tbody-trs-sel (:data app-2)
+                                                      {:opts {:selection-type selection-type
+                                                              :app-to-tds-seq-fn
+                                                              (or app-to-tds-seq-fn
+                                                                  (fn [{:keys [id username description]}]
+                                                                    [(dom/td nil id)
+                                                                     (dom/td nil username)
+                                                                     (dom/td #js{:style #js {:whiteSpace "normal"}}
+                                                                             description)]))
+                                                              :on-select-fn
+                                                              (fn [{:keys [id] :as row}]
+                                                                (when editable?
+                                                                  (put! chan-modal-act
+                                                                        {:label (str "Выбор действий над записью №" id)
+                                                                         :acts
+                                                                         [{:text   "Редактировать" :btn-type :primary
+                                                                           :act-fn (fn []
+                                                                                     (put! chan-modal-add-id id)
+                                                                                     (rc/modal-show (:modal-add app)))}
+                                                                          {:text   "Удалить" :btn-type :danger
+                                                                           :act-fn #(do
+                                                                                      (om/update! app [:modal-yes-no :row] row)
+                                                                                      (rc/modal-show (:modal-yes-no app)))}]
+                                                                         }))
+                                                                )
+                                                              }})
+                                            }))
                            :add-button-fn
                            (when show-add-button-fn?
                              #(do (rc/modal-show (:modal-add app))

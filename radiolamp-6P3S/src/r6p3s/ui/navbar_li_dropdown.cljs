@@ -1,4 +1,4 @@
-(ns ix.omut.ui.navbar-li-dropdown
+(ns r6p3s.ui.navbar-li-dropdown
   (:require [om.dom :as dom :include-macros true]))
 
 

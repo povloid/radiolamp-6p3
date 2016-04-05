@@ -1,7 +1,7 @@
-(ns ix.omut.ui.list-group--counts-by
+(ns r6p3s.ui.list-group--counts-by
   (:require [om.dom :as dom :include-macros true]
-            [ix.omut.ui.list-group :as list-group]
-            [ix.omut.ui.list-group-item :as list-group-item]))
+            [r6p3s.ui.list-group :as list-group]
+            [r6p3s.ui.list-group-item :as list-group-item]))
 
 
 (defn render [points f

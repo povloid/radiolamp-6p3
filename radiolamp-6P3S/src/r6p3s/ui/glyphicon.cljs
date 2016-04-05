@@ -1,4 +1,4 @@
-(ns ix.omut.ui.glyphicon
+(ns r6p3s.ui.glyphicon
   (:require [om.dom :as dom :include-macros true]))
 
 (defn render [name & [class+ size]]

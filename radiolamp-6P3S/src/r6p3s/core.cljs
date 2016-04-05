@@ -11,6 +11,36 @@
             [r6p3s.io :as ix-io]
             [r6p3s.net :as rnet]
 
+
+            [r6p3s.ui.button :as button]
+            ;;[r6p3s.ui.cdate-udate :as cdate-udate]
+            ;;[r6p3s.ui.collapser :as collapser]
+            [r6p3s.ui.container :as container]
+            [r6p3s.ui.container-fluid :as container-fluid]
+            [r6p3s.ui.datatime :as datatime]
+            [r6p3s.ui.form-group :as form-group]
+            [r6p3s.ui.glyphicon :as glyphicon]
+            [r6p3s.ui.label :as label]
+            [r6p3s.ui.list-group :as list-group]
+            [r6p3s.ui.list-group--counts-by :as list-group--counts-by]
+            [r6p3s.ui.list-group-item :as list-group-item]
+            [r6p3s.ui.media :as media]
+            [r6p3s.ui.media-object :as media-object]
+            [r6p3s.ui.navbar-li :as navbar-li]
+            [r6p3s.ui.navbar-li-dropdown :as navbar-li-dropdown]
+            [r6p3s.ui.navbar-li-separator :as navbar-li-separator]
+            [r6p3s.ui.nav :as nav]
+            [r6p3s.ui.nav-tab :as nav-tab]
+            [r6p3s.ui.panel :as panel]
+            [r6p3s.ui.panel-with-table :as panel-with-table]
+            [r6p3s.ui.row :as row]
+            [r6p3s.ui.table :as table]
+            [r6p3s.ui.tbody :as tbody]
+            [r6p3s.ui.thead-tr :as thead-tr]
+            [r6p3s.ui.ul-navbar-nav :as ul-navbar-nav]
+            [r6p3s.ui.ul-navbar-nav-right :as ul-navbar-nav-right]
+            ;;[r6p3s.ui.virtual-pages :as virtual-pages]
+
             [clojure.set :as clojset]
             [clojure.string :as clojstr]
 
@@ -22,6 +52,12 @@
             )
 
   (:import [goog.dom query]))
+
+;;Для примера при рефакторинге
+;;(navbar-li-separator/render)
+;;(navbar-li-separator/render )
+;;(navbar-li-separator/render sdf)
+;;(navbar-li-separator/render sdfsdf)
 
 ;;**************************************************************************************************
 ;;* BEGIN Common functions and tools
@@ -308,25 +344,25 @@
     (gstring/format "прошло: %d дн. %02d час. %02d мин." d h m)))
 
 
-(declare ui-glyphicon)
+#_(declare ui-glyphicon)
 
 
-(defn ui-datetime [d]
-  (dom/span
-   #js {:className "text-muted"}
-   (ui-glyphicon "time") " "
-   (date-com-format-datetime d)))
+#_(defn ui-datetime [d]
+    (dom/span
+     #js {:className "text-muted"}
+     (glyphicon/render "time") " "
+     (date-com-format-datetime d)))
 
 
 
 
-(defn ui-cdate-udate [{:keys [cdate udate]}]
-  (dom/span
-   #js {:className "text-muted"}
-   (ui-glyphicon "time") " создан "
-   (date-com-format-datetime cdate) " "
-   (ui-glyphicon "time") " обновлен "
-   (date-com-format-datetime udate)))
+#_(defn ui-cdate-udate [{:keys [cdate udate]}]
+    (dom/span
+     #js {:className "text-muted"}
+     (glyphicon/render "time") " создан "
+     (date-com-format-datetime cdate) " "
+     (glyphicon/render "time") " обновлен "
+     (date-com-format-datetime udate)))
 
 
 
@@ -348,14 +384,14 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn ui-container [& body]
-  (apply dom/div #js {:className "container"} body))
+#_(defn ui-container [& body]
+    (apply dom/div #js {:className "container"} body))
 
-(defn ui-container-fluid [& body]
-  (apply dom/div #js {:className "container-fluid"} body))
+#_(defn ui-container-fluid [& body]
+    (apply dom/div #js {:className "container-fluid"} body))
 
-(defn ui-row [& body]
-  (apply dom/div #js {:className "row"} body))
+#_(defn ui-row [& body]
+    (apply dom/div #js {:className "row"} body))
 
 
 
@@ -371,11 +407,11 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn ui-glyphicon [name & [class+ size]]
-  (dom/span #js {:className   (str "glyphicon glyphicon-"
-                                   name " " (or class+ ""))
-                 :style       #js {:fontSize size}
-                 :aria-hidden "true"}))
+#_(defn ui-glyphicon [name & [class+ size]]
+    (dom/span #js {:className   (str "glyphicon glyphicon-"
+                                     name " " (or class+ ""))
+                   :style       #js {:fontSize size}
+                   :aria-hidden "true"}))
 
 ;; END icons
 ;;..................................................................................................
@@ -388,38 +424,38 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn ui-button [{:keys [text
-                         type
-                         size
-                         block?
-                         disabled?
-                         active?
-                         on-click
-                         style]
-                  :or   {text "Кнопка"
-                         type :default}}]
-  (dom/button #js {:className  (str "btn "
-                                    ({:default "btn-default"
-                                      :primary "btn-primary"
-                                      :success "btn-success"
-                                      :info    "btn-info"
-                                      :warning "btn-warning"
-                                      :danger  "btn-danger"
-                                      :link    "btn-link"} type)
-                                    (if size ({:lg " btn-lg"
-                                               :sm " btn-sm"
-                                               :xs " btn-xs"} size)
-                                        "")
-                                    (if block? " btn-block" "")
-                                    (if active? " active" "")
-                                    )
-                   :type       "button"
-                   :disabled   (if disabled? "disabled" "")
-                   :onClick    (on-click-com-fn on-click)
-                   :onTouchEnd (on-click-com-fn on-click)
-                   :style      style
-                   }
-              text))
+#_(defn ui-button [{:keys [text
+                           type
+                           size
+                           block?
+                           disabled?
+                           active?
+                           on-click
+                           style]
+                    :or   {text "Кнопка"
+                           type :default}}]
+    (dom/button #js {:className  (str "btn "
+                                      ({:default "btn-default"
+                                        :primary "btn-primary"
+                                        :success "btn-success"
+                                        :info    "btn-info"
+                                        :warning "btn-warning"
+                                        :danger  "btn-danger"
+                                        :link    "btn-link"} type)
+                                      (if size ({:lg " btn-lg"
+                                                 :sm " btn-sm"
+                                                 :xs " btn-xs"} size)
+                                          "")
+                                      (if block? " btn-block" "")
+                                      (if active? " active" "")
+                                      )
+                     :type       "button"
+                     :disabled   (if disabled? "disabled" "")
+                     :onClick    (on-click-com-fn on-click)
+                     :onTouchEnd (on-click-com-fn on-click)
+                     :style      style
+                     }
+                text))
 
 
 ;; END buttons
@@ -529,7 +565,7 @@
                                                                              (when on-close-button-fn
                                                                                (on-close-button-fn))
                                                                              (om/update! app :show false) 1)}
-                                                        (ui-glyphicon "remove"))
+                                                        (glyphicon/render "remove"))
 
                                             (or header (dom/h4 #js {:className "modal-title"} label)))
                                    (dom/div #js {:className "modal-body"
@@ -537,13 +573,13 @@
                                             (or body (dom/p #js {:className "text-info"}
                                                             "Пустое пространство диалога. Можно наполнить элементами")))
                                    (dom/div #js {:className "modal-footer"}
-                                            (or footer (ui-button {:type     :default
-                                                                   :on-click (fn [_]
-                                                                               (when on-close-button-fn
-                                                                                 (on-close-button-fn))
-                                                                               (om/update! app :show false)
-                                                                               1)
-                                                                   :text     "Закрыть"}))))))))))
+                                            (or footer (button/render {:type     :default
+                                                                       :on-click (fn [_]
+                                                                                   (when on-close-button-fn
+                                                                                     (on-close-button-fn))
+                                                                                   (om/update! app :show false)
+                                                                                   1)
+                                                                       :text     "Закрыть"}))))))))))
 
 
 ;;------------------------------------------------------------------------------
@@ -560,17 +596,17 @@
   (reify
     om/IRender
     (render [_]
-      (ui-button {:text     text
-                  :type     btn-type
-                  :block?   true
-                  :size     :lg
-                  :on-click (fn [_]
-                              (modal-hide app)
-                              (if act-fn
-                                (act-fn)
-                                (println "Действие для '" text "' еще не определено"))
-                              1)
-                  }))))
+      (button/render {:text     text
+                      :type     btn-type
+                      :block?   true
+                      :size     :lg
+                      :on-click (fn [_]
+                                  (modal-hide app)
+                                  (if act-fn
+                                    (act-fn)
+                                    (println "Действие для '" text "' еще не определено"))
+                                  1)
+                      }))))
 
 
 
@@ -629,14 +665,14 @@
                 {:opts (assoc opts :footer
                               (dom/div nil
 
-                                       (ui-button {:type     :primary
-                                                   :on-click (fn [_]
-                                                               (act-yes-fn)
-                                                               (modal-hide app) 1)
-                                                   :text     "Да"})
+                                       (button/render {:type     :primary
+                                                       :on-click (fn [_]
+                                                                   (act-yes-fn)
+                                                                   (modal-hide app) 1)
+                                                       :text     "Да"})
 
-                                       (ui-button {:on-click (fn [_] (modal-hide app) 1)
-                                                   :text     "Нет"})
+                                       (button/render {:on-click (fn [_] (modal-hide app) 1)
+                                                       :text     "Нет"})
 
                                        ))
                  } ))))
@@ -680,7 +716,7 @@
 
         (om/build modal app
                   {:opts {:header (dom/h1 #js {:className type-class+}
-                                          (when icon (ui-glyphicon icon "1em"))
+                                          (when icon (glyphicon/render icon "1em"))
                                           (or (@app :title) title-default))
                           :body   (dom/p #js {:className type-class+}
                                          " " (@app :message))}})))))
@@ -742,10 +778,10 @@
       (let [text       (app k "")
             text-count (count text)]
         (dom/p nil
-               (ui-button {:text     "..."
-                           :size     :xs
-                           :active?  (not (omut-row-collapsed? @app k))
-                           :on-click #(omut-row-set-collapsed-not!! app k)})
+               (button/render {:text     "..."
+                               :size     :xs
+                               :active?  (not (omut-row-collapsed? @app k))
+                               :on-click #(omut-row-set-collapsed-not!! app k)})
 
                (if (and (omut-row-collapsed? @app k) (> text-count 90))
                  (str (.substring text 0 89) "...")
@@ -763,15 +799,15 @@
 ;;**************************************************************************************************
 
                                         ;TODO: Перемиеноывать в ui-hidder
-(defn ui-collapser [app text k show? collapsed-body]
-  (dom/p #js {:style #js {:display (if show? "" "none")}}
-         (ui-button {:text     text
-                     :type     :info
-                     :active?  (not (omut-row-collapsed? @app k))
-                     :on-click #(omut-row-set-collapsed-not!! app k)})
+#_(defn ui-collapser [app text k show? collapsed-body]
+    (dom/p #js {:style #js {:display (if show? "" "none")}}
+           (button/render {:text     text
+                           :type     :info
+                           :active?  (not (omut-row-collapsed? @app k))
+                           :on-click #(omut-row-set-collapsed-not!! app k)})
 
-         (dom/div #js {:style #js {:display (if (omut-row-collapsed? @app k) "none" "")}}
-                  collapsed-body)))
+           (dom/div #js {:style #js {:display (if (omut-row-collapsed? @app k) "none" "")}}
+                    collapsed-body)))
 
 
 
@@ -787,16 +823,16 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn ui-label [type text]
-  (dom/span #js {:className (str  "label label-"
-                                  (get {:default "default"
-                                        :primary "primary"
-                                        :success "success"
-                                        :info    "info"
-                                        :warning "warning"
-                                        :danger  "danger"
-                                        } type "default"))
-                 :style     #js {:whiteSpace "normal"}} text))
+#_(defn ui-label [type text]
+    (dom/span #js {:className (str  "label label-"
+                                    (get {:default "default"
+                                          :primary "primary"
+                                          :success "success"
+                                          :info    "info"
+                                          :warning "warning"
+                                          :danger  "danger"
+                                          } type "default"))
+                   :style     #js {:whiteSpace "normal"}} text))
 
 ;; END label
 ;;..................................................................................................
@@ -1014,14 +1050,14 @@
 
 
 
-(defn ui-form-group [{:keys [label label-class+ input-class+ body]
-                      :or   {label        "метка"
-                             label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                             input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"}}]
-  (dom/div #js {:className "form-group"}
-           (dom/label #js {:className (str "control-label " label-class+) } label)
-           (dom/div #js {:className input-class+ :style #js {}}
-                    body)))
+#_(defn ui-form-group [{:keys [label label-class+ input-class+ body]
+                        :or   {label        "метка"
+                               label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                               input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"}}]
+    (dom/div #js {:className "form-group"}
+             (dom/label #js {:className (str "control-label " label-class+) } label)
+             (dom/div #js {:className input-class+ :style #js {}}
+                      body)))
 
 
 
@@ -1516,13 +1552,13 @@
   (reify
     om/IRender
     (render [_]
-      (ui-button {:type      bs-type
-                  :active?   (@app :value)
-                  :disabled? disabled?
-                  :on-click  (fn [_]
-                               (om/transact! app :value not)
-                               (when onClick-fn (onClick-fn)))
-                  :text      (if (@app :value) text-on text-off)}))))
+      (button/render {:type      bs-type
+                      :active?   (@app :value)
+                      :disabled? disabled?
+                      :on-click  (fn [_]
+                                   (om/transact! app :value not)
+                                   (when onClick-fn (onClick-fn)))
+                      :text      (if (@app :value) text-on text-off)}))))
 
 
 (defn toggle-button-form-group [app owner {:keys [label
@@ -1571,7 +1607,7 @@
            :buttons
            (map (fn [app-row]
                   (let [{:keys [bs-type value disabled? text]} @app-row]
-                    (ui-button
+                    (button/render
                      {:type      (or bs-type :default)
                       :active?   value
                       :disabled? disabled?
@@ -1632,7 +1668,7 @@
                             (om/transact! app-row :value not)
                             (when on-click-fn (on-click-fn)))]
                     (let [{:keys [value text]} @app-row]
-                      #_(ui-button
+                      #_(button/render
                          {:type      (if value :success :default)
                           :active?   value
                           :disabled? disabled?
@@ -1693,37 +1729,37 @@
 
 
 
-(defn ui-table [{:keys [striped?
-                        bordered?
-                        condensed?
-                        hover?
-                        responsive?
-                        responsive-class+
-                        class+
-                        style+
-                        thead
-                        tbody]
-                 :or   {responsive-class+ ""
-                        class+            ""}}]
-  (let [table (dom/table #js {:className (str "table "
-                                              (if striped? "table-striped " "")
-                                              (if bordered? "table-bordered " "")
-                                              (if condensed? "table-condensed " "")
-                                              (if hover? "table-hover " "")
-                                              class+)
-                              :style     style+}
-                         thead
-                         tbody)]
-    (if responsive?
-      (dom/div #js {:className (str "table-responsive " responsive-class+)} table)
-      table)))
+#_(defn ui-table [{:keys [striped?
+                          bordered?
+                          condensed?
+                          hover?
+                          responsive?
+                          responsive-class+
+                          class+
+                          style+
+                          thead
+                          tbody]
+                   :or   {responsive-class+ ""
+                          class+            ""}}]
+    (let [table (dom/table #js {:className (str "table "
+                                                (if striped? "table-striped " "")
+                                                (if bordered? "table-bordered " "")
+                                                (if condensed? "table-condensed " "")
+                                                (if hover? "table-hover " "")
+                                                class+)
+                                :style     style+}
+                           thead
+                           tbody)]
+      (if responsive?
+        (dom/div #js {:className (str "table-responsive " responsive-class+)} table)
+        table)))
 
 
-(defn ui-thead-tr [ths]
-  (dom/thead nil (apply dom/tr nil ths)))
+#_(defn ui-thead-tr [ths]
+    (dom/thead nil (apply dom/tr nil ths)))
 
-(defn ui-tbody [trs]
-  (apply dom/tbody nil trs))
+#_(defn ui-tbody [trs]
+    (apply dom/tbody nil trs))
 
 
 (defn tr-sel [app owner {:keys [app-to-tds-seq-fn
@@ -1761,7 +1797,7 @@
                                        (if class-fn (class-fn @app) "") " "
                                        (if (omut-row-selected? @app) "info" ""))
                            :onClick   (partial on-click app)
-                           ;;:onTouchEnd (partial on-click app) ;; недает проматывать                           
+                           ;;:onTouchEnd (partial on-click app) ;; недает проматывать
                            }
                (app-to-tds-seq-fn app) )))))
 
@@ -1822,32 +1858,32 @@
                                     :float     "none"
                                     :margin    "0 auto"}}
                (dom/span #js {:className "input-group-btn"}
-                         (ui-button {:type     :default
-                                     :on-click (fn [_]
-                                                 (om/update! app :page 1)
-                                                 (when chan-update
-                                                   (put! chan-update 1))
+                         (button/render {:type     :default
+                                         :on-click (fn [_]
+                                                     (om/update! app :page 1)
+                                                     (when chan-update
+                                                       (put! chan-update 1))
 
-                                                 (when on-click-fn (on-click-fn))
-                                                 1)
-                                     :text     (dom/span #js {:className   "glyphicon glyphicon-fast-backward"
-                                                              :aria-hidden "true"})
-                                     })
+                                                     (when on-click-fn (on-click-fn))
+                                                     1)
+                                         :text     (dom/span #js {:className   "glyphicon glyphicon-fast-backward"
+                                                                  :aria-hidden "true"})
+                                         })
 
-                         (ui-button {:type     :default
-                                     :on-click (fn [_]
-                                                 (om/transact! app :page
-                                                               #(if (= 1 %) % (dec %)))
-                                                 (when chan-update
-                                                   (put! chan-update 1))
+                         (button/render {:type     :default
+                                         :on-click (fn [_]
+                                                     (om/transact! app :page
+                                                                   #(if (= 1 %) % (dec %)))
+                                                     (when chan-update
+                                                       (put! chan-update 1))
 
-                                                 (when on-click-fn (on-click-fn))
-                                                 1)
-                                     :text     (dom/span nil
-                                                         (dom/span #js {:className   "glyphicon glyphicon-step-backward"
-                                                                        :aria-hidden "true"})
-                                                         " Назад")
-                                     })
+                                                     (when on-click-fn (on-click-fn))
+                                                     1)
+                                         :text     (dom/span nil
+                                                             (dom/span #js {:className   "glyphicon glyphicon-step-backward"
+                                                                            :aria-hidden "true"})
+                                                             " Назад")
+                                         })
                          )
 
 
@@ -1865,18 +1901,18 @@
                   (when count-all (dom/b nil (str count-all)))))
 
                (dom/span #js {:className "input-group-btn"}
-                         (ui-button {:type     :default
-                                     :on-click (fn [_]
-                                                 (om/transact! app :page inc)
-                                                 (when chan-update
-                                                   (put! chan-update 1))
+                         (button/render {:type     :default
+                                         :on-click (fn [_]
+                                                     (om/transact! app :page inc)
+                                                     (when chan-update
+                                                       (put! chan-update 1))
 
-                                                 (when on-click-fn (on-click-fn))
-                                                 1)
-                                     :text     (dom/span nil "Вперед "
-                                                         (dom/span #js {:className   "glyphicon glyphicon-step-forward"
-                                                                        :aria-hidden "true"}))
-                                     })
+                                                     (when on-click-fn (on-click-fn))
+                                                     1)
+                                         :text     (dom/span nil "Вперед "
+                                                             (dom/span #js {:className   "glyphicon glyphicon-step-forward"
+                                                                            :aria-hidden "true"}))
+                                         })
 
                          )))))
 
@@ -1961,15 +1997,15 @@
         (when show-search-input?
           (dom/div #js {:className "input-group col-xs-12 col-sm-12 col-md-12 col-lg-12" :style #js {:marginBottom 6}}
                    (dom/span #js {:className "input-group-btn"}
-                             (ui-button {:type     :default
-                                         :on-click (fn [_]
-                                                     (om/update! app :page 1)
-                                                     (om/update! app [:fts-query :value] "")
-                                                     (put! chan-update 1)
-                                                     1)
-                                         :text     (dom/span #js {:className   "glyphicon glyphicon-remove"
-                                                                  :aria-hidden "true"})
-                                         }))
+                             (button/render {:type     :default
+                                             :on-click (fn [_]
+                                                         (om/update! app :page 1)
+                                                         (om/update! app [:fts-query :value] "")
+                                                         (put! chan-update 1)
+                                                         1)
+                                             :text     (dom/span #js {:className   "glyphicon glyphicon-remove"
+                                                                      :aria-hidden "true"})
+                                             }))
                    (om/build input (:fts-query app)
                              {:opts {:placeholder   input-placeholder
                                      :onKeyPress-fn #(do #_(println
@@ -1985,23 +2021,23 @@
                                      }})
 
                    (dom/span #js {:className "input-group-btn"}
-                             (ui-button {:type     :success
-                                         :on-click (fn [_]
-                                                     (om/update! app :page 1)
-                                                     (put! chan-update 1)
-                                                     1)
-                                         :text     (dom/span #js {:className   "glyphicon glyphicon-search"
-                                                                  :aria-hidden "true"})
-                                         })
+                             (button/render {:type     :success
+                                             :on-click (fn [_]
+                                                         (om/update! app :page 1)
+                                                         (put! chan-update 1)
+                                                         1)
+                                             :text     (dom/span #js {:className   "glyphicon glyphicon-search"
+                                                                      :aria-hidden "true"})
+                                             })
 
                              (when add-button-fn
-                               (ui-button {:type     :danger
-                                           :on-click (fn [_]
-                                                       (add-button-fn)
-                                                       1)
-                                           :text     (dom/span #js {:className   "glyphicon glyphicon-plus"
-                                                                    :aria-hidden "true"})
-                                           }))
+                               (button/render {:type     :danger
+                                               :on-click (fn [_]
+                                                           (add-button-fn)
+                                                           1)
+                                               :text     (dom/span #js {:className   "glyphicon glyphicon-plus"
+                                                                        :aria-hidden "true"})
+                                               }))
 
                              )
                    ))
@@ -2042,69 +2078,69 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn ui-nav [{:keys [brand
-                      brand-href]
-               :or   {brand      "IX"
-                      brand-href "#/"}}
-              & body]
-  (dom/nav #js {:className "navbar navbar-default navbar-fixed-top"}
-           (dom/div #js {:className "container-fluid"}
-                    (dom/div #js {:className "navbar-header"}
-                             (dom/button #js {:className     "navbar-toggle collapsed"
-                                              :type          "button"
-                                              :data-toggle   "collapse"
-                                              :data-target   "#navbar-collapse-1"
-                                              :aria-expanded "false"}
-                                         (dom/span #js {:className "sr-only"} "Toggle navigation")
-                                         (dom/span #js {:className "icon-bar"})
-                                         (dom/span #js {:className "icon-bar"})
-                                         (dom/span #js {:className "icon-bar"}))
-                             (dom/a #js {:className "navbar-brand" :href brand-href}
-                                    brand))
+#_(defn ui-nav [{:keys [brand
+                        brand-href]
+                 :or   {brand      "IX"
+                        brand-href "#/"}}
+                & body]
+    (dom/nav #js {:className "navbar navbar-default navbar-fixed-top"}
+             (dom/div #js {:className "container-fluid"}
+                      (dom/div #js {:className "navbar-header"}
+                               (dom/button #js {:className     "navbar-toggle collapsed"
+                                                :type          "button"
+                                                :data-toggle   "collapse"
+                                                :data-target   "#navbar-collapse-1"
+                                                :aria-expanded "false"}
+                                           (dom/span #js {:className "sr-only"} "Toggle navigation")
+                                           (dom/span #js {:className "icon-bar"})
+                                           (dom/span #js {:className "icon-bar"})
+                                           (dom/span #js {:className "icon-bar"}))
+                               (dom/a #js {:className "navbar-brand" :href brand-href}
+                                      brand))
 
 
-                    (apply dom/div #js {:id        "navbar-collapse-1"
-                                        :className "collapse navbar-collapse"}
-                           body))))
+                      (apply dom/div #js {:id        "navbar-collapse-1"
+                                          :className "collapse navbar-collapse"}
+                             body))))
 
 
-(defn ui-ul-navbar-nav [& body]
-  (apply dom/ul #js {:className "nav navbar-nav"}
-         body))
+#_(defn ui-ul-navbar-nav [& body]
+    (apply dom/ul #js {:className "nav navbar-nav"}
+           body))
 
-(defn ui-ul-navbar-nav-right [& body]
-  (apply dom/ul #js {:className "nav navbar-nav navbar-right"}
-         body))
-
-
-(defn ui-navbar-li [{:keys [glyphicon text href]}]
-  (dom/li nil
-          (dom/a #js {:href href}
-                 (when glyphicon
-                   (dom/span #js {:style       #js {:paddingRight 4}
-                                  :className   (str "glyphicon " glyphicon)
-                                  :aria-hidden "true"}))
-                 text)))
+#_(defn ui-ul-navbar-nav-right [& body]
+    (apply dom/ul #js {:className "nav navbar-nav navbar-right"}
+           body))
 
 
-(defn ui-navbar-li-dropdown [{:keys [glyphicon text]} & body]
-  (dom/li #js {:className "dropdown"}
-          (dom/a #js {:href          "#"
-                      :className     "dropdown-toggle"
-                      :data-toggle   "dropdown"
-                      :role          "button"
-                      :aria-haspopup "true"
-                      :aria-expanded "false"}
-                 (when glyphicon
-                   (dom/span #js {:style       #js {:paddingRight 4}
-                                  :className   (str "glyphicon " glyphicon)
-                                  :aria-hidden "true"}))
-                 text
-                 (dom/span #js {:className "caret"}))
-          (apply dom/ul #js {:className "dropdown-menu"} body)))
+#_(defn ui-navbar-li [{:keys [glyphicon text href]}]
+    (dom/li nil
+            (dom/a #js {:href href}
+                   (when glyphicon
+                     (dom/span #js {:style       #js {:paddingRight 4}
+                                    :className   (str "glyphicon " glyphicon)
+                                    :aria-hidden "true"}))
+                   text)))
 
-(defn ui-navbar-li-separator []
-  (dom/li #js{:role "separator" :className "divider"}))
+
+#_(defn ui-navbar-li-dropdown [{:keys [glyphicon text]} & body]
+    (dom/li #js {:className "dropdown"}
+            (dom/a #js {:href          "#"
+                        :className     "dropdown-toggle"
+                        :data-toggle   "dropdown"
+                        :role          "button"
+                        :aria-haspopup "true"
+                        :aria-expanded "false"}
+                   (when glyphicon
+                     (dom/span #js {:style       #js {:paddingRight 4}
+                                    :className   (str "glyphicon " glyphicon)
+                                    :aria-hidden "true"}))
+                   text
+                   (dom/span #js {:className "caret"}))
+            (apply dom/ul #js {:className "dropdown-menu"} body)))
+
+#_(defn ui-navbar-li-separator []
+    (dom/li #js{:role "separator" :className "divider"}))
 
 
 (def nav-app-state-key :menu)
@@ -2112,22 +2148,22 @@
 (defn nav [app _ opts]
   (letfn [(f1 [{:keys [sub separator?] :as row}]
             (if separator?
-              (ui-navbar-li-separator)
+              (navbar-li-separator/render)
               (if (coll? sub)
                 (apply (partial ui-navbar-li-dropdown row) (map f1 sub))
-                (ui-navbar-li row))))]
+                (navbar-li/render row))))]
     (reify
       om/IRender
       (render [_]
         (let [m (nav-app-state-key app)]
-          (ui-nav opts
-                  (when-let [menus (:left m)]
-                    (apply ui-ul-navbar-nav
-                           (map f1 menus)))
-                  (when-let [menus (:right m)]
-                    (apply ui-ul-navbar-nav-right
-                           (map f1 menus)))
-                  ))))))
+          (nav/render opts
+                      (when-let [menus (:left m)]
+                        (apply ui-ul-navbar-nav
+                               (map f1 menus)))
+                      (when-let [menus (:right m)]
+                        (apply ui-ul-navbar-nav-right
+                               (map f1 menus)))
+                      ))))))
 
 
 ;;------------------------------------------------------------------------------
@@ -2216,14 +2252,14 @@
 
 
 
-(defn ui-nav-tab [app i body]
-  (dom/div #js {:style #js {:display
-                            (if (= (:active-tab app) i)
-                              "" "none") }
-                ;;:data-toggle "dropdown" ;;<- !!! Перестает работать выгрузка файлов, неработает file uploader
-                }
-           (dom/br nil)
-           body))
+#_(defn ui-nav-tab [app i body]
+    (dom/div #js {:style #js {:display
+                              (if (= (:active-tab app) i)
+                                "" "none") }
+                  ;;:data-toggle "dropdown" ;;<- !!! Перестает работать выгрузка файлов, неработает file uploader
+                  }
+             (dom/br nil)
+             body))
 
 
 ;; END nav tabs page splitter
@@ -2394,14 +2430,14 @@
                                                              (post-save-fn-2 r))))}))
                         :footer
                         (dom/div nil
-                                 (ui-button {:type     :primary
-                                             :on-click (fn [_]
-                                                         (put! chan-save 1)
-                                                         1)
-                                             :text     "Принять"})
-                                 (ui-button {:type     :default
-                                             :on-click (fn [_] (modal-hide app) 1)
-                                             :text     "Отмена"})
+                                 (button/render {:type     :primary
+                                                 :on-click (fn [_]
+                                                             (put! chan-save 1)
+                                                             1)
+                                                 :text     "Принять"})
+                                 (button/render {:type     :default
+                                                 :on-click (fn [_] (modal-hide app) 1)
+                                                 :text     "Отмена"})
                                  )
                         }}))))
 
@@ -2437,12 +2473,12 @@
                          #js {:className "row"}
                          (om/build edit-form-for-id app {:opts opts}))
                         :footer
-                        (ui-button {:type     :default
-                                    :on-click (fn [_]
-                                                (when post-save-fn
-                                                  (post-save-fn {}))
-                                                (modal-hide app) 1)
-                                    :text     "Закрыть"})
+                        (button/render {:type     :default
+                                        :on-click (fn [_]
+                                                    (when post-save-fn
+                                                      (post-save-fn {}))
+                                                    (modal-hide app) 1)
+                                        :text     "Закрыть"})
                         }}))))
 
 
@@ -2478,24 +2514,24 @@
 (defn virtual-pages-go-to-page!! [app page]
   (om/update! app :current page))
 
-(defn ui-virtual-page-<<
-  ([app page-key body]
-   (ui-virtual-page-<< app page-key nil body))
-  ([app page-key back-key body]
-   (dom/div #js {:style #js {:display
-                             (if (= (virtual-pages-current @app) page-key)
-                               "" "none") }}
-            (when back-key
-              (ui-button {:type     :default
-                          :on-click (fn [_]
-                                      (virtual-pages-go-to-page!! app back-key)
-                                      1)
-                          :text     (dom/span nil
-                                              (dom/span #js {:className   "glyphicon glyphicon-backward"
-                                                             :aria-hidden "true"})
-                                              " Назад")
-                          }))
-            body)))
+#_(defn ui-virtual-page-<<
+    ([app page-key body]
+     (virtual-page-/render<< app page-key nil body))
+    ([app page-key back-key body]
+     (dom/div #js {:style #js {:display
+                               (if (= (virtual-pages-current @app) page-key)
+                                 "" "none") }}
+              (when back-key
+                (button/render {:type     :default
+                                :on-click (fn [_]
+                                            (virtual-pages-go-to-page!! app back-key)
+                                            1)
+                                :text     (dom/span nil
+                                                    (dom/span #js {:className   "glyphicon glyphicon-backward"
+                                                                   :aria-hidden "true"})
+                                                    " Назад")
+                                }))
+              body)))
 
 
 ;; END Virtual pages
@@ -2508,42 +2544,42 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn ui-list-group [list-groups-items & [class+]]
-  (apply dom/ul #js {:className (str "list-group "
-                                     (or class+ ""))
-                     :style     #js {:marginTop 10}}
-         list-groups-items))
+#_(defn ui-list-group [list-groups-items & [class+]]
+    (apply dom/ul #js {:className (str "list-group "
+                                       (or class+ ""))
+                       :style     #js {:marginTop 10}}
+           list-groups-items))
 
-(defn ui-list-group-item [{:keys [text type badge active? class+]}]
-  (dom/a #js {:className (str  "list-group-item "
-                               (get {:success " list-group-item-success"
-                                     :info    " list-group-item-info"
-                                     :warning " list-group-item-warning"
-                                     :danger  " list-group-item-danger"
-                                     } type "")
-                               (if active? "active" "")
-                               " " (or class+ "")
-                               )}
-         (when badge (dom/span #js {:className "badge"} badge))
-         text))
+#_(defn ui-list-group-item [{:keys [text type badge active? class+]}]
+    (dom/a #js {:className (str  "list-group-item "
+                                 (get {:success " list-group-item-success"
+                                       :info    " list-group-item-info"
+                                       :warning " list-group-item-warning"
+                                       :danger  " list-group-item-danger"
+                                       } type "")
+                                 (if active? "active" "")
+                                 " " (or class+ "")
+                                 )}
+           (when badge (dom/span #js {:className "badge"} badge))
+           text))
 
 
 
-(defn ui-list-group--counts-by [points f
-                                {:keys [text nil-text]
-                                 :or   {text     "метка в заголовке"
-                                        nil-text "не указано"}}]
-  (let [items (->> points
-                   (group-by f)
-                   seq)]
-    (ui-list-group
-     (reduce
-      (fn [a [gi items]]
-        (conj a (ui-list-group-item
-                 {:text (or gi nil-text) :badge (count items)
-                  :type (if (nil? gi) :warning :default)})))
-      [(ui-list-group-item {:text text :active? true :badge (count points)})]
-      items))))
+#_(defn ui-list-group--counts-by [points f
+                                  {:keys [text nil-text]
+                                   :or   {text     "метка в заголовке"
+                                          nil-text "не указано"}}]
+    (let [items (->> points
+                     (group-by f)
+                     seq)]
+      (list-group/render
+       (reduce
+        (fn [a [gi items]]
+          (conj a (list-group-item/render
+                   {:text (or gi nil-text) :badge (count items)
+                    :type (if (nil? gi) :warning :default)})))
+        [(list-group-item/render {:text text :active? true :badge (count points)})]
+        items))))
 
 
 
@@ -2564,60 +2600,60 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn ui-panel [{:keys [heading heading-glyphicon badge
-                        body after-body type style class+]}]
-  (dom/div #js {:className (str "panel panel-"
-                                (get {:default "default"
-                                      :primary "primary"
-                                      :success "success"
-                                      :info    "info"
-                                      :warning "warning"
-                                      :danger  "danger"
-                                      } type "default")
-                                (or (str " " class+) ""))
-                :style     style}
-           (when heading
-             (dom/div #js {:className "panel-heading"}
-                      (when heading-glyphicon
-                        (ui-glyphicon heading-glyphicon))
-                      (when heading-glyphicon " ")
-                      heading
-                      (when badge (dom/span #js {:className "badge"
-                                                 :style     #js {:float "right"}} badge))))
+#_(defn ui-panel [{:keys [heading heading-glyphicon badge
+                          body after-body type style class+]}]
+    (dom/div #js {:className (str "panel panel-"
+                                  (get {:default "default"
+                                        :primary "primary"
+                                        :success "success"
+                                        :info    "info"
+                                        :warning "warning"
+                                        :danger  "danger"
+                                        } type "default")
+                                  (or (str " " class+) ""))
+                  :style     style}
+             (when heading
+               (dom/div #js {:className "panel-heading"}
+                        (when heading-glyphicon
+                          (glyphicon/render heading-glyphicon))
+                        (when heading-glyphicon " ")
+                        heading
+                        (when badge (dom/span #js {:className "badge"
+                                                   :style     #js {:float "right"}} badge))))
 
-           (when body
-             (apply
-              dom/div #js {:className "panel-body"}
-              (if (coll? body) body [body])))
+             (when body
+               (apply
+                dom/div #js {:className "panel-body"}
+                (if (coll? body) body [body])))
 
-           after-body))
+             after-body))
 
-(defn ui-panel-with-table [{:keys [cols rows
-                                   striped? bordered? hover? responsive?]
-                            :or   {cols        [] rows []
-                                   striped?    true
-                                   bordered?   true
-                                   hover?      true
-                                   responsive? true}
-                            :as   options}]
-  (ui-panel
-   (assoc options
-          :after-body
-          (ui-table
-           {:hover?      hover?
-            :bordered?   bordered?
-            :striped?    striped?
-            :responsive? responsive?
-            :thead       (->> cols
-                              (map #(dom/th nil %))
-                              ui-thead-tr)
-            :tbody       (->> rows
-                              (map (fn [row]
-                                     (apply
-                                      dom/tr nil
-                                      (vec (map #(dom/td nil %) row)))))
-                              (apply dom/tbody nil))
-            }))))
+#_(defn ui-panel-with-table [{:keys [cols rows
+                                     striped? bordered? hover? responsive?]
+                              :or   {cols        [] rows []
+                                     striped?    true
+                                     bordered?   true
+                                     hover?      true
+                                     responsive? true}
+                              :as   options}]
+    (panel/render
+     (assoc options
+            :after-body
+            (table/render
+             {:hover?      hover?
+              :bordered?   bordered?
+              :striped?    striped?
+              :responsive? responsive?
+              :thead       (->> cols
+                                (map #(dom/th nil %))
+                                ui-thead-tr)
+              :tbody       (->> rows
+                                (map (fn [row]
+                                       (apply
+                                        dom/tr nil
+                                        (vec (map #(dom/td nil %) row)))))
+                                (apply dom/tbody nil))
+              }))))
 
 
 
@@ -2632,44 +2668,44 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn ui-media-object [{:keys [src class+ style]}]
-  (dom/img #js {:className (str "media-object " (or class+ ""))
-                :style     style
-                :src       src
-                }))
+#_(defn ui-media-object [{:keys [src class+ style]}]
+    (dom/img #js {:className (str "media-object " (or class+ ""))
+                  :style     style
+                  :src       src
+                  }))
 
-(defn ui-media [{:keys [media-object
-                        heading heading-2
-                        on-click-fn
-                        on-click-in-image-fn
-                        href
-                        style
-                        body
-                        button-do-fn
-                        button-do-text
-                        heading-tag
-                        ]}]
-  (dom/div #js {:className "media" :style style
-                :onClick   on-click-fn}
-           (dom/div #js {:className "media-left"}
-                    (dom/a #js {:href    href
-                                :onClick (fn [e]
-                                           (when on-click-in-image-fn (on-click-in-image-fn))
-                                           ;; Далее прервать выполнение события для родительского
-                                           ;; компонента
-                                           (.stopPropagation e))}
-                           media-object))
-           (dom/div #js {:className "media-body"}
-                    (when button-do-fn (ui-button {:style    #js {:float "right"}
-                                                   :type     :primary
-                                                   :text     (or button-do-text "Действие")
-                                                   :on-click button-do-fn}))
-                    (when href (dom/a #js {:style #js {:float "right"}
-                                           :href  (or href "#") :target "_blank"}
-                                      (dom/button #js {:className "btn btn-success"} "скачать")))
-                    (when heading ((or heading-tag dom/h4) #js {:className "media-heading"} heading
-                                   (when heading-2 (dom/small nil " - " heading-2 ))))
-                    body)))
+#_(defn ui-media [{:keys [media-object
+                          heading heading-2
+                          on-click-fn
+                          on-click-in-image-fn
+                          href
+                          style
+                          body
+                          button-do-fn
+                          button-do-text
+                          heading-tag
+                          ]}]
+    (dom/div #js {:className "media" :style style
+                  :onClick   on-click-fn}
+             (dom/div #js {:className "media-left"}
+                      (dom/a #js {:href    href
+                                  :onClick (fn [e]
+                                             (when on-click-in-image-fn (on-click-in-image-fn))
+                                             ;; Далее прервать выполнение события для родительского
+                                             ;; компонента
+                                             (.stopPropagation e))}
+                             media-object))
+             (dom/div #js {:className "media-body"}
+                      (when button-do-fn (button/render {:style    #js {:float "right"}
+                                                         :type     :primary
+                                                         :text     (or button-do-text "Действие")
+                                                         :on-click button-do-fn}))
+                      (when href (dom/a #js {:style #js {:float "right"}
+                                             :href  (or href "#") :target "_blank"}
+                                        (dom/button #js {:className "btn btn-success"} "скачать")))
+                      (when heading ((or heading-tag dom/h4) #js {:className "media-heading"} heading
+                                     (when heading-2 (dom/small nil " - " heading-2 ))))
+                      body)))
 
 
 
@@ -2735,7 +2771,7 @@
                                           }))
                 (when in-progress
                   (dom/span #js {:className "text-warning"}
-                            " " (ui-glyphicon "flag") " Подождите, идет выгрузка файлов на сервер..."
+                            " " (glyphicon/render "flag") " Подождите, идет выгрузка файлов на сервер..."
                             (dom/img #js {:src "/images/uploading.gif"})))
 
                 ))))
@@ -2783,10 +2819,10 @@
                                      :display   "inline-block"}}
                 (let [image (@app :image)]
                   (if (empty? image)
-                    (ui-glyphicon "camera" "" "8em")
-                    (ui-media-object {:class+ "img-rounded"
-                                      :style  #js {:maxWidth 300}
-                                      :src    (@app :image)}))))
+                    (glyphicon/render "camera" "" "8em")
+                    (media-object/render {:class+ "img-rounded"
+                                          :style  #js {:maxWidth 300}
+                                          :src    (@app :image)}))))
                ))))
 
 (defn one-image-uploader-form-group  [app owner {:keys [label
@@ -2858,13 +2894,13 @@
            (dom/div #js {:style #js {:position "fixed" :left 0 :top 0 :zIndex 3005}}
                     (dom/button #js {:className "close"
                                      :onClick   #(om/transact! app :zoom? not)}
-                                (ui-glyphicon (if zoom? "zoom-out" "zoom-in") "" "3em"))
+                                (glyphicon/render (if zoom? "zoom-out" "zoom-in") "" "3em"))
                     (dom/button #js {:className "close"
                                      :onClick   #(om/transact!
                                                   app :deg (fn [deg]
                                                              (let [deg (+ deg 90)]
                                                                (if (> deg 270) 0 deg))))}
-                                (ui-glyphicon "retweet" "" "3em")))
+                                (glyphicon/render "retweet" "" "3em")))
 
            (dom/button #js {:className "close"
                             :style     #js {:position "fixed" :right 0 :top 0 :zIndex 3005}
@@ -2873,7 +2909,7 @@
                                           app #(assoc % :src nil :descrioption nil
                                                       :top_description nil))
                                          1)}
-                       (ui-glyphicon "remove" "" "3em"))
+                       (glyphicon/render "remove" "" "3em"))
 
            (dom/img #js {:src   src
                          :style #js {:msTransform     deg-2
@@ -3050,9 +3086,9 @@
             (let [cparams (<! chan-update)
                   p       (if (map? cparams) cparams params)]
               (rnet/get-data uri p
-                              (fn [list]
-                                (om/transact!
-                                 app #(assoc % :list list :last-params p) ))))))))
+                             (fn [list]
+                               (om/transact!
+                                app #(assoc % :list list :last-params p) ))))))))
     om/IRenderState
     (render-state [_ {:keys [chan-modal-act
                              chan-thumbnails-modal-edit-form-open-for-id]}]
@@ -3132,28 +3168,28 @@
 
 (defn images-gallery-1 [app own]
   (letfn [(img-setup []
-                (om/update-state!
-                 own (fn [{:keys [div-id img-id deg] :as state}]
-                       (let [div (by-id div-id)
-                             img (by-id img-id)]
-                         (when (and div img)
-                           (let [r?    (or (= deg 90) (= deg 270))
-                                 div-w (.-clientWidth  div)
-                                 div-h (.-clientHeight div)
-                                 img-w (.-clientWidth  img)
-                                 img-h (.-clientHeight img)
-                                 fat?  (>= img-w img-h)]
-                             (assoc state
-                                    :img-margin-top (when r?
-                                                      (if fat?
-                                                        (* 0.5 (- img-w img-h))
-                                                        nil))
-                                    :div-height (when r?
+            (om/update-state!
+             own (fn [{:keys [div-id img-id deg] :as state}]
+                   (let [div (by-id div-id)
+                         img (by-id img-id)]
+                     (when (and div img)
+                       (let [r?    (or (= deg 90) (= deg 270))
+                             div-w (.-clientWidth  div)
+                             div-h (.-clientHeight div)
+                             img-w (.-clientWidth  img)
+                             img-h (.-clientHeight img)
+                             fat?  (>= img-w img-h)]
+                         (assoc state
+                                :img-margin-top (when r?
                                                   (if fat?
-                                                    (+ 12 img-w)
+                                                    (* 0.5 (- img-w img-h))
                                                     nil))
-                                    :img-height (when (and r? (not fat?))
-                                                  div-w))))))))]
+                                :div-height (when r?
+                                              (if fat?
+                                                (+ 12 img-w)
+                                                nil))
+                                :img-height (when (and r? (not fat?))
+                                              div-w))))))))]
     (reify
 
       om/IInitState
@@ -3185,8 +3221,8 @@
 
              (dom/div #js {:className "btn-toolbar" :style #js {:float "right"}}
                       (dom/div #js {:className "btn-group"}
-                               (ui-button
-                                {:text (ui-glyphicon "retweet")
+                               (button/render
+                                {:text (glyphicon/render "retweet")
                                  :type :default
                                  :size :lg
                                  :on-click
@@ -3197,31 +3233,31 @@
                                        (if (> deg 270) 0 deg)))
                                    (img-setup))})
                                (dom/div #js {:className "btn-group"}
-                                        (ui-button
-                                         {:text     (ui-glyphicon "fullscreen")
+                                        (button/render
+                                         {:text     (glyphicon/render "fullscreen")
                                           :type     :default
                                           :size     :lg
                                           :on-click #(put! chan-thumb-show-in-full-screen-app-init {:src src})})))
 
                       (dom/div #js {:className "btn-group"}
-                               (ui-button {:text     (ui-glyphicon "chevron-left")
-                                           :type     :default
-                                           :size     :lg
-                                           :on-click (fn [_]
-                                                       (om/update-state!
-                                                        own :i
-                                                        #(let [i (dec %)]
-                                                           (if (< i 0) (dec (count @app)) i)))
-                                                       1)})
-                               (ui-button {:text     (ui-glyphicon "chevron-right")
-                                           :type     :default
-                                           :size     :lg
-                                           :on-click (fn [_]
-                                                       (om/update-state!
-                                                        own :i
-                                                        #(let [i (inc %)]
-                                                           i (if (= i (count @app)) 0 i)))
-                                                       1)})))
+                               (button/render {:text     (glyphicon/render "chevron-left")
+                                               :type     :default
+                                               :size     :lg
+                                               :on-click (fn [_]
+                                                           (om/update-state!
+                                                            own :i
+                                                            #(let [i (dec %)]
+                                                               (if (< i 0) (dec (count @app)) i)))
+                                                           1)})
+                               (button/render {:text     (glyphicon/render "chevron-right")
+                                               :type     :default
+                                               :size     :lg
+                                               :on-click (fn [_]
+                                                           (om/update-state!
+                                                            own :i
+                                                            #(let [i (inc %)]
+                                                               i (if (= i (count @app)) 0 i)))
+                                                           1)})))
              (dom/br nil)
              (dom/br nil)
              (dom/div
@@ -3383,9 +3419,9 @@
             (let [cparams (<! chan-update)
                   p       (if (map? cparams) cparams params)]
               (rnet/get-data uri p
-                              (fn [list]
-                                (om/transact!
-                                 app #(assoc % :list list :last-params p) ))))))))
+                             (fn [list]
+                               (om/transact!
+                                app #(assoc % :list list :last-params p) ))))))))
     om/IRenderState
     (render-state [_ {:keys [chan-modal-act
                              chan-files-modal-edit-form-open-for-id]}]
@@ -3460,13 +3496,13 @@
     (render [_]
       (if (empty? @app)
         (dom/h2 nil "Нет файлов")
-        (ui-panel
+        (panel/render
          {:heading           " Список файлов"
           :badge             (str (count @app))
           :heading-glyphicon "folder-open"
           :type              :primary
           :after-body
-          (ui-table
+          (table/render
            {:hover?      true
             :bordered?   true
             :striped?    true
@@ -3476,11 +3512,11 @@
                  (map (fn [{:keys [filename path top_description description size]}]
                         (dom/tr nil
                                 (dom/td nil
-                                        (ui-media {:href         path
-                                                   :media-object (ui-glyphicon "file" nil "5em")
-                                                   :heading      filename
-                                                   :heading-2    top_description
-                                                   :body         (dom/p nil description)})))))
+                                        (media/render {:href         path
+                                                       :media-object (glyphicon/render "file" nil "5em")
+                                                       :heading      filename
+                                                       :heading-2    top_description
+                                                       :body         (dom/p nil description)})))))
                  (apply dom/tbody nil))})})))))
 
 ;; END files
@@ -3500,7 +3536,7 @@
     om/IRender
     (render [_]
       (let [{:keys [images files]} @app]
-        (ui-collapser
+        (collapser/render
          app (str "изображений (" (count images) ") файлов (" (count files) ")")
          :k (or (not (empty? images)) (not (empty? files)))
          (apply
@@ -3509,8 +3545,8 @@
            (reduce
             (fn [a {:keys [id path top_description description] :as row}]
               (conj a (dom/li #js {:className "list-group-item"}
-                              (ui-media
-                               {:media-object         (ui-media-object
+                              (media/render
+                               {:media-object         (media-object/render
                                                        {:src (str path "_as_60.png")})
                                 :heading              top_description
                                 :on-click-in-image-fn #(put! chan-thumb-show-in-full-screen row)
@@ -3522,8 +3558,8 @@
            (reduce
             (fn [a {:keys [id path filename top_description description] :as row}]
               (conj a (dom/li #js {:className "list-group-item"}
-                              (ui-media
-                               {:media-object (ui-glyphicon "file" "" "2em")
+                              (media/render
+                               {:media-object (glyphicon/render "file" "" "2em")
                                 :href         path
                                 :on-click-fn
                                 (fn [e]
@@ -3627,9 +3663,9 @@
          (condp = ui-type
 
            :add-button
-           (ui-button {:type     ui-type--add-button--type
-                       :on-click #(modal-show (:modal app))
-                       :text     ui-type--add-button--text })
+           (button/render {:type     ui-type--add-button--type
+                           :on-click #(modal-show (:modal app))
+                           :text     ui-type--add-button--text })
 
            :input-select
            (dom/div #js {:className (str "form-group " class+ " "(input-css-string-has? @app))}
@@ -3650,10 +3686,10 @@
                                                 :placeholder placeholder
                                                 :className   "form-control"})
                                 (dom/span #js {:className "input-group-btn"}
-                                          (ui-button {:type     :default
-                                                      :on-click #(modal-show (:modal app))
-                                                      :text     (dom/span #js {:className   "glyphicon glyphicon-list-alt"
-                                                                               :aria-hidden "true"})})))
+                                          (button/render {:type     :default
+                                                          :on-click #(modal-show (:modal app))
+                                                          :text     (dom/span #js {:className   "glyphicon glyphicon-list-alt"
+                                                                                   :aria-hidden "true"})})))
                        (om/build helper-p app))
 
                       :multi
@@ -3672,13 +3708,13 @@
                                  (dom/b nil "Выбрано (" (count (@app :sel)) ")")
                                  (om/build helper-p app))
                         (dom/div #js {:className "panel-body" :style #js {:padding 2}}
-                                 (ui-table
+                                 (table/render
                                   {:hover?    true
                                    :bordered? true
                                    :striped?  true
                                    ;;:responsive? true
                                    :style+    #js {:marginBottom 0}
-                                   :thead     (ui-thead-tr [(dom/th nil multi-table-caption) (dom/th nil "Действие")])
+                                   :thead     (thead-tr/render [(dom/th nil multi-table-caption) (dom/th nil "Действие")])
                                    :tbody     (om/build tbody-trs-sel (app :sel)
                                                         {:opts
                                                          {:app-to-tds-seq-fn
@@ -3689,7 +3725,7 @@
                                                                (dom/td nil (str @row)))
                                                              (dom/td
                                                               #js {:style #js {:width "5%"}}
-                                                              (ui-button
+                                                              (button/render
                                                                {:text "Удалить"
                                                                 :on-click
                                                                 (fn [_]
@@ -3709,9 +3745,9 @@
                                    }))
 
                         (dom/div #js {:className "panel-footer"}
-                                 (ui-button {:type     ui-type--add-button--type
-                                             :on-click #(modal-show (:modal app))
-                                             :text     ui-type--add-button--text }))))
+                                 (button/render {:type     ui-type--add-button--type
+                                                 :on-click #(modal-show (:modal app))
+                                                 :text     ui-type--add-button--text }))))
 
 
 
@@ -3730,7 +3766,7 @@
                            :body       (om/build search-view (get-in app [:modal :search-view])
                                                  {:opts (merge {:selection-type selection-type} search-view-opts)})
                            :footer     (dom/div #js {:className "btn-toolbar  pull-right"}
-                                                (ui-button
+                                                (button/render
                                                  {:type :primary
                                                   :on-click
                                                   (fn [_]
@@ -3769,8 +3805,8 @@
                                                       1))
                                                   :text "Выбрать"})
 
-                                                (ui-button {:on-click (fn [_] (modal-hide (:modal app)) 1)
-                                                            :text     "Закрыть"})
+                                                (button/render {:on-click (fn [_] (modal-hide (:modal app)) 1)
+                                                                :text     "Закрыть"})
                                                 )
                            }})
          )))))

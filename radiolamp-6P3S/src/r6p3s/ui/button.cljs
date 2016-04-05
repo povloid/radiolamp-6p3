@@ -1,6 +1,5 @@
-(ns ix.omut.ui.button
-  (:require [om.dom :as dom :include-macros true]
-            [ix.omut.core :as c]))
+(ns r6p3s.ui.button
+  (:require [om.dom :as dom :include-macros true]))
 
 
 (defn render [{:keys [text
@@ -30,8 +29,8 @@
                                     )
                    :type       "button"
                    :disabled   (if disabled? "disabled" "")
-                   :onClick    (c/on-click-com-fn on-click)
-                   :onTouchEnd (c/on-click-com-fn on-click)
+                   :onClick    (rc/on-click-com-fn on-click)
+                   :onTouchEnd (rc/on-click-com-fn on-click)
                    :style      style
                    }
               text))

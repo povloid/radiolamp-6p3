@@ -1,4 +1,4 @@
-(ns ix.omut.ui.label
+(ns r6p3s.ui.label
   (:require [om.dom :as dom :include-macros true]))
 
 

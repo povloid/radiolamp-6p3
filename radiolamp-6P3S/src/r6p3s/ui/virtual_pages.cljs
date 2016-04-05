@@ -1,8 +1,8 @@
-(ns ix.omut.ui.virtual-pages
+(ns r6p3s.ui.virtual-pages
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [ix.omut.core :as c]
-            [ix.omut.ui.button :as button]))
+            [r6p3s.core :as rc]
+            [r6p3s.ui.button :as button]))
 
 
 

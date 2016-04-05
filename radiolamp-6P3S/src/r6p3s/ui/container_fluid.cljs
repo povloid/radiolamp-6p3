@@ -1,4 +1,4 @@
-(ns ix.omut.ui.container-fluid
+(ns r6p3s.ui.container-fluid
   (:require [om.dom :as dom :include-macros true]))
 
 

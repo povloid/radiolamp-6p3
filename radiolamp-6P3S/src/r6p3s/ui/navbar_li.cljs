@@ -1,4 +1,4 @@
-(ns ix.omut.ui.navbar-li
+(ns r6p3s.ui.navbar-li
   (:require [om.dom :as dom :include-macros true]))
 
 (defn render [{:keys [glyphicon text href]}]

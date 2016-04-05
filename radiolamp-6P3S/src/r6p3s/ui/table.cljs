@@ -1,4 +1,4 @@
-(ns ix.omut.ui.table
+(ns r6p3s.ui.table
   (:require [om.dom :as dom :include-macros true]))
 
 

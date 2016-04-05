@@ -1,8 +1,8 @@
-(ns ix.omut.ui.panel-with-table
+(ns r6p3s.ui.panel-with-table
   (:require [om.dom :as dom :include-macros true]
-            [ix.omut.ui.table :as table]
-            [ix.omut.ui.thead-tr :as thead-tr]
-            [ix.omut.ui.panel :as panel]))
+            [r6p3s.ui.table :as table]
+            [r6p3s.ui.thead-tr :as thead-tr]
+            [r6p3s.ui.panel :as panel]))
 
 
 

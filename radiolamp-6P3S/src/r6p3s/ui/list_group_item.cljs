@@ -1,4 +1,4 @@
-(ns ix.omut.ui.list-group-item
+(ns r6p3s.ui.list-group-item
   (:require [om.dom :as dom :include-macros true]))
 
 

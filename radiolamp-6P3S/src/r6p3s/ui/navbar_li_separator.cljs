@@ -1,4 +1,4 @@
-(ns ix.omut.ui.navbar-li-separator
+(ns r6p3s.ui.navbar-li-separator
   (:require [om.dom :as dom :include-macros true]))
 
 

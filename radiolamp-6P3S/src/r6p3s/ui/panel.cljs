@@ -1,6 +1,6 @@
-(ns ix.omut.ui.panel
+(ns r6p3s.ui.panel
   (:require [om.dom :as dom :include-macros true]
-            [ix.omut.ui.glyphicon :as gicon]))
+            [r6p3s.ui.glyphicon :as gicon]))
 
 
 

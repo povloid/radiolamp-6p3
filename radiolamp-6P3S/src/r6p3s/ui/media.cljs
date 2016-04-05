@@ -1,6 +1,6 @@
-(ns ix.omut.ui.media
+(ns r6p3s.ui.media
   (:require [om.dom :as dom :include-macros true]
-            [ix.omut.ui.button :as button]))
+            [r6p3s.ui.button :as button]))
 
 
 (defn render [{:keys [media-object

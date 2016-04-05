@@ -1,4 +1,4 @@
-(ns ix.omut.ui.ul-navbar-nav
+(ns r6p3s.ui.ul-navbar-nav
   (:require [om.dom :as dom :include-macros true]))
 
 

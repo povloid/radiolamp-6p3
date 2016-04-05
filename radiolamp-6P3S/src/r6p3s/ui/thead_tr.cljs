@@ -1,4 +1,4 @@
-(ns ix.omut.ui.thead-tr
+(ns r6p3s.ui.thead-tr
   (:require [om.dom :as dom :include-macros true]))
 
 

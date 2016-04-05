@@ -1,4 +1,4 @@
-(ns ix.omut.ui.media-object
+(ns r6p3s.ui.media-object
   (:require [om.dom :as dom :include-macros true]))
 
 
