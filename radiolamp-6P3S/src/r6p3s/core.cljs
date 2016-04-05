@@ -13,11 +13,8 @@
 
 
             [r6p3s.ui.button :as button]
-            ;;[r6p3s.ui.cdate-udate :as cdate-udate]
-            ;;[r6p3s.ui.collapser :as collapser]
             [r6p3s.ui.container :as container]
             [r6p3s.ui.container-fluid :as container-fluid]
-            ;;[r6p3s.ui.datatime :as datatime]
             [r6p3s.ui.form-group :as form-group]
             [r6p3s.ui.glyphicon :as glyphicon]
             [r6p3s.ui.label :as label]
@@ -39,8 +36,7 @@
             [r6p3s.ui.thead-tr :as thead-tr]
             [r6p3s.ui.ul-navbar-nav :as ul-navbar-nav]
             [r6p3s.ui.ul-navbar-nav-right :as ul-navbar-nav-right]
-            ;;[r6p3s.ui.virtual-pages :as virtual-pages]
-
+           
             [clojure.set :as clojset]
             [clojure.string :as clojstr]
 
@@ -52,12 +48,6 @@
             )
 
   (:import [goog.dom query]))
-
-;;Для примера при рефакторинге
-;;(navbar-li-separator/render)
-;;(navbar-li-separator/render )
-;;(navbar-li-separator/render sdf)
-;;(navbar-li-separator/render sdfsdf)
 
 ;;**************************************************************************************************
 ;;* BEGIN Common functions and tools
@@ -208,9 +198,6 @@
   (get-in app-row [omut-row-key :selected] false))
 
 
-
-
-
 (defn omut-row-set-collapsed!! [app-row k v]
   (om/transact!
    app-row
@@ -344,123 +331,10 @@
     (gstring/format "прошло: %d дн. %02d час. %02d мин." d h m)))
 
 
-#_(declare ui-glyphicon)
-
-
-#_(defn ui-datetime [d]
-    (dom/span
-     #js {:className "text-muted"}
-     (glyphicon/render "time") " "
-     (date-com-format-datetime d)))
-
-
-
-
-#_(defn ui-cdate-udate [{:keys [cdate udate]}]
-    (dom/span
-     #js {:className "text-muted"}
-     (glyphicon/render "time") " создан "
-     (date-com-format-datetime cdate) " "
-     (glyphicon/render "time") " обновлен "
-     (date-com-format-datetime udate)))
-
-
-
-
-
 ;; END date and time functions
 ;;..................................................................................................
-
-
-
 ;; END Dates and Times
 ;;..................................................................................................
-
-;;**************************************************************************************************
-;;* BEGIN bootstrap-containers
-;;* tag: <layout containers>
-;;*
-;;* description: Контенеры
-;;*
-;;**************************************************************************************************
-
-#_(defn ui-container [& body]
-    (apply dom/div #js {:className "container"} body))
-
-#_(defn ui-container-fluid [& body]
-    (apply dom/div #js {:className "container-fluid"} body))
-
-#_(defn ui-row [& body]
-    (apply dom/div #js {:className "row"} body))
-
-
-
-;; END bootstrap-containers
-;;..................................................................................................
-
-
-;;**************************************************************************************************
-;;* BEGIN icons
-;;* tag: <icons>
-;;*
-;;* description: Иконки
-;;*
-;;**************************************************************************************************
-
-#_(defn ui-glyphicon [name & [class+ size]]
-    (dom/span #js {:className   (str "glyphicon glyphicon-"
-                                     name " " (or class+ ""))
-                   :style       #js {:fontSize size}
-                   :aria-hidden "true"}))
-
-;; END icons
-;;..................................................................................................
-
-;;**************************************************************************************************
-;;* BEGIN buttons
-;;* tag: <buttons>
-;;*
-;;* description: Кнопки
-;;*
-;;**************************************************************************************************
-
-#_(defn ui-button [{:keys [text
-                           type
-                           size
-                           block?
-                           disabled?
-                           active?
-                           on-click
-                           style]
-                    :or   {text "Кнопка"
-                           type :default}}]
-    (dom/button #js {:className  (str "btn "
-                                      ({:default "btn-default"
-                                        :primary "btn-primary"
-                                        :success "btn-success"
-                                        :info    "btn-info"
-                                        :warning "btn-warning"
-                                        :danger  "btn-danger"
-                                        :link    "btn-link"} type)
-                                      (if size ({:lg " btn-lg"
-                                                 :sm " btn-sm"
-                                                 :xs " btn-xs"} size)
-                                          "")
-                                      (if block? " btn-block" "")
-                                      (if active? " active" "")
-                                      )
-                     :type       "button"
-                     :disabled   (if disabled? "disabled" "")
-                     :onClick    (on-click-com-fn on-click)
-                     :onTouchEnd (on-click-com-fn on-click)
-                     :style      style
-                     }
-                text))
-
-
-;; END buttons
-;;..................................................................................................
-
 
 ;;**************************************************************************************************
 ;;* BEGIN modal
@@ -791,54 +665,6 @@
 ;;..................................................................................................
 
 ;;**************************************************************************************************
-;;* BEGIN collapser
-;;* tag: <collapser>
-;;*
-;;* description: Свертыватель
-;;*
-;;**************************************************************************************************
-
-                                        ;TODO: Перемиеноывать в ui-hidder
-#_(defn ui-collapser [app text k show? collapsed-body]
-    (dom/p #js {:style #js {:display (if show? "" "none")}}
-           (button/render {:text     text
-                           :type     :info
-                           :active?  (not (omut-row-collapsed? @app k))
-                           :on-click #(omut-row-set-collapsed-not!! app k)})
-
-           (dom/div #js {:style #js {:display (if (omut-row-collapsed? @app k) "none" "")}}
-                    collapsed-body)))
-
-
-
-
-;; END collapser
-;;..................................................................................................
-
-;;**************************************************************************************************
-;;* BEGIN label
-;;* tag: <label>
-;;*
-;;* description: Пометки
-;;*
-;;**************************************************************************************************
-
-#_(defn ui-label [type text]
-    (dom/span #js {:className (str  "label label-"
-                                    (get {:default "default"
-                                          :primary "primary"
-                                          :success "success"
-                                          :info    "info"
-                                          :warning "warning"
-                                          :danger  "danger"
-                                          } type "default"))
-                   :style     #js {:whiteSpace "normal"}} text))
-
-;; END label
-;;..................................................................................................
-
-
-;;**************************************************************************************************
 ;;* BEGIN helper
 ;;* tag: <helper>
 ;;*
@@ -1047,18 +873,6 @@
 
 ;; END
 ;;..................................................................................................
-
-
-
-#_(defn ui-form-group [{:keys [label label-class+ input-class+ body]
-                        :or   {label        "метка"
-                               label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                               input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"}}]
-    (dom/div #js {:className "form-group"}
-             (dom/label #js {:className (str "control-label " label-class+) } label)
-             (dom/div #js {:className input-class+ :style #js {}}
-                      body)))
-
 
 
 ;;**************************************************************************************************
@@ -1728,40 +1542,6 @@
 ;;**************************************************************************************************
 
 
-
-#_(defn ui-table [{:keys [striped?
-                          bordered?
-                          condensed?
-                          hover?
-                          responsive?
-                          responsive-class+
-                          class+
-                          style+
-                          thead
-                          tbody]
-                   :or   {responsive-class+ ""
-                          class+            ""}}]
-    (let [table (dom/table #js {:className (str "table "
-                                                (if striped? "table-striped " "")
-                                                (if bordered? "table-bordered " "")
-                                                (if condensed? "table-condensed " "")
-                                                (if hover? "table-hover " "")
-                                                class+)
-                                :style     style+}
-                           thead
-                           tbody)]
-      (if responsive?
-        (dom/div #js {:className (str "table-responsive " responsive-class+)} table)
-        table)))
-
-
-#_(defn ui-thead-tr [ths]
-    (dom/thead nil (apply dom/tr nil ths)))
-
-#_(defn ui-tbody [trs]
-    (apply dom/tbody nil trs))
-
-
 (defn tr-sel [app owner {:keys [app-to-tds-seq-fn
                                 clear-selections-fn
                                 on-select-fn
@@ -2078,71 +1858,6 @@
 ;;*
 ;;**************************************************************************************************
 
-#_(defn ui-nav [{:keys [brand
-                        brand-href]
-                 :or   {brand      "IX"
-                        brand-href "#/"}}
-                & body]
-    (dom/nav #js {:className "navbar navbar-default navbar-fixed-top"}
-             (dom/div #js {:className "container-fluid"}
-                      (dom/div #js {:className "navbar-header"}
-                               (dom/button #js {:className     "navbar-toggle collapsed"
-                                                :type          "button"
-                                                :data-toggle   "collapse"
-                                                :data-target   "#navbar-collapse-1"
-                                                :aria-expanded "false"}
-                                           (dom/span #js {:className "sr-only"} "Toggle navigation")
-                                           (dom/span #js {:className "icon-bar"})
-                                           (dom/span #js {:className "icon-bar"})
-                                           (dom/span #js {:className "icon-bar"}))
-                               (dom/a #js {:className "navbar-brand" :href brand-href}
-                                      brand))
-
-
-                      (apply dom/div #js {:id        "navbar-collapse-1"
-                                          :className "collapse navbar-collapse"}
-                             body))))
-
-
-#_(defn ui-ul-navbar-nav [& body]
-    (apply dom/ul #js {:className "nav navbar-nav"}
-           body))
-
-#_(defn ui-ul-navbar-nav-right [& body]
-    (apply dom/ul #js {:className "nav navbar-nav navbar-right"}
-           body))
-
-
-#_(defn ui-navbar-li [{:keys [glyphicon text href]}]
-    (dom/li nil
-            (dom/a #js {:href href}
-                   (when glyphicon
-                     (dom/span #js {:style       #js {:paddingRight 4}
-                                    :className   (str "glyphicon " glyphicon)
-                                    :aria-hidden "true"}))
-                   text)))
-
-
-#_(defn ui-navbar-li-dropdown [{:keys [glyphicon text]} & body]
-    (dom/li #js {:className "dropdown"}
-            (dom/a #js {:href          "#"
-                        :className     "dropdown-toggle"
-                        :data-toggle   "dropdown"
-                        :role          "button"
-                        :aria-haspopup "true"
-                        :aria-expanded "false"}
-                   (when glyphicon
-                     (dom/span #js {:style       #js {:paddingRight 4}
-                                    :className   (str "glyphicon " glyphicon)
-                                    :aria-hidden "true"}))
-                   text
-                   (dom/span #js {:className "caret"}))
-            (apply dom/ul #js {:className "dropdown-menu"} body)))
-
-#_(defn ui-navbar-li-separator []
-    (dom/li #js{:role "separator" :className "divider"}))
-
-
 (def nav-app-state-key :menu)
 
 (defn nav [app _ opts]
@@ -2150,7 +1865,7 @@
             (if separator?
               (navbar-li-separator/render)
               (if (coll? sub)
-                (apply (partial ui-navbar-li-dropdown row) (map f1 sub))
+                (apply (partial navbar-li-dropdown/render row) (map f1 sub))
                 (navbar-li/render row))))]
     (reify
       om/IRender
@@ -2158,10 +1873,10 @@
         (let [m (nav-app-state-key app)]
           (nav/render opts
                       (when-let [menus (:left m)]
-                        (apply ui-ul-navbar-nav
+                        (apply ul-navbar-nav/render
                                (map f1 menus)))
                       (when-let [menus (:right m)]
-                        (apply ui-ul-navbar-nav-right
+                        (apply ul-navbar-nav-right/render
                                (map f1 menus)))
                       ))))))
 
@@ -2249,17 +1964,6 @@
                                  text)))
 
                 (:tabs @app) (range)) )))))
-
-
-
-#_(defn ui-nav-tab [app i body]
-    (dom/div #js {:style #js {:display
-                              (if (= (:active-tab app) i)
-                                "" "none") }
-                  ;;:data-toggle "dropdown" ;;<- !!! Перестает работать выгрузка файлов, неработает file uploader
-                  }
-             (dom/br nil)
-             body))
 
 
 ;; END nav tabs page splitter
@@ -2514,205 +2218,8 @@
 (defn virtual-pages-go-to-page!! [app page]
   (om/update! app :current page))
 
-#_(defn ui-virtual-page-<<
-    ([app page-key body]
-     (virtual-page-/render<< app page-key nil body))
-    ([app page-key back-key body]
-     (dom/div #js {:style #js {:display
-                               (if (= (virtual-pages-current @app) page-key)
-                                 "" "none") }}
-              (when back-key
-                (button/render {:type     :default
-                                :on-click (fn [_]
-                                            (virtual-pages-go-to-page!! app back-key)
-                                            1)
-                                :text     (dom/span nil
-                                                    (dom/span #js {:className   "glyphicon glyphicon-backward"
-                                                                   :aria-hidden "true"})
-                                                    " Назад")
-                                }))
-              body)))
-
-
 ;; END Virtual pages
 ;;..................................................................................................
-;;**************************************************************************************************
-;;* BEGIN lists
-;;* tag: <lists>
-;;*
-;;* description: списки для вывода
-;;*
-;;**************************************************************************************************
-
-#_(defn ui-list-group [list-groups-items & [class+]]
-    (apply dom/ul #js {:className (str "list-group "
-                                       (or class+ ""))
-                       :style     #js {:marginTop 10}}
-           list-groups-items))
-
-#_(defn ui-list-group-item [{:keys [text type badge active? class+]}]
-    (dom/a #js {:className (str  "list-group-item "
-                                 (get {:success " list-group-item-success"
-                                       :info    " list-group-item-info"
-                                       :warning " list-group-item-warning"
-                                       :danger  " list-group-item-danger"
-                                       } type "")
-                                 (if active? "active" "")
-                                 " " (or class+ "")
-                                 )}
-           (when badge (dom/span #js {:className "badge"} badge))
-           text))
-
-
-
-#_(defn ui-list-group--counts-by [points f
-                                  {:keys [text nil-text]
-                                   :or   {text     "метка в заголовке"
-                                          nil-text "не указано"}}]
-    (let [items (->> points
-                     (group-by f)
-                     seq)]
-      (list-group/render
-       (reduce
-        (fn [a [gi items]]
-          (conj a (list-group-item/render
-                   {:text (or gi nil-text) :badge (count items)
-                    :type (if (nil? gi) :warning :default)})))
-        [(list-group-item/render {:text text :active? true :badge (count points)})]
-        items))))
-
-
-
-
-
-
-
-
-;; END lists
-;;..................................................................................................
-
-
-;;**************************************************************************************************
-;;* BEGIN panel
-;;* tag: <panel >
-;;*
-;;* description: панели
-;;*
-;;**************************************************************************************************
-
-#_(defn ui-panel [{:keys [heading heading-glyphicon badge
-                          body after-body type style class+]}]
-    (dom/div #js {:className (str "panel panel-"
-                                  (get {:default "default"
-                                        :primary "primary"
-                                        :success "success"
-                                        :info    "info"
-                                        :warning "warning"
-                                        :danger  "danger"
-                                        } type "default")
-                                  (or (str " " class+) ""))
-                  :style     style}
-             (when heading
-               (dom/div #js {:className "panel-heading"}
-                        (when heading-glyphicon
-                          (glyphicon/render heading-glyphicon))
-                        (when heading-glyphicon " ")
-                        heading
-                        (when badge (dom/span #js {:className "badge"
-                                                   :style     #js {:float "right"}} badge))))
-
-             (when body
-               (apply
-                dom/div #js {:className "panel-body"}
-                (if (coll? body) body [body])))
-
-             after-body))
-
-#_(defn ui-panel-with-table [{:keys [cols rows
-                                     striped? bordered? hover? responsive?]
-                              :or   {cols        [] rows []
-                                     striped?    true
-                                     bordered?   true
-                                     hover?      true
-                                     responsive? true}
-                              :as   options}]
-    (panel/render
-     (assoc options
-            :after-body
-            (table/render
-             {:hover?      hover?
-              :bordered?   bordered?
-              :striped?    striped?
-              :responsive? responsive?
-              :thead       (->> cols
-                                (map #(dom/th nil %))
-                                ui-thead-tr)
-              :tbody       (->> rows
-                                (map (fn [row]
-                                       (apply
-                                        dom/tr nil
-                                        (vec (map #(dom/td nil %) row)))))
-                                (apply dom/tbody nil))
-              }))))
-
-
-
-;; END panel
-;;..................................................................................................
-
-;;**************************************************************************************************
-;;* BEGIN Media
-;;* tag: <ui media>
-;;*
-;;* description: Вывод с заголовком и картинкой
-;;*
-;;**************************************************************************************************
-
-#_(defn ui-media-object [{:keys [src class+ style]}]
-    (dom/img #js {:className (str "media-object " (or class+ ""))
-                  :style     style
-                  :src       src
-                  }))
-
-#_(defn ui-media [{:keys [media-object
-                          heading heading-2
-                          on-click-fn
-                          on-click-in-image-fn
-                          href
-                          style
-                          body
-                          button-do-fn
-                          button-do-text
-                          heading-tag
-                          ]}]
-    (dom/div #js {:className "media" :style style
-                  :onClick   on-click-fn}
-             (dom/div #js {:className "media-left"}
-                      (dom/a #js {:href    href
-                                  :onClick (fn [e]
-                                             (when on-click-in-image-fn (on-click-in-image-fn))
-                                             ;; Далее прервать выполнение события для родительского
-                                             ;; компонента
-                                             (.stopPropagation e))}
-                             media-object))
-             (dom/div #js {:className "media-body"}
-                      (when button-do-fn (button/render {:style    #js {:float "right"}
-                                                         :type     :primary
-                                                         :text     (or button-do-text "Действие")
-                                                         :on-click button-do-fn}))
-                      (when href (dom/a #js {:style #js {:float "right"}
-                                             :href  (or href "#") :target "_blank"}
-                                        (dom/button #js {:className "btn btn-success"} "скачать")))
-                      (when heading ((or heading-tag dom/h4) #js {:className "media-heading"} heading
-                                     (when heading-2 (dom/small nil " - " heading-2 ))))
-                      body)))
-
-
-
-
-;; END Media
-;;..................................................................................................
-
 
 ;;**************************************************************************************************
 ;;* BEGIN Uploader elements
@@ -3521,63 +3028,6 @@
 
 ;; END files
 ;;..................................................................................................
-
-
-;;;**************************************************************************************************
-;;;* BEGIN images and files list viewer with button collapser
-;;;* tag: <image-and-files-btn-viewer>
-;;;*
-;;;* description: Компонент для отображения привязанных файлов и картинок в виде выпадающего через кнопку списка
-;;;*
-;;;**************************************************************************************************
-
-(defn image-and-files-btn-viewer [app own {:keys [chan-thumb-show-in-full-screen]}]
-  (reify
-    om/IRender
-    (render [_]
-      (let [{:keys [images files]} @app]
-        (collapser/render
-         app (str "изображений (" (count images) ") файлов (" (count files) ")")
-         :k (or (not (empty? images)) (not (empty? files)))
-         (apply
-          dom/ul #js {:className "list-group"}
-          (into
-           (reduce
-            (fn [a {:keys [id path top_description description] :as row}]
-              (conj a (dom/li #js {:className "list-group-item"}
-                              (media/render
-                               {:media-object         (media-object/render
-                                                       {:src (str path "_as_60.png")})
-                                :heading              top_description
-                                :on-click-in-image-fn #(put! chan-thumb-show-in-full-screen row)
-                                :button-do-text       "cмотреть"
-                                :button-do-fn         #(put! chan-thumb-show-in-full-screen row)
-                                :body                 description
-                                }))))
-            [] images)
-           (reduce
-            (fn [a {:keys [id path filename top_description description] :as row}]
-              (conj a (dom/li #js {:className "list-group-item"}
-                              (media/render
-                               {:media-object (glyphicon/render "file" "" "2em")
-                                :href         path
-                                :on-click-fn
-                                (fn [e]
-                                  ;; Далее прервать выполнение события для родительского
-                                  ;; компонента
-                                  (.stopPropagation e))
-                                :heading      (dom/span nil top_description
-                                                        " " (dom/small nil filename))
-                                :body         description
-                                }))))
-            [] files))))))))
-
-;;; END images and files list viewer with button collapser
-;;;..................................................................................................
-
-
-
-
 
 ;;**************************************************************************************************
 ;;* BEGIN Ввод элементов из справочника

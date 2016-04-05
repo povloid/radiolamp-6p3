@@ -2,6 +2,18 @@
   (:require [om.dom :as dom :include-macros true]))
 
 
+
+                                        ;TODO: Дублируется пока из core.cljs для разрешения цикулярных зависимоствей при рефакторинге !!!
+;TODO: В будущем надо оставить одну функцию из core.cljs
+(defn on-click-com-fn [f]
+  (fn [e]
+    (.preventDefault e)
+    (.stopPropagation e)
+    (f)
+    1))
+
+
+
 (defn render [{:keys [text
                       type
                       size
@@ -29,8 +41,8 @@
                                     )
                    :type       "button"
                    :disabled   (if disabled? "disabled" "")
-                   :onClick    (rc/on-click-com-fn on-click)
-                   :onTouchEnd (rc/on-click-com-fn on-click)
+                   :onClick    (on-click-com-fn on-click)
+                   :onTouchEnd (on-click-com-fn on-click)
                    :style      style
                    }
               text))
