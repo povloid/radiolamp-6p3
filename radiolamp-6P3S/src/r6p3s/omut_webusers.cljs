@@ -10,6 +10,9 @@
             [r6p3s.ui.thead-tr :as thead-tr]
             [r6p3s.ui.nav-tab :as nav-tab]
 
+            [r6p3s.cpt.edit-form-for-id :as edit-form-for-id]
+            [r6p3s.cpt.modal-edit-form-for-id--yes-no :as modal-edit-form-for-id--yes-no]
+
 
             ))
 
@@ -29,7 +32,7 @@
 ;;------------------------------------------------------------------------------
 
 (def webusers-edit-form-app-init
-  (merge rc/edit-form-for-id-app-init
+  (merge edit-form-for-id/app-init
          {:username    (assoc rc/input-app-init :has-warning? true)
           :password    rc/input-change-password-app-init
           :description rc/textarea-app-init
@@ -54,7 +57,7 @@
     om/IRender
     (render [_]
       (om/build
-       rc/edit-form-for-id app
+       edit-form-for-id/component app
        {:opts
         (merge opts
                {:uri      "/tc/rb/webusers/find/transit"
@@ -184,13 +187,13 @@
 
 
 (def webusers-modal-edit-form-app-init
-  (merge rc/modal-edit-form-for-id--YN--app-init webusers-edit-form-app-init))
+  (merge modal-edit-form-for-id--yes-no/app-init webusers-edit-form-app-init))
 
 (defn webusers-modal-edit-form [app _ opts]
   (reify
     om/IRender
     (render [_]
-      (om/build rc/modal-edit-form-for-id--YN- app
+      (om/build modal-edit-form-for-id--yes-no/component app
                 {:opts (assoc opts :edit-form-for-id webusers-edit-form)}))))
 
 
@@ -337,7 +340,7 @@
 
 
 (def webusers-change-password-form-app-init
-  (merge rc/edit-form-for-id-app-init
+  (merge edit-form-for-id/app-init
          {:password rc/input-change-password-app-init}))
 
 
@@ -349,7 +352,7 @@
     om/IRenderState
     (render-state [_ {:keys [chan-save]}]
       (om/build
-       rc/edit-form-for-id app
+       edit-form-for-id/component app
        {:opts
         {:uri-save  "/tc/rb/webusers/change-password/transit"
          :chan-save chan-save

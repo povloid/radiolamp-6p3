@@ -14,7 +14,7 @@
   (merge modal/app-init edit-form-for-id/app-init))
 
 (defn component [app _ {:keys [new-or-edit-fn?
-                               edit-form-for-id]
+                               edit-form-for-id] ;; приходит компонент в edit-form-for-id/component!
                         :or   {edit-form-for-id
                                (fn [_ _]
                                  (reify

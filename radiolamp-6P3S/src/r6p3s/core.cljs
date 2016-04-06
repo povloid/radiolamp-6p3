@@ -1975,10 +1975,10 @@
 ;;**************************************************************************************************
 
 
-(def edit-form-for-id-app-init
+#_(def edit-form-for-id-app-init
   {:id nil})
 
-(defn edit-form-for-id [app owner {:keys [chan-load-for-id
+#_(defn edit-form-for-id [app owner {:keys [chan-load-for-id
                                           uri uri-params+
                                           chan-load-row
                                           chan-save
@@ -2085,10 +2085,10 @@
          (dom/h1 nil "Элементы формы еще не определены"))))))
 
 
-(def modal-edit-form-for-id--YN--app-init
+#_(def modal-edit-form-for-id--YN--app-init
   (merge modal-app-init edit-form-for-id-app-init))
 
-(defn modal-edit-form-for-id--YN- [app _ {:keys [new-or-edit-fn?
+#_(defn modal-edit-form-for-id--YN- [app _ {:keys [new-or-edit-fn?
                                                  edit-form-for-id]
                                           :or   {edit-form-for-id
                                                  (fn [_ _]
@@ -2137,10 +2137,10 @@
                         }}))))
 
 
-(def modal-edit-form-for-id--CLOSE--app-init
+#_(def modal-edit-form-for-id--CLOSE--app-init
   (merge modal-app-init edit-form-for-id-app-init))
 
-(defn modal-edit-form-for-id--CLOSE- [app _ {:keys [new-or-edit-fn?
+#_(defn modal-edit-form-for-id--CLOSE- [app _ {:keys [new-or-edit-fn?
                                                     edit-form-for-id
                                                     post-save-fn]
                                              :or   {edit-form-for-id
@@ -2339,6 +2339,7 @@
                (dom/div #js {:className input-class+}
                         (om/build one-image-uploader app {:opts spec-one-image-uploader})
                         (om/build helper-p app {}) )))))
+
 
 
 

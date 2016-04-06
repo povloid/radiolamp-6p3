@@ -14,7 +14,7 @@
 
 
 (defn component [app _ {:keys [new-or-edit-fn?
-                               edit-form-for-id
+                               edit-form-for-id ;; приходит компонент в edit-form-for-id/component!
                                post-save-fn]
                         :or   {edit-form-for-id
                                (fn [_ _]
@@ -39,7 +39,7 @@
                         :body
                         (dom/div
                          #js {:className "row"}
-                         (om/build edit-form-for-id/component app {:opts opts}))
+                         (om/build edit-form-for-id app {:opts opts}))
                         :footer
                         (button/render {:type     :default
                                         :on-click (fn [_]
