@@ -5,10 +5,7 @@
             [cljs.reader :as reader]
             [goog.net.XhrIo]
             [goog.net.EventType]
-            [goog.events :as events]
-            )
-
-  )
+            [goog.events :as events]))
 
 
 (enable-console-print!)

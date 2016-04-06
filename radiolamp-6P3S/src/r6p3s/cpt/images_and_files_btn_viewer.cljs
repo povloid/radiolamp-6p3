@@ -3,10 +3,12 @@
   (:require [cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [r6p3s.core :as c]
             [r6p3s.ui.glyphicon :as glyphicon]
             [r6p3s.ui.collapser :as collapser]
             [r6p3s.ui.media :as media]
             [r6p3s.ui.media-object :as media-object]))
+
 
 
 (defn component [app own {:keys [chan-thumb-show-in-full-screen]}]
@@ -24,7 +26,8 @@
             (fn [a {:keys [id path top_description description] :as row}]
               (conj a (dom/li #js {:className "list-group-item"}
                               (media/render
-                               {:media-object         (media-object/render {:src (str path "_as_60.png")})
+                               {:media-object         (media-object/render
+                                                       {:src (str path "_as_60.png")})
                                 :heading              top_description
                                 :on-click-in-image-fn #(put! chan-thumb-show-in-full-screen row)
                                 :button-do-text       "cмотреть"
