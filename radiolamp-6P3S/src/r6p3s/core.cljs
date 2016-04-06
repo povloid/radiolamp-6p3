@@ -1,7 +1,5 @@
 (ns r6p3s.core
-
   (:require-macros [cljs.core.async.macros :refer [go]])
-
   (:require [cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
@@ -11,32 +9,26 @@
             [r6p3s.io :as ix-io]
             [r6p3s.net :as rnet]
 
-
             [r6p3s.ui.button :as button]
-            [r6p3s.ui.container :as container]
-            [r6p3s.ui.container-fluid :as container-fluid]
-            [r6p3s.ui.form-group :as form-group]
             [r6p3s.ui.glyphicon :as glyphicon]
-            [r6p3s.ui.label :as label]
-            [r6p3s.ui.list-group :as list-group]
-            [r6p3s.ui.list-group--counts-by :as list-group--counts-by]
-            [r6p3s.ui.list-group-item :as list-group-item]
+
+
             [r6p3s.ui.media :as media]
             [r6p3s.ui.media-object :as media-object]
+
             [r6p3s.ui.navbar-li :as navbar-li]
             [r6p3s.ui.navbar-li-dropdown :as navbar-li-dropdown]
             [r6p3s.ui.navbar-li-separator :as navbar-li-separator]
+
             [r6p3s.ui.nav :as nav]
-            [r6p3s.ui.nav-tab :as nav-tab]
+
             [r6p3s.ui.panel :as panel]
-            [r6p3s.ui.panel-with-table :as panel-with-table]
-            [r6p3s.ui.row :as row]
             [r6p3s.ui.table :as table]
-            [r6p3s.ui.tbody :as tbody]
             [r6p3s.ui.thead-tr :as thead-tr]
+
             [r6p3s.ui.ul-navbar-nav :as ul-navbar-nav]
             [r6p3s.ui.ul-navbar-nav-right :as ul-navbar-nav-right]
-           
+
             [clojure.set :as clojset]
             [clojure.string :as clojstr]
 
@@ -44,8 +36,7 @@
             [goog.i18n.DateTimeParse :as dtp]
 
             [goog.string :as gstring]
-            [goog.string.format]
-            )
+            [goog.string.format])
 
   (:import [goog.dom query]))
 
