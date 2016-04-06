@@ -56,11 +56,11 @@
 
 
 
-(defn view [app owner {:keys [uri params
-                              uri-upload
-                              uri-delete
-                              chan-update]
-                       :or   {params {}}}]
+(defn component [app owner {:keys [uri params
+                                   uri-upload
+                                   uri-delete
+                                   chan-update]
+                            :or   {params {}}}]
   (reify
     om/IInitState
     (init-state [_]

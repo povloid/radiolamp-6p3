@@ -2354,20 +2354,20 @@
 ;;*
 ;;**************************************************************************************************
 
-(defonce chan-thumb-show-in-full-screen-app-init (chan))
+#_(defonce chan-thumb-show-in-full-screen-app-init (chan))
 
                                         ;TODO: Вынести данную констату в общий файл cljc
-(def thumb-show-in-full-screen-id "thumb-show-in-full-screen")
+#_(def thumb-show-in-full-screen-id "thumb-show-in-full-screen")
 
 
 
-(defonce thumb-show-in-full-screen-app-state
+#_(defonce thumb-show-in-full-screen-app-state
   (atom {:src         nil
          :description nil :top_description nil
          :zoom?       false
          :deg         0}))
 
-(defn- thumb-show-in-full-screen [app]
+#_(defn- thumb-show-in-full-screen [app]
   (reify
     om/IWillMount
     (will-mount [this]
@@ -2418,9 +2418,9 @@
 
 
 ;; Инициализация
-(def thumb-show-in-full-screen--tag (by-id thumb-show-in-full-screen-id))
+#_(def thumb-show-in-full-screen--tag (by-id thumb-show-in-full-screen-id))
 
-(if thumb-show-in-full-screen--tag
+#_(if thumb-show-in-full-screen--tag
   (do
     (om/root
      thumb-show-in-full-screen
@@ -2447,7 +2447,7 @@
 ;;**************************************************************************************************
 
 
-(def thumbnail-app-init
+#_(def thumbnail-app-init
   {:id              nil
    :path            nil
    :top_description nil
@@ -2456,7 +2456,7 @@
    })
 
 
-(defn thumbnail [app _ {:keys [class+ onClick-fn]
+#_(defn thumbnail [app _ {:keys [class+ onClick-fn]
                         :or   {class+ "col-xs-12 col-sm-6 col-md-4 col-lg-4"}}]
   (reify
     om/IRender
@@ -2496,7 +2496,7 @@
                                             }))
                    )))))))
 
-(def thumbnails-edit-form-app-init
+#_(def thumbnails-edit-form-app-init
   (merge edit-form-for-id-app-init
          {:top_description input-app-init
           :description     textarea-app-init
@@ -2504,7 +2504,7 @@
           }))
 
 
-(defn thumbnails-edit-form [app owner opts]
+#_(defn thumbnails-edit-form [app owner opts]
   (reify
     om/IRender
     (render [_]
@@ -2547,10 +2547,10 @@
         }))))
 
 
-(def thumbnails-modal-edit-form-app-init
+#_(def thumbnails-modal-edit-form-app-init
   (merge modal-edit-form-for-id--YN--app-init thumbnails-edit-form-app-init))
 
-(defn thumbnails-modal-edit-form [app _ opts]
+#_(defn thumbnails-modal-edit-form [app _ opts]
   (reify
     om/IRender
     (render [_]
@@ -2558,7 +2558,7 @@
                 {:opts (assoc opts :edit-form-for-id thumbnails-edit-form)}))))
 
 
-(def thumbnails-view-app-init
+#_(def thumbnails-view-app-init
   {:list         []
    :last-params  {}
    :modal-act    actions-modal-app-init
@@ -2566,7 +2566,7 @@
                         :row {})
    :modal        thumbnails-modal-edit-form-app-init})
 
-(defn thumbnails-view [app owner {:keys [uri params
+#_(defn thumbnails-view [app owner {:keys [uri params
                                          uri-upload
                                          uri-delete
                                          chan-update]
@@ -2664,7 +2664,7 @@
 
 
 
-(defn images-gallery-1 [app own]
+#_(defn images-gallery-1 [app own]
   (letfn [(img-setup []
             (om/update-state!
              own (fn [{:keys [div-id img-id deg] :as state}]
@@ -2986,10 +2986,10 @@
 
 
 
-(def files-table-1-app-init
+#_(def files-table-1-app-init
   [])
 
-(defn files-table-1 [app own]
+#_(defn files-table-1 [app own]
   (reify
     om/IRender
     (render [_]
