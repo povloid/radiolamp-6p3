@@ -13,7 +13,9 @@
             [r6p3s.cpt.modal-edit-form-for-id--yes-no :as modal-edit-form-for-id--yes-no]
             [r6p3s.cpt.modal :as modal]
             [r6p3s.cpt.modal-yes-no :as modal-yes-no]
-            [r6p3s.cpt.actions-modal :as actions-modal]))
+            [r6p3s.cpt.actions-modal :as actions-modal]
+            [r6p3s.cpt.search-view :as search-view]
+            [r6p3s.cpt.tbody-trs-sel :as tbody-trs-sel]))
 
 ;;**************************************************************************************************
 ;;* BEGIN Webusers
@@ -210,7 +212,7 @@
 
 (def webusers-search-view-app-init
   (merge
-   rc/search-view-app-init
+   search-view/app-init
    {:modal-add    webusers-modal-edit-form-app-init
     :modal-act    actions-modal/app-init
     :modal-yes-no (assoc modal-yes-no/app-init :row {})
@@ -234,7 +236,7 @@
                              chan-modal-add-id
                              chan-update]}]
       (dom/div nil
-               (om/build rc/search-view app
+               (om/build search-view/component app
                          {:opts
                           {:chan-update chan-update
                            :data-update-fn
@@ -259,7 +261,7 @@
                                                                (dom/th nil "Наименование")
                                                                (dom/th nil "Описание")]))
                                             :tbody
-                                            (om/build rc/tbody-trs-sel (:data app-2)
+                                            (om/build tbody-trs-sel/component (:data app-2)
                                                       {:opts {:selection-type selection-type
                                                               :app-to-tds-seq-fn
                                                               (or app-to-tds-seq-fn

@@ -509,6 +509,7 @@
                         }}
                 ))))
 
+
 ;; END buttons modal for select actions variants
 ;;..............................................................................
 
@@ -1533,7 +1534,7 @@
 ;;**************************************************************************************************
 
 
-(defn tr-sel [app owner {:keys [app-to-tds-seq-fn
+#_(defn tr-sel [app owner {:keys [app-to-tds-seq-fn
                                 clear-selections-fn
                                 on-select-fn
                                 class-fn]
@@ -1575,7 +1576,7 @@
 
 
 
-(defn tbody-trs-sel [app owner {:keys [selection-type]
+#_(defn tbody-trs-sel [app owner {:keys [selection-type]
                                 :or   {selection-type :one}
                                 :as   opts}]
   (reify
@@ -1614,12 +1615,12 @@
 
 
 
-(def paginator-app-init
+#_(def paginator-app-init
   {:page      1
    :page-size 10
    :count-all nil})
 
-(defn paginator [app owner {:keys [chan-update class+ on-click-fn]}]
+#_(defn paginator [app owner {:keys [chan-update class+ on-click-fn]}]
   (reify
     om/IRender
     (render [this]
@@ -1700,24 +1701,24 @@
 ;;**************************************************************************************************
 
 
-(def search-view-app-init
+#_(def search-view-app-init
   (merge {:fts-query input-app-init
           :data      []}
          paginator-app-init))
 
-(defn search-view-app-data [app]
+#_(defn search-view-app-data [app]
   (@app :data))
 
-(defn search-view-app-data-selected [app]
+#_(defn search-view-app-data-selected [app]
   (->> @app
        :data
        (filter omut-row-selected?)))
 
-(defn search-view-app-data-selected-first [app]
+#_(defn search-view-app-data-selected-first [app]
   (first (search-view-app-data-selected app)))
 
 
-(defn search-view [app owner
+#_(defn search-view [app owner
                    {:keys [input-placeholder
                            chan-update
                            data-update-fn
