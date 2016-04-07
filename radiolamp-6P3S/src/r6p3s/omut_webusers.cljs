@@ -13,8 +13,9 @@
             [r6p3s.cpt.edit-form-for-id :as edit-form-for-id]
             [r6p3s.cpt.modal-edit-form-for-id--yes-no :as modal-edit-form-for-id--yes-no]
 
-
-            ))
+            [r6p3s.cpt.modal :as modal]
+            [r6p3s.cpt.modal-yes-no :as modal-yes-no]
+            [r6p3s.cpt.actions-modal :as actions-modal]))
 
 ;;**************************************************************************************************
 ;;* BEGIN Webusers
@@ -213,8 +214,8 @@
   (merge
    rc/search-view-app-init
    {:modal-add    webusers-modal-edit-form-app-init
-    :modal-act    rc/actions-modal-app-init
-    :modal-yes-no (assoc rc/modal-yes-no-app-init :row {})
+    :modal-act    actions-modal/app-init
+    :modal-yes-no (assoc modal-yes-no/app-init :row {})
     }))
 
 (defn webusers-search-view [app own {:keys [selection-type
@@ -278,23 +279,23 @@
                                                                          [{:text   "Редактировать" :btn-type :primary
                                                                            :act-fn (fn []
                                                                                      (put! chan-modal-add-id id)
-                                                                                     (rc/modal-show (:modal-add app)))}
+                                                                                     (modal/show (:modal-add app)))}
                                                                           {:text   "Удалить" :btn-type :danger
                                                                            :act-fn #(do
                                                                                       (om/update! app [:modal-yes-no :row] row)
-                                                                                      (rc/modal-show (:modal-yes-no app)))}]
+                                                                                      (modal/show (:modal-yes-no app)))}]
                                                                          }))
                                                                 )
                                                               }})
                                             }))
                            :add-button-fn
                            (when show-add-button-fn?
-                             #(do (rc/modal-show (:modal-add app))
+                             #(do (modal/show (:modal-add app))
                                   (put! chan-modal-add-id 0)))
                            }})
 
                (when editable?
-                 (om/build rc/actions-modal (:modal-act app) {:opts {:chan-open chan-modal-act}}))
+                 (om/build actions-modal/component (:modal-act app) {:opts {:chan-open chan-modal-act}}))
 
                (om/build webusers-modal-edit-form (:modal-add app)
                          {:opts {:specific         webusers-edit-form-specific
@@ -306,7 +307,7 @@
                                  }})
 
                (when editable?
-                 (om/build rc/modal-yes-no (:modal-yes-no app)
+                 (om/build modal-yes-no/component (:modal-yes-no app)
                            {:opts {:modal-size :sm
                                    :label      "Желаете удалить запись?"
                                    :body

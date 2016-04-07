@@ -335,22 +335,22 @@
 ;;*
 ;;**************************************************************************************************
 
-(def modal-app-init
+#_(def modal-app-init
   {:show false})
 
-(defn modal-show [app]
+#_(defn modal-show [app]
   (om/transact!
    app :show
    (fn [i] (if i (inc i) 1))))
 
-(defn modal-hide [app]
+#_(defn modal-hide [app]
   (om/transact!
    app :show
    (fn [_] false)))
 
 
-(defonce modals-status (atom #{}))
-(add-watch
+#_(defonce modals-status (atom #{}))
+#_(add-watch
  modals-status :log
  (fn [_ _ old new]
    (when (not= old new)
@@ -365,7 +365,7 @@
          (let [new-dialog-id (first d)]
            (println "Открылся " new-dialog-id)))))))
 
-(defn modal [app owner {:keys [label
+#_(defn modal [app owner {:keys [label
                                modal-size
                                header
                                body
@@ -453,7 +453,7 @@
 ;; description: Диалог для выбора вариантов действия
 ;;------------------------------------------------------------------------------
 
-(defn actions-modal-button [app _ {:keys [text
+#_(defn actions-modal-button [app _ {:keys [text
                                           btn-type
                                           act-fn]
                                    :or   {text     "Метка события"
@@ -476,10 +476,10 @@
 
 
 
-(def actions-modal-app-init modal-app-init)
+#_(def actions-modal-app-init modal-app-init)
 
 
-(defn actions-modal [app owner {:keys [chan-open]}]
+#_(defn actions-modal [app owner {:keys [chan-open]}]
   (reify
     om/IInitState
     (init-state [_]
@@ -518,9 +518,9 @@
 ;; description: Диалог зароса действия да или нет
 ;;------------------------------------------------------------------------------
 
-(def modal-yes-no-app-init modal-app-init)
+#_(def modal-yes-no-app-init modal-app-init)
 
-(defn modal-yes-no [app owner {:keys [act-yes-fn]
+#_(defn modal-yes-no [app owner {:keys [act-yes-fn]
                                :or   {act-yes-fn #(js/alert "Действие еще не реализовано")}
                                :as   opts}]
   (reify
@@ -551,16 +551,16 @@
 ;; description: Диалог для выведения сообщений об ошибках
 ;;------------------------------------------------------------------------------
 
-(defonce message-modal-app
+#_(defonce message-modal-app
   (atom (assoc modal-app-init
                :title
                :message "")))
 
-(defn- cursor-message-root [] (om/root-cursor message-modal-app))
+#_(defn- cursor-message-root [] (om/root-cursor message-modal-app))
 
-(def message-modal-id "message-modal")
+#_(def message-modal-id "message-modal")
 
-(defn message-modal [app _]
+#_(defn message-modal [app _]
   (reify
     om/IRender
     (render [_]
@@ -587,7 +587,7 @@
                                          " " (@app :message))}})))))
 
 
-(defn show-in-message-modal [type {:keys [title message] :as message-row}]
+#_(defn show-in-message-modal [type {:keys [title message] :as message-row}]
   (let [_ (or (by-id message-modal-id)
               (let [error-div (.createElement js/document "div")
                     tag-body  (aget (query "body") 0)]
@@ -608,12 +608,12 @@
                            :type type)))
     (modal-show (cursor-message-root))))
 
-(def show-in-message-modal-muted   (partial show-in-message-modal :muted))
-(def show-in-message-modal-primary (partial show-in-message-modal :primary))
-(def show-in-message-modal-success (partial show-in-message-modal :success))
-(def show-in-message-modal-info    (partial show-in-message-modal :info))
-(def show-in-message-modal-warning (partial show-in-message-modal :warning))
-(def show-in-message-modal-danger  (partial show-in-message-modal :danger))
+#_(def show-in-message-modal-muted   (partial show-in-message-modal :muted))
+#_(def show-in-message-modal-primary (partial show-in-message-modal :primary))
+#_(def show-in-message-modal-success (partial show-in-message-modal :success))
+#_(def show-in-message-modal-info    (partial show-in-message-modal :info))
+#_(def show-in-message-modal-warning (partial show-in-message-modal :warning))
+#_(def show-in-message-modal-danger  (partial show-in-message-modal :danger))
 
 
 ;; END Function for showing modal for error or warning mesage
@@ -2359,6 +2359,7 @@
 
                                         ;TODO: Вынести данную констату в общий файл cljc
 #_(def thumb-show-in-full-screen-id "thumb-show-in-full-screen")
+
 
 
 
