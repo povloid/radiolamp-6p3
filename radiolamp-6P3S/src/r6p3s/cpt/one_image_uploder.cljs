@@ -11,6 +11,7 @@
             [r6p3s.cpt.helper-p :as helper-p]))
 
 
+
 ;;**************************************************************************************************
 ;;* BEGIN Upload one image
 ;;* tag: <one image uploader>
@@ -70,7 +71,7 @@
       (dom/div #js {:className (str "form-group " (common-input/input-css-string-has? app))}
                (dom/label #js {:className (str "control-label " label-class+) } label)
                (dom/div #js {:className input-class+}
-                        (om/build component {:opts spec-one-image-uploader})
+                        (om/build component app {:opts spec-one-image-uploader})
                         (om/build helper-p/component app {}) )))))
 
 ;; END Upload one image

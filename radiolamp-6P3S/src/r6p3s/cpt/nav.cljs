@@ -11,7 +11,7 @@
 
 
 
-(def nav-app-state-key :menu)
+(def app-state-key :menu)
 
 
 
@@ -26,7 +26,7 @@
     (reify
       om/IRender
       (render [_]
-        (let [m (nav-app-state-key app)]
+        (let [m (app-state-key app)]
           (nav/render opts
                   (when-let [menus (:left m)]
                     (apply ul-navbar-nav/render

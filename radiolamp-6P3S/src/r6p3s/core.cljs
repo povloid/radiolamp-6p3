@@ -1849,9 +1849,10 @@
 ;;*
 ;;**************************************************************************************************
 
-(def nav-app-state-key :menu)
 
-(defn nav [app _ opts]
+#_(def nav-app-state-key :menu)
+
+#_(defn nav [app _ opts]
   (letfn [(f1 [{:keys [sub separator?] :as row}]
             (if separator?
               (navbar-li-separator/render)
@@ -1878,29 +1879,29 @@
 ;; description: Табы
 ;;------------------------------------------------------------------------------
 
-(def nav-tabs-app-state
+#_(def nav-tabs-app-state
   {:active-tab 0
    :tabs       [;;{:text "item 1"}
                 ]})
 
 
 
-(defn nav-tabs-app-state-i-maker [tabs]
+#_(defn nav-tabs-app-state-i-maker [tabs]
   (reduce
    (fn [a [k v]]
      (assoc a k v))
    (vec (range (count tabs)))
    (seq tabs)))
 
-(defn nav-tabs-app-state-init [tabs]
+#_(defn nav-tabs-app-state-init [tabs]
   (assoc nav-tabs-app-state
          :tabs (nav-tabs-app-state-i-maker tabs)))
 
 
-(defn nav-tabs-active-tab [app]
+#_(defn nav-tabs-active-tab [app]
   (get app :active-tab 0))
 
-(defn nav-tabs-enable-inly-one [app ii]
+#_(defn nav-tabs-enable-inly-one [app ii]
   (om/transact!
    app (fn [app]
          (-> app
@@ -1912,13 +1913,13 @@
                                       vec))
              (assoc :active-tab ii)))))
 
-(defn nav-tabs-enable-all [app]
+#_(defn nav-tabs-enable-all [app]
   (om/transact!
    app :tabs
    (fn [tabs] (map #(dissoc % :disabled?) tabs))))
 
 
-(defn nav-tabs [app _ {:keys [justified?
+#_(defn nav-tabs [app _ {:keys [justified?
                               type
                               chan-update]
                        :or   {type "nav-pills"}}]
@@ -2200,13 +2201,13 @@
 ;;*
 ;;**************************************************************************************************
 
-(def virtual-pages-app-init
+#_(def virtual-pages-app-init
   {:current :main})
 
-(defn virtual-pages-current [app]
+#_(defn virtual-pages-current [app]
   (app :current))
 
-(defn virtual-pages-go-to-page!! [app page]
+#_(defn virtual-pages-go-to-page!! [app page]
   (om/update! app :current page))
 
 ;; END Virtual pages
@@ -2220,7 +2221,7 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn file-uploder [_ own {:keys [uri
+#_(defn file-uploder [_ own {:keys [uri
                                   get-uri-fn
                                   update-fn
                                   success-fn
@@ -2286,16 +2287,16 @@
 ;;*
 ;;**************************************************************************************************
 
-(def one-image-uploader-app-init {:image nil})
+#_(def one-image-uploader-app-init {:image nil})
 
-(defn one-image-uploader-value [app]
+#_(defn one-image-uploader-value [app]
   (get app :image))
 
-(defn one-image-uploader-value-set! [app v]
+#_(defn one-image-uploader-value-set! [app v]
   (assoc app :image v))
 
 
-(defn one-image-uploader [app own {:keys [class+]
+#_(defn one-image-uploader [app own {:keys [class+]
                                    :as   opts}]
   (reify
     om/IInitState
@@ -2323,7 +2324,7 @@
                                           :src    (@app :image)}))))
                ))))
 
-(defn one-image-uploader-form-group  [app owner {:keys [label
+#_(defn one-image-uploader-form-group  [app owner {:keys [label
                                                         label-class+
                                                         input-class+
                                                         spec-one-image-uploader]

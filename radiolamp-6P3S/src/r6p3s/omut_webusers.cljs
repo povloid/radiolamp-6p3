@@ -5,14 +5,12 @@
             [om.dom :as dom :include-macros true]
             [r6p3s.net :as rnet]
             [r6p3s.core :as rc]
-
             [r6p3s.ui.table :as table]
             [r6p3s.ui.thead-tr :as thead-tr]
             [r6p3s.ui.nav-tab :as nav-tab]
-
+            [r6p3s.cpt.nav-tabs :as nav-tabs]
             [r6p3s.cpt.edit-form-for-id :as edit-form-for-id]
             [r6p3s.cpt.modal-edit-form-for-id--yes-no :as modal-edit-form-for-id--yes-no]
-
             [r6p3s.cpt.modal :as modal]
             [r6p3s.cpt.modal-yes-no :as modal-yes-no]
             [r6p3s.cpt.actions-modal :as actions-modal]))
@@ -38,7 +36,7 @@
           :password    rc/input-change-password-app-init
           :description rc/textarea-app-init
           :troles      []
-          :tabs        rc/nav-tabs-app-state
+          :tabs        nav-tabs/app-state
           }))
 
 
@@ -54,7 +52,7 @@
     om/IWillMount
     (will-mount [_]
       (om/update! app :tabs
-                  (rc/nav-tabs-app-state-init nav-tabs-items-map)))
+                  (nav-tabs/app-state-init nav-tabs-items-map)))
     om/IRender
     (render [_]
       (om/build
@@ -130,7 +128,7 @@
                  (reduce
                   conj
                   [
-                   (om/build rc/nav-tabs (app :tabs)
+                   (om/build nav-tabs/component (app :tabs)
                              {:opts {}})
 
                    (nav-tab/render
