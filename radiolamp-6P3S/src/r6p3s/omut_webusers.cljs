@@ -9,13 +9,18 @@
             [r6p3s.ui.thead-tr :as thead-tr]
             [r6p3s.ui.nav-tab :as nav-tab]
             [r6p3s.cpt.nav-tabs :as nav-tabs]
+            [r6p3s.common-input :as common-input]
             [r6p3s.cpt.edit-form-for-id :as edit-form-for-id]
             [r6p3s.cpt.modal-edit-form-for-id--yes-no :as modal-edit-form-for-id--yes-no]
             [r6p3s.cpt.modal :as modal]
             [r6p3s.cpt.modal-yes-no :as modal-yes-no]
             [r6p3s.cpt.actions-modal :as actions-modal]
             [r6p3s.cpt.search-view :as search-view]
-            [r6p3s.cpt.tbody-trs-sel :as tbody-trs-sel]))
+            [r6p3s.cpt.tbody-trs-sel :as tbody-trs-sel]
+            [r6p3s.cpt.input :as input]
+            [r6p3s.cpt.textarea :as textarea]
+            [r6p3s.cpt.input-change-password :as input-change-password]
+            [r6p3s.cpt.toggle-button :as toggle-button]))
 
 ;;**************************************************************************************************
 ;;* BEGIN Webusers
@@ -34,9 +39,9 @@
 
 (def webusers-edit-form-app-init
   (merge edit-form-for-id/app-init
-         {:username    (assoc rc/input-app-init :has-warning? true)
-          :password    rc/input-change-password-app-init
-          :description rc/textarea-app-init
+         {:username    (assoc input/app-init :has-warning? true)
+          :password    input-change-password/app-init
+          :description textarea/app-init
           :troles      []
           :tabs        nav-tabs/app-state
           }))
@@ -72,7 +77,7 @@
                          ;;(assoc :id id) ;; Id идет сразу, будет работатьт автоматом
                          (assoc-in [:username :value]    (get-in row [:username] ""))
                          (assoc-in [:description :value] (get-in row [:description] ""))
-                         (update-in [:password] rc/input-change-password-clean)
+                         (update-in [:password] input-change-password/clean)
                          (assoc :troles (let [[roles-list user-roles-set] (row :troles-set)
                                               roles-list                  (seq (group-by :id_2 roles-list))]
                                           {:groups (reduce
@@ -102,13 +107,13 @@
                 :app-to-row-fn
                 (fn []
 
-                  (rc/input-change-password-check (@app :password))
+                  (input-change-password/check (@app :password))
 
                   {:row                 (-> (if-let [id (@app :id)] {:id id} {})
                                             (assoc
                                              :username      (get-in @app [:username :value])
                                              :description   (get-in @app [:description :value])
-                                             :password (rc/input-change-password-value (@app :password)) )
+                                             :password (input-change-password/value (@app :password)) )
                                             ;; SPECIFIC
                                             (as-> row
                                                 (if app->row-fn
@@ -139,15 +144,15 @@
                      nil
                      (dom/legend nil "Основные данные")
 
-                     (om/build rc/input-form-group (get-in app [:username])
+                     (om/build input/component-form-group (get-in app [:username])
                                {:opts {:label      "Наименование"
                                        :spec-input {:onChange-valid?-fn
-                                                    rc/input-vldfn-not-empty}}})
+                                                    common-input/vldfn-not-empty}}})
 
 
-                     (om/build rc/input-change-password-group (get-in app [:password]))
+                     (om/build input-change-password/component-form-group (get-in app [:password]))
 
-                     (om/build rc/textarea-form-group (get-in app [:description])
+                     (om/build textarea/component-form-group (get-in app [:description])
                                {:opts {:label "Описание"}})
 
                      ))
@@ -170,7 +175,7 @@
                                        (map
                                         (fn [i {:keys [title]}]
                                           (dom/div nil
-                                                   (om/build rc/toggle-button (get-in app [:troles :roles g-id i :user-role?]))
+                                                   (om/build toggle-button/component (get-in app [:troles :roles g-id i :user-role?]))
                                                    title))
                                         (range))
                                        (apply dom/div nil)) ))
@@ -342,7 +347,7 @@
 
 (def webusers-change-password-form-app-init
   (merge edit-form-for-id/app-init
-         {:password rc/input-change-password-app-init}))
+         {:password input-change-password/app-init}))
 
 
 (defn webusers-change-password-form [app _ _]
@@ -359,13 +364,13 @@
          :chan-save chan-save
          :app-to-row-fn
          (fn []
-           (rc/input-change-password-check (@app :password))
-           {:password (rc/input-change-password-value (@app :password))})
+           (input-change-password/check (@app :password))
+           {:password (input-change-password/value (@app :password))})
          :form-body
          (dom/fieldset
           nil
           (dom/legend nil "Сменить пароль пользователя")
-          (om/build rc/input-change-password-group (get-in app [:password]))
+          (om/build input-change-password/component-form-group (get-in app [:password]))
 
           (dom/button #js {:className "btn btn-primary"
                            :type      "button"

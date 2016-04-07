@@ -5,7 +5,7 @@
             [r6p3s.ui.button :as button]))
 
 
-(defn text-collapser [app _ {k :k}]
+(defn component [app _ {k :k}]
   (reify
     om/IWillMount
     (will-mount [_]

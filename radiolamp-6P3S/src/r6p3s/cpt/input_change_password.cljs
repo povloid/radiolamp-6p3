@@ -1,4 +1,4 @@
-(ns r6p3s.cpt.change-password
+(ns r6p3s.cpt.input-change-password
   (:require [cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]

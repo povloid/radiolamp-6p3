@@ -13,7 +13,7 @@
   {:selected no-select-v
    :list     []})
 
-(defn data-list [app]
+(defn list-get [app]
   (app :list))
 
 (defn list-set! [app new-list]
@@ -83,45 +83,6 @@
                                            label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
                                            input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                                            spec-select  {}}}]
-  (reify
-    om/IRender
-    (render [_]
-      (dom/div #js {:className (str "form-group " (common-input/input-css-string-has? app))}
-               (dom/label #js {:className (str "control-label " label-class+) } label)
-               (dom/div #js {:className input-class+ :style #js {}}
-                        (om/build component app {:opts spec-select})
-                        (om/build helper-p/component app {})
-                        )))))
-
-
-;; select in list from url
-
-(def from-url-app-init app-init)
-
-(defn component-from-url [app owner {:keys [url params] :as select-opts}]
-  (reify
-    om/IWillMount
-    (will-mount [_]
-      (rnet/get-data
-       url params
-       (fn [result]
-         ;;(println result " to " @app)
-         (om/update! app :list result))))
-    om/IRender
-    (render [_]
-      (om/build component app {:opts select-opts}))))
-
-
-
-(defn component-from-url-form-group  [app _ {:keys [label
-                                                    type
-                                                    label-class+
-                                                    input-class+
-                                                    spec-select]
-                                             :or   {label        "Метка"
-                                                    label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                                                    input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
-                                                    spec-select  {}}}]
   (reify
     om/IRender
     (render [_]

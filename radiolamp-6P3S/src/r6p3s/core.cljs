@@ -634,7 +634,7 @@
 ;;**************************************************************************************************
 
 
-(defn text-collapser [app _ {k :k}]
+#_(defn text-collapser [app _ {k :k}]
   (reify
     om/IWillMount
     (will-mount [_]
@@ -664,7 +664,7 @@
 ;;*
 ;;**************************************************************************************************
 
-(def helper-p-app-init
+#_(def helper-p-app-init
   {:text-muted   nil
    :text-primary nil
    :text-success nil
@@ -673,7 +673,7 @@
    :text-danger  nil})
 
 
-(defn helper-p [app _]
+#_(defn helper-p [app _]
   (reify
     om/IRender
     (render [_]
@@ -698,7 +698,7 @@
                    (dom/p #js {:className "text-danger"} text-danger))  )))))
 
 
-(defn helper-p-clean [app]
+#_(defn helper-p-clean [app]
   (om/transact! app
                 (fn [app]
                   (dissoc app
@@ -709,7 +709,7 @@
                           :text-warning
                           :text-danger))))
 
-(defn helper-p-clean-and-set!! [app k message]
+#_(defn helper-p-clean-and-set!! [app k message]
   (om/transact! app (fn [app]
                       (-> app
                           (dissoc :text-muted
@@ -734,7 +734,7 @@
 ;;*
 ;;**************************************************************************************************
 
-(def alert-app-init
+#_(def alert-app-init
   {:alert-muted   nil
    :alert-primary nil
    :alert-success nil
@@ -743,7 +743,7 @@
    :alert-danger  nil})
 
 
-(defn alert [app _]
+#_(defn alert [app _]
   (reify
     om/IRender
     (render [_]
@@ -768,7 +768,7 @@
                    (dom/div #js {:className "alert alert-danger"} alert-danger))  )))))
 
 
-(defn alert-clean [app]
+#_(defn alert-clean [app]
   (om/transact! app
                 (fn [app]
                   (dissoc app
@@ -779,7 +779,7 @@
                           :alert-warning
                           :alert-danger))))
 
-(defn alert-clean-and-set!! [app k message]
+#_(defn alert-clean-and-set!! [app k message]
   (om/transact! app
                 (fn [app]
                   (-> app
@@ -809,13 +809,13 @@
 ;;*
 ;;**************************************************************************************************
 
-(def input-css-string-has?-app-init
+#_(def input-css-string-has?-app-init
   {:has-success? nil
    :has-warning? nil
    :has-error?   nil})
 
 
-(defn input-css-string-has? [{:keys [has-success?
+#_(defn input-css-string-has? [{:keys [has-success?
                                      has-warning?
                                      has-error?]}]
   (condp = true
@@ -824,7 +824,7 @@
     has-success? "has-success"
     ""))
 
-(defn input-css-string-has?-clean [app]
+#_(defn input-css-string-has?-clean [app]
   (om/transact! app
                 (fn [app]
                   (dissoc app
@@ -832,14 +832,14 @@
                           :has-warning?
                           :has-error?))))
 
-(defn input-css-string-has?-clean-and-set! [app k]
+#_(defn input-css-string-has?-clean-and-set! [app k]
   (-> app
       (dissoc :has-success?
               :has-warning?
               :has-error?)
       (assoc k true)))
 
-(defn input-css-string-has?-clean-and-set!! [app k]
+#_(defn input-css-string-has?-clean-and-set!! [app k]
   (om/transact! app
                 (fn [app]
                   (input-css-string-has?-clean-and-set! app k))))
@@ -855,7 +855,7 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn get-valid-value-or-throw
+#_(defn get-valid-value-or-throw
   [app path get-val-fn pred? throw-message]
   (let [v (get-val-fn (get-in @app path))]
     (if (pred? v)
@@ -895,12 +895,12 @@
 ;;                                 (om/set-state! owner :value new-value)))})))))
 
 
-(def input-app-init
+#_(def input-app-init
   {:value ""})
 
-(defn input-value [app] (get app :value))
+#_(defn input-value [app] (get app :value))
 
-(defn input [app owner {:keys [class+
+#_(defn input [app owner {:keys [class+
                                type
                                onChange-valid?-fn
                                onChange-updated-fn
@@ -934,7 +934,7 @@
                         :disabled    (@app :disabled?)
                         :className   (str "form-control " class+)})))))
 
-(defn input-form-group  [app owner {:keys [label
+#_(defn input-form-group  [app owner {:keys [label
                                            type
                                            label-class+
                                            input-class+
@@ -956,7 +956,7 @@
 
 
 
-(defn input-vldfn-not-empty [app v]
+#_(defn input-vldfn-not-empty [app v]
   (helper-p-clean app)
   (input-css-string-has?-clean app)
   (when (= (count (.trim v)) 0)
@@ -964,7 +964,7 @@
   true)
 
 
-(defn input-vldfn-not-empty-or-0 [app v]
+#_(defn input-vldfn-not-empty-or-0 [app v]
   (helper-p-clean app)
   (input-css-string-has?-clean app)
   (when (or (= (count (.trim v)) 0) (= (.valueOf (new js/Number v)) 0))
@@ -973,7 +973,7 @@
     (om/transact! app #(assoc % :has-success? true))
     true))
 
-(defn input-vldfn-not-empty-date [app v]
+#_(defn input-vldfn-not-empty-date [app v]
   (helper-p-clean app)
   (input-css-string-has?-clean app)
   (when-not (str-to-date v)
@@ -987,23 +987,23 @@
 
 
 
-(def input-datetime--date-str-format "yyyy-MM-ddTHH:mmZ")
+#_(def input-datetime--date-str-format "yyyy-MM-ddTHH:mmZ")
 
-(defn input-datetime-form-group--set-date! [app d]
+#_(defn input-datetime-form-group--set-date! [app d]
   (assoc app :value (format-date input-datetime--date-str-format d)))
 
-(defn input-datetime--parse-str-to-date [s]
+#_(defn input-datetime--parse-str-to-date [s]
   (let [parser (new goog.i18n.DateTimeParse input-datetime--date-str-format)
         d (new js/Date)]
     (.parse parser s d)
     d))
 
 
-(defn input-datetime-form-group--date [app]
+#_(defn input-datetime-form-group--date [app]
   (input-datetime--parse-str-to-date (app :value)))
 
 
-(defn input-vldfn-not-empty-datetime [app v]
+#_(defn input-vldfn-not-empty-datetime [app v]
   (helper-p-clean app)
   (input-css-string-has?-clean app)
   (when-not (input-datetime--parse-str-to-date v)
@@ -1013,7 +1013,7 @@
 
 
 
-(defn input-datetime-form-group  [app owner {:keys [label
+#_(defn input-datetime-form-group  [app owner {:keys [label
                                                     type
                                                     label-class+
                                                     input-class+
@@ -1055,37 +1055,37 @@
 ;;*
 ;;**************************************************************************************************
 
-(def no-select-v "NO-SELECT")
+#_(def no-select-v "NO-SELECT")
 
-(def select-app-init
+#_(def select-app-init
   {:selected no-select-v
    :list     []})
 
-(defn select-app-list [app]
+#_(defn select-app-list [app]
   (app :list))
 
-(defn select-app-list-set! [app new-list]
+#_(defn select-app-list-set! [app new-list]
   (assoc app :list new-list))
 
-(defn select-app-selected-set! [app selected]
+#_(defn select-app-selected-set! [app selected]
   (assoc app :selected (str selected)))
 
-(defn select-app-selected-set-nil! [app]
+#_(defn select-app-selected-set-nil! [app]
   (assoc app :selected no-select-v))
 
-(defn select-app-selected [app]
+#_(defn select-app-selected [app]
   (let [sv (app :selected)]
     (if (or (nil? sv)
             (empty? sv)
             (= sv no-select-v)) nil sv)))
 
 
-(defn select-app-selected-int-or-nil [app]
+#_(defn select-app-selected-int-or-nil [app]
   (when-let [v (select-app-selected app)]
     (js/parseInt v)))
 
 
-(defn select [app _ {:keys [first-item-text
+#_(defn select [app _ {:keys [first-item-text
                             on-change-fn
                             value-field-key
                             disabled?
@@ -1122,7 +1122,7 @@
                (dom/option #js {:value (str (value-field-key row))} (str (title-field-key row))))
              (into [{value-field-key no-select-v title-field-key first-item-text}] (@app :list)))) ))))
 
-(defn select-form-group  [app _ {:keys [label
+#_(defn select-form-group  [app _ {:keys [label
                                         type
                                         label-class+
                                         input-class+
@@ -1144,9 +1144,9 @@
 
 ;; select in list from url
 
-(def select-from-url-app-init select-app-init)
+#_(def select-from-url-app-init select-app-init)
 
-(defn select-from-url [app owner {:keys [url params] :as select-opts}]
+#_(defn select-from-url [app owner {:keys [url params] :as select-opts}]
   (reify
     om/IWillMount
     (will-mount [_]
@@ -1161,7 +1161,7 @@
 
 
 
-(defn select-from-url-form-group  [app _ {:keys [label
+#_(defn select-from-url-form-group  [app _ {:keys [label
                                                  type
                                                  label-class+
                                                  input-class+
@@ -1198,24 +1198,24 @@
 ;;*
 ;;**************************************************************************************************
 
-(def input-change-password-app-init
+#_(def input-change-password-app-init
   {:password-1 {:value ""} :password-2 {:value ""} })
 
-(defn input-change-password-clean [_]
+#_(defn input-change-password-clean [_]
   {:password-1 {:value ""} :password-2 {:value ""} })
 
-(defn input-change-password-valid? [a]
+#_(defn input-change-password-valid? [a]
   (= (get-in a [:password-1 :value]) (get-in a [:password-2 :value])))
 
-(defn input-change-password-check [a]
+#_(defn input-change-password-check [a]
   (if (not (input-change-password-valid? a))
     (throw (js/Error. "Пароли в полях не совпадают!"))
     a))
 
-(defn input-change-password-value [a]
+#_(defn input-change-password-value [a]
   (get-in a [:password-1 :value]))
 
-(defn input-change-password [app owner]
+#_(defn input-change-password [app owner]
   (letfn [(onChange-updated-fn []
             (om/transact!
              app (fn [app]
@@ -1237,7 +1237,7 @@
 
          )))))
 
-(defn input-change-password-group  [app owner {:keys [label
+#_(defn input-change-password-group  [app owner {:keys [label
                                                       type
                                                       label-class+
                                                       input-class+
@@ -1269,12 +1269,12 @@
 ;;*
 ;;**************************************************************************************************
 
-(def textarea-app-init
+#_(def textarea-app-init
   {:value ""})
 
-(defn textarea-value [app] (get app :value))
+#_(defn textarea-value [app] (get app :value))
 
-(defn textarea [app owner {:keys [class+
+#_(defn textarea [app owner {:keys [class+
                                   onChange-valid?-fn
                                   onKeyPress-fn
                                   placeholder
@@ -1313,7 +1313,7 @@
                          :cols        cols
                          }))))
 
-(defn textarea-form-group  [app owner {:keys [label
+#_(defn textarea-form-group  [app owner {:keys [label
                                               type
                                               label-class+
                                               input-class+
@@ -1343,10 +1343,10 @@
 ;;*
 ;;**************************************************************************************************
 
-(def toggle-button-app-init
+#_(def toggle-button-app-init
   {:value false})
 
-(defn toggle-button [app _ {:keys [bs-type
+#_(defn toggle-button [app _ {:keys [bs-type
                                    class+
                                    onClick-fn
                                    text-on
@@ -1367,7 +1367,7 @@
                       :text      (if (@app :value) text-on text-off)}))))
 
 
-(defn toggle-button-form-group [app owner {:keys [label
+#_(defn toggle-button-form-group [app owner {:keys [label
                                                   type
                                                   label-class+
                                                   input-class+
@@ -1389,7 +1389,7 @@
 
 
 
-(defn toggle-buttons-selector-group-app-init [buttons]
+#_(defn toggle-buttons-selector-group-app-init [buttons]
   {:buttons (vec (map
                   (fn [{:keys [value key] :as b} i]
                     (assoc b
@@ -1397,14 +1397,14 @@
                            :key key))
                   buttons))})
 
-(defn toggle-buttons-selector-get-selected [app]
+#_(defn toggle-buttons-selector-get-selected [app]
   (->> app :buttons (filter :value) (map :key)))
 
-(defn toggle-buttons-selector-get-selected-one [app]
+#_(defn toggle-buttons-selector-get-selected-one [app]
   (first (toggle-buttons-selector-get-selected app)))
 
 
-(defn toggle-buttons-selector-group [app own {:keys [selection-type
+#_(defn toggle-buttons-selector-group [app own {:keys [selection-type
                                                      onClick-fn]}]
   (reify
     om/IRender
@@ -1442,11 +1442,11 @@
 ;;;**************************************************************************************************
 
 
-(def input-select-checkboxes-app-init
+#_(def input-select-checkboxes-app-init
   {:data []})
 
 
-(defn input-select-checkboxes--make-data [app key-text key-value rows]
+#_(defn input-select-checkboxes--make-data [app key-text key-value rows]
   (assoc app :data (->> rows
                         (map (fn [row]
                                (assoc row
@@ -1455,12 +1455,12 @@
                         vec)))
 
 
-(defn input-select-checkboxes--get-selected [key-value app]
+#_(defn input-select-checkboxes--get-selected [key-value app]
   (->> app :data (filter key-value)))
 
 
 
-(defn input-select-checkboxes [app own
+#_(defn input-select-checkboxes [app own
                                {:keys [on-click-fn]
                                 :or   {}
                                 :as   opts}]
@@ -1497,7 +1497,7 @@
            (apply dom/div #js {:className ""})))))
 
 
-(defn input-select-checkboxes-form-group
+#_(defn input-select-checkboxes-form-group
   [app own {:keys [label
                    type
                    label-class+
@@ -2180,7 +2180,7 @@
 
 
 
-(defn form-show-invalid-messages!! [app message & [input-app input-message]]
+#_(defn form-show-invalid-messages!! [app message & [input-app input-message]]
   (alert-clean-and-set!! app :alert-danger (or message "Ошибка ввода данных"))
   (when input-app
     (input-css-string-has?-clean-and-set!! input-app :has-error?)
