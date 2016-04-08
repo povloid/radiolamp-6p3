@@ -15,6 +15,9 @@
 
   #_(:import [goog.dom query]))
 
+
+(enable-console-print!)
+
 ;;**************************************************************************************************
 ;;* BEGIN Common functions and tools
 ;;* tag: <com>
