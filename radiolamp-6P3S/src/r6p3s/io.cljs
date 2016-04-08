@@ -4,6 +4,8 @@
             [goog.events :as events]))
 
 
+(enable-console-print!)
+
 
 ;; (defn file-upload [form-e uri & [{:keys [success error complete] :as map-e->fns}]]
 ;;     (let [io (goog.net.IframeIo.)]
