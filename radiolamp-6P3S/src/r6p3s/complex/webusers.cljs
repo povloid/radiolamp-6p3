@@ -1,4 +1,4 @@
-(ns r6p3s.omut-webusers
+(ns r6p3s.complex.webusers
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]

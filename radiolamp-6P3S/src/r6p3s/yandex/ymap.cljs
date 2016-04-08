@@ -1,4 +1,4 @@
-(ns r6p3s.omut-ymap
+(ns r6p3s.yandex.ymap
   (:require-macros [cljs.core.async.macros :refer [go]])
 
   (:require [cljs.core.async :refer [put! chan <!]]

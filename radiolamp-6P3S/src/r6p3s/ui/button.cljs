@@ -1,16 +1,6 @@
 (ns r6p3s.ui.button
-  (:require [om.dom :as dom :include-macros true]))
-
-
-
-                                        ;TODO: Дублируется пока из core.cljs для разрешения цикулярных зависимоствей при рефакторинге !!!
-;TODO: В будущем надо оставить одну функцию из core.cljs
-(defn on-click-com-fn [f]
-  (fn [e]
-    (.preventDefault e)
-    (.stopPropagation e)
-    (f)
-    1))
+  (:require [om.dom :as dom :include-macros true]
+            [r6p3s.core :as c]))
 
 
 
@@ -41,8 +31,7 @@
                                     )
                    :type       "button"
                    :disabled   (if disabled? "disabled" "")
-                   :onClick    (on-click-com-fn on-click)
-                   :onTouchEnd (on-click-com-fn on-click)
-                   :style      style
-                   }
+                   :onClick    (c/on-click-com-fn on-click)
+                   :onTouchEnd (c/on-click-com-fn on-click)
+                   :style      style}
               text))

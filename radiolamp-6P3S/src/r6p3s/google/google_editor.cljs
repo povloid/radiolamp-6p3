@@ -1,4 +1,4 @@
-(ns ix.omut-google-editor
+(ns r6p3s.google.google-editor
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]

@@ -4,31 +4,6 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
 
-            [goog.dom.classes :as gdc]
-
-            [r6p3s.io :as ix-io]
-            [r6p3s.net :as rnet]
-
-            [r6p3s.ui.button :as button]
-            [r6p3s.ui.glyphicon :as glyphicon]
-
-
-            [r6p3s.ui.media :as media]
-            [r6p3s.ui.media-object :as media-object]
-
-            [r6p3s.ui.navbar-li :as navbar-li]
-            [r6p3s.ui.navbar-li-dropdown :as navbar-li-dropdown]
-            [r6p3s.ui.navbar-li-separator :as navbar-li-separator]
-
-            [r6p3s.ui.nav :as nav]
-
-            [r6p3s.ui.panel :as panel]
-            [r6p3s.ui.table :as table]
-            [r6p3s.ui.thead-tr :as thead-tr]
-
-            [r6p3s.ui.ul-navbar-nav :as ul-navbar-nav]
-            [r6p3s.ui.ul-navbar-nav-right :as ul-navbar-nav-right]
-
             [clojure.set :as clojset]
             [clojure.string :as clojstr]
 
@@ -38,7 +13,7 @@
             [goog.string :as gstring]
             [goog.string.format])
 
-  (:import [goog.dom query]))
+  #_(:import [goog.dom query]))
 
 ;;**************************************************************************************************
 ;;* BEGIN Common functions and tools
