@@ -14,31 +14,31 @@
   {:data []})
 
 (defn component [app own {:keys [
-                                        main-width
-                                        main-height
-                                        top
-                                        left
-                                        rigth
-                                        bottom
-                                        x-value-fn
-                                        y-value-fn
-                                        y-label
-                                        title
-                                        description
-                                        fill
-                                        over-fill
-                                        ]
-                                 :or   {main-width  d3c/full-screen-width
-                                        main-height 300
-                                        top         15
-                                        left        60
-                                        rigth       15
-                                        bottom      20
-                                        y-label     ""
-                                        fill        "orange"
-                                        over-fill   "rebeccapurple"}
+                                 main-width
+                                 main-height
+                                 top
+                                 left
+                                 rigth
+                                 bottom
+                                 x-value-fn
+                                 y-value-fn
+                                 y-label
+                                 title
+                                 description
+                                 fill
+                                 over-fill
+                                 ]
+                          :or   {main-width  d3c/full-screen-width
+                                 main-height 300
+                                 top         15
+                                 left        60
+                                 rigth       15
+                                 bottom      20
+                                 y-label     ""
+                                 fill        "orange"
+                                 over-fill   "rebeccapurple"}
 
-                                 :as   opts}]
+                          :as   opts}]
 
   (let [chart-width  (- main-width left rigth)
         chart-height (- main-height top bottom)]

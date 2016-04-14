@@ -9,6 +9,10 @@
 
 
 
+(defn mid-angle [d]
+  (+ (.-startAngle d) (/ (- (.-endAngle d) (.-startAngle d)) 2.0)))
+
+
 
 (def app-init
   {:data []})
@@ -23,14 +27,18 @@
                                  values
                                  title
                                  colors
-                                 description]
-                          :or   {main-width  d3c/full-screen-width
-                                 main-height 300
-                                 top         15
-                                 left        60
-                                 rigth       15
-                                 bottom      20
-                                 colors      d3c/order-colors}
+                                 description
+                                 to-str-fn
+                                 rotate-angle]
+                          :or   {main-width   d3c/full-screen-width
+                                 main-height  300
+                                 top          15
+                                 left         60
+                                 rigth        15
+                                 bottom       20
+                                 colors       d3c/order-colors
+                                 to-str-fn    str
+                                 rotate-angle 0}
 
                           :as   opts}]
 
@@ -65,46 +73,103 @@
                                                (.range (clj->js colors)))
 
               arc                          (-> js/d3 .-svg .arc
-                                               (.outerRadius (- radius 10))
-                                               (.innerRadius 0))
+                                               (.outerRadius (* radius 0.8))
+                                               (.innerRadius (* radius 0.4))
+                                               (.startAngle
+                                                (fn [d] (+ (.-startAngle d) rotate-angle)))
+                                               (.endAngle
+                                                (fn [d] (+ (.-endAngle d) rotate-angle))))
 
-              label-arc                    (-> js/d3 .-svg .arc
-                                               (.outerRadius (- radius 40))
-                                               (.innerRadius (- radius 40)))
+              outer-arc                    (-> js/d3 .-svg .arc
+                                               (.outerRadius (* radius 0.9))
+                                               (.innerRadius (* radius 0.9))
+                                               (.startAngle
+                                                (fn [d] (+ (.-startAngle d) rotate-angle)))
+                                               (.endAngle
+                                                (fn [d] (+ (.-endAngle d) rotate-angle))))
+
+
+              ;; label-arc                    (-> js/d3 .-svg .arc
+              ;;                                  (.outerRadius (- radius 40))
+              ;;                                  (.innerRadius (- radius 40)))
 
               pie                          (-> js/d3 .-layout .pie
                                                (.sort nil)
                                                (.value (fn [[_ v]] v)))
 
 
-              g                            (-> chart-pano
-                                               (.selectAll ".arc")
-                                               (.data (pie data-array)))]
+              g                            chart-pano
 
-          (let [g (-> g
-                      .enter
-                      (.append "g")
-                      (.attr "class" "arc"))]
-            (-> g (.append "path"))
-            (-> g (.append "text")
-                (.attr "dy" ".35em")))
+              ]
 
+          (let [path (-> g
+                         (.selectAll "path")
+                         (.data (pie data-array)))]
 
-          (-> g
-              (.select "path")
-              (.attr "d" arc)
-              (.attr "fill" (fn [d] (-> d .-data first color))))
+            (-> path
+                .enter
+                (.append "path"))
 
+            (-> path
+                (.attr "d" arc)
+                (.attr "fill" (fn [d] (-> d .-data first color))))
 
-          (-> g
-              (.select "text")
-              (.text (fn [d] (-> d .-data second)))
-              (.attr "transform" (fn [d] (str "translate(" (.centroid label-arc d) ")"))))
+            (-> path
+                .exit
+                .remove))
 
 
-          (-> g
-              .exit
-              .remove)))
+          (let [text (-> g
+                         (.selectAll "text")
+                         (.data (pie data-array)))]
+
+            (-> text
+                .enter
+                (.append "text")
+                (.attr "dy" ".35em"))
+
+            (-> text
+                (.text (fn [d] (to-str-fn (.-data d))))
+                ;;Старый вариант текста по середине
+                ;;(.attr "transform" (fn [d] (str "translate(" (.centroid label-arc d) ")")))
+                ;;Новый вариант
+                (.attr
+                 "transform"
+                 (fn [d]
+                   (let [pos       (.centroid outer-arc d)
+                         [_ pos-1] (js->clj pos)
+                         pos-0     (* radius (if (< (mid-angle d) js/Math.PI) 1 -1))]
+                     (str "translate(" pos-0 "," pos-1 ")"))))
+                (.style
+                 "text-anchor"
+                 (fn [d] (if (< (mid-angle d) js/Math.PI) "start" "end"))))
+
+            (-> text
+                .exit
+                .remove))
+
+          (let [polyline (-> g
+                             (.selectAll "polyline")
+                             (.data (pie data-array)))]
+
+            (-> polyline
+                .enter
+                (.append "polyline"))
+
+            (-> polyline
+                (.attr
+                 "points"
+                 (fn [d]
+                   (let [pos       (.centroid outer-arc d)
+                         [_ pos-1] (js->clj pos)
+                         pos-0     (* radius 0.95 (if (< (mid-angle d) js/Math.PI) 1 -1))]
+                     (clj->js [(.centroid arc d)
+                               (.centroid outer-arc d)
+                               (clj->js [pos-0 pos-1])])))))
+
+            (-> polyline
+                .exit
+                .remove))))
 
 
       om/IRenderState
@@ -114,5 +179,6 @@
          (dom/h3 #js {:className "" :style #js {:marginLeft left}} title)
          (dom/p #js {:className "text-info" :style #js {:marginLeft left}} description)
          (dom/svg #js {:width main-width :height main-height}
-                  (dom/g #js {:id chart-pano-id :transform (str "translate(" (/ chart-width 2.0) "," (/ chart-height 2.0) ")")}
+                  (dom/g #js {:id        chart-pano-id :transform (str "translate(" (/ chart-width 2.0) "," (/ chart-height 2.0) ")")
+                              :className "arc"}
                          )))))))
