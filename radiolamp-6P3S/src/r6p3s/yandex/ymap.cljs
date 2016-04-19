@@ -45,8 +45,8 @@
                    :or   {type "Point"}}]
   (new js/ymaps.GeoObject
        ;;feature
-       (clj->js { "geometry"   (clj->js {:coordinates coordinates
-                                         :type          type})
+       (clj->js {"geometry"   (clj->js {:coordinates coordinates
+                                        :type        type})
                  "properties" (clj->js {:balloonContentHeader balloon-content-header
                                         :balloonContentBody   balloon-content-body
                                         :iconContent          icon-content
@@ -65,9 +65,13 @@
                               chan-update
                               click-fn click-coords-fn
                               width
-                              height]
+                              height
+                              center
+                              zoom]
                        :or   {width "100%"
-                              height  "600px"}}]
+                              height  "600px"
+                              center [59.95  30.316666666666666]
+                              zoom 8}}]
   (reify
     om/IInitState
     (init-state [_]
@@ -83,8 +87,8 @@
          js/ymaps
          (fn []
            (let [map-object (new js/ymaps.Map id
-                                 (clj->js {"center" (clj->js [59.95  30.316666666666666])
-                                           "zoom"   8
+                                 (clj->js {"center" (clj->js center)
+                                           "zoom"   zoom
                                            }))]
 
 
