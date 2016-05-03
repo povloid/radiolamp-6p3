@@ -196,20 +196,24 @@
       [:div [:input {:type "submit" :class "button" :value "Login"}]]]]]])
 
 
-(def page-sign-in
+(defn page-sign-in
+  [{:keys [login-form-caption
+           button-caption] :as opts}]
   (template-main
+   opts
    (list
     (include-css "/bootstrap/css/signin.css")
     [:div {:class "container"}
      [:form {:method "POST" :action "login" :class "form-signin" :role "form"}
-      [:h2 {:class "form-signin-heading"} "Please sign in"]
+      [:h2 {:class "form-signin-heading" :style "text-align: center"}
+       (or login-form-caption "Please sign in")]
       [:label {:for "inputUsername" :class "sr-only"} "User"]
       [:input {:type "text" :id "inputUsername" :name "username" :class "form-control" :placeholder "User" :required true :autofocus true}]
       [:label {:for "inputPassword" :class "sr-only"} "Password"]
       [:input {:type "password" :id "inputPassword" :name "password" :class "form-control" :placeholder "Password" :required true}]
       (comment [:div {:class "checkbox"}
                 [:label [:input {:type "checkbox" :value "remember-me"}] "Remember me"]])
-      [:button {:class "btn btn-lg btn-primary btn-block" :type "submit"} "Sign in"]
+      [:button {:class "btn btn-lg btn-primary btn-block" :type "submit"} (or button-caption "Sign in")]
       ]])))
 
 ;; END AUTH
