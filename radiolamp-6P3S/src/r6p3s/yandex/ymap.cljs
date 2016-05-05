@@ -68,10 +68,10 @@
                               height
                               center
                               zoom]
-                       :or   {width "100%"
-                              height  "600px"
-                              center [59.95  30.316666666666666]
-                              zoom 8}}]
+                       :or   {width  "100%"
+                              height "600px"
+                              center [59.95 30.31]
+                              zoom   8}}]
   (reify
     om/IInitState
     (init-state [_]
