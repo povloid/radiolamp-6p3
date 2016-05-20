@@ -82,6 +82,14 @@
 
 
 
+(defn parse-boolean [v]
+  (new js/Boolean v))
+
+
+
+
+
+
 
 (defn on-click-com-fn [f]
   (fn [e]
