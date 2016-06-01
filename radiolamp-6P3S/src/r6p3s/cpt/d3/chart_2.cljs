@@ -163,14 +163,45 @@
             (let [brush (-> js/d3 .-svg .brush (.x x-scale))]
               (.on brush "brushend"
                    (fn [v]
-                     (let [selected (js->clj (.extent brush))]
-                       (on-brushend-fn selected))))
+                     (let [selected (js->clj (.extent brush))
+                           [x1 x2] selected]
+
+                       ;; Левая пунктирная линия
+                       (-> chart-pano
+                           (.selectAll "g.lines.brush .brush-line-left")
+                           (.attr "x1" (x-scale x1))
+                           (.attr "y1" -6)
+                           (.attr "x2" (x-scale x1))
+                           (.attr "y2" (+ chart-height 7)))
+
+                       ;; Правая пунктирная линия
+                       (-> chart-pano
+                           (.selectAll "g.lines.brush .brush-line-right")
+                           (.attr "x1" (x-scale x2))
+                           (.attr "y1" -6)
+                           (.attr "x2" (x-scale x2))
+                           (.attr "y2" (+ chart-height 7)))
+
+                       (on-brushend-fn selected))))              
+
               (-> chart-pano
                   (.selectAll "g.x.brush")
                   (.call brush)
                   (.selectAll "rect")
                   (.attr "y" -6)
-                  (.attr "height" (+ chart-height 7)))))
+                  (.attr "height" (+ chart-height 7)))
+
+
+              ;;Обнуляем селекторы
+              (-> chart-pano
+                  (.selectAll "g.lines.brush line")
+                  (.attr "x1" 0)
+                  (.attr "y1" 0)
+                  (.attr "x2" 0)
+                  (.attr "y2" 0))
+              
+              #_(on-brushend-fn [nil nil])
+              ))
 
           ))
 
@@ -197,4 +228,7 @@
                                           y-label))
                          (dom/g #js {:className "x axis" :transform (str "translate(0," chart-height ")")})
                          (dom/g #js {:className "charting pathes"})
+                         (dom/g #js {:className "lines brush"}
+                                (dom/line #js {:className "brush-line-left"})
+                                (dom/line #js {:className "brush-line-right"}))
                          (dom/g #js {:className "x brush" :width chart-width :height chart-height}))))))))
