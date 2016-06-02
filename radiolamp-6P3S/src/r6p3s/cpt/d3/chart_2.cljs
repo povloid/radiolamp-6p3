@@ -28,6 +28,7 @@
                                  y-label
                                  title
                                  description
+                                 x-value-as-num-fn
                                  ]
                           :or   {main-width  d3c/full-screen-width
                                  main-height 300
@@ -87,7 +88,8 @@
                       data]}       @app
               ;; Размерность x
               x-scale              (-> js/d3 .-time  .scale
-                                       (.domain (d3c/min-max #(-> % x-value-fn .getTime) min max data))
+                                       (.domain (d3c/min-max (or x-value-as-num-fn #(-> % x-value-fn .getTime))
+                                                             min max data))
                                        ;;(.domain (.extent js/d3 data :pdate))
                                        (.range #js [0 chart-width]))
               ;; Размерность y
@@ -228,7 +230,7 @@
                                           y-label))
                          (dom/g #js {:className "x axis" :transform (str "translate(0," chart-height ")")})
                          (dom/g #js {:className "charting pathes"})
+                         (dom/g #js {:className "x brush" :width chart-width :height chart-height})
                          (dom/g #js {:className "lines brush"}
                                 (dom/line #js {:className "brush-line-left"})
-                                (dom/line #js {:className "brush-line-right"}))
-                         (dom/g #js {:className "x brush" :width chart-width :height chart-height}))))))))
+                                (dom/line #js {:className "brush-line-right"})))))))))
