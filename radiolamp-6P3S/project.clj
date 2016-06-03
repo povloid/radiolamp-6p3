@@ -7,4 +7,5 @@
                  [com.cognitect/transit-cljs "0.8.237"]
                  [org.omcljs/om "0.9.0"]
                  [secretary "1.2.3"]
-                 [cljsjs/d3 "3.5.7-1"]])
+                 [cljsjs/d3 "3.5.7-1"]
+                 [markdown-clj "0.9.89"]])

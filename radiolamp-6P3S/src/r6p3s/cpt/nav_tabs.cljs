@@ -1,8 +1,9 @@
 (ns r6p3s.cpt.nav-tabs
   (:require [cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]
-            [r6p3s.core :as c]))
+            [om.dom :as dom :include-macros true]            
+            [r6p3s.core :as c]
+            [r6p3s.ui.glyphicon :as glyphicon]))
 
 
 
@@ -71,7 +72,7 @@
 
                (map
 
-                (fn [{:keys [glyphicon text href disabled?]} i]
+                (fn [{:keys [glyphicon icon text href disabled?]} i]
                   (dom/li #js {:className (if disabled? "disabled"
                                               (if (= i (app :active-tab)) "active" ""))
                                :role      "presentation"}
@@ -83,6 +84,8 @@
                                    (dom/span #js {:style       #js {:paddingRight 4}
                                                   :className   (str "glyphicon " glyphicon)
                                                   :aria-hidden "true"}))
+                                 (when icon (glyphicon/render icon))
+                                 (when icon " ")                                 
                                  text)))
 
                 (:tabs @app) (range)) )))))
