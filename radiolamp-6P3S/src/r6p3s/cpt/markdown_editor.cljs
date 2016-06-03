@@ -37,7 +37,7 @@
                          cols]
                   :or   {class+ ""
                          placeholder ""
-                         maxlength   1000
+                         maxlength   1000000
                          rows        6
                          wrap        ""
                          cols        40} :as opts}]
