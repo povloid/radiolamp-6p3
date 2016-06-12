@@ -103,7 +103,8 @@
         (@app :tabs) 1
         (dom/div #js {:style #js {:overflow "auto" :padding 5}
                       :dangerouslySetInnerHTML
-                      #js {:__html (str (md->html (@app :value)))}}
+                      #js {:__html (str (when (-> @app :tabs nav-tabs/active-tab (= 1))
+                                          (md->html (@app :value))))}}
                  nil))))))
 
 
