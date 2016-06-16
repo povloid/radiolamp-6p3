@@ -13,7 +13,7 @@
 (def date-str-format "yyyy-MM-ddTHH:mmZ")
 
 (defn set-date! [app d]
-  (assoc app :value (c/format-date date-str-format d)))
+  (assoc app :value (c/format-date date-str-format (or d (new js/Date)))))
 
 
 (defn parse-str-to-date [s]
