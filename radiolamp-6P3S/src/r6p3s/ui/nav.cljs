@@ -8,7 +8,9 @@
                :or   {brand      "6П3С"
                       brand-href "#/"}}
               & body]
-  (dom/nav #js {:className "navbar navbar-default navbar-fixed-top"}
+  (dom/nav #js {:className (str "navbar "
+                                (if inverse? "navbar-inverse " "navbar-default ")
+                                "navbar-fixed-top")}
            (dom/div #js {:className "container-fluid"}
                     (dom/div #js {:className "navbar-header"}
                              (dom/button #js {:className     "navbar-toggle collapsed"
@@ -25,7 +27,5 @@
 
 
                     (apply dom/div #js {:id        "navbar-collapse-1"
-                                        :className (if inverse?
-                                                     "collapse navbar-inverse-collapse"
-                                                     "collapse navbar-collapse")}
+                                        :className "collapse navbar-collapse"}
                            body))))
