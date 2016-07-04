@@ -35,8 +35,7 @@
            "<script src=\"https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js\"></script>"
            "<![endif]-->"
            
-           
-           (include-css "/bootstrap/css/bootstrap.min.css")
+           (include-css (or (:bootstrap.min.css page-params) "/bootstrap/css/bootstrap.min.css"))
            
            ;;(include-css "/bootstrap/css/bootswatch.min.css")
            
