@@ -3,8 +3,9 @@
 
 
 (defn render [{:keys [brand
-                      brand-href]
-               :or   {brand      "IX"
+                      brand-href
+                      inverse?]
+               :or   {brand      "6П3С"
                       brand-href "#/"}}
               & body]
   (dom/nav #js {:className "navbar navbar-default navbar-fixed-top"}
@@ -24,5 +25,7 @@
 
 
                     (apply dom/div #js {:id        "navbar-collapse-1"
-                                        :className "collapse navbar-collapse"}
+                                        :className (if inverse?
+                                                     "collapse navbar-inverse-collapse"
+                                                     "collapse navbar-collapse")}
                            body))))
