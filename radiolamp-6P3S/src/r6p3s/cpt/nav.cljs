@@ -33,5 +33,4 @@
                            (map f1 menus)))
                   (when-let [menus (:right m)]
                     (apply ul-navbar-nav-right/render
-                           (map f1 menus)))
-                  ))))))
+                           (map f1 menus)))))))))

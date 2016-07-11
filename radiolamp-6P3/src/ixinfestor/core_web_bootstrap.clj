@@ -40,7 +40,6 @@
            ;;(include-css "/bootstrap/css/bootswatch.min.css")
            
            (include-css "/bootstrap/css/sonis.css")
-
            (include-js "/js/jquery.min.js")
 
 
