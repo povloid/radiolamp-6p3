@@ -22,21 +22,23 @@
                                  left
                                  rigth
                                  bottom
-                                 on-brushend-fn
                                  domain-y-min
                                  domain-y-max
                                  y-label
                                  title
                                  description
                                  on-selected-fn
-                                 ]
-                          :or   {main-width  d3c/full-screen-width
-                                 main-height 300
-                                 top         15
-                                 left        60
-                                 rigth       15
-                                 bottom      20
-                                 y-label     ""}
+                                 fill?]
+                          :or   {main-width     d3c/full-screen-width
+                                 main-height    300
+                                 top            15
+                                 left           60
+                                 rigth          15
+                                 bottom         20
+                                 y-label        ""
+                                 fill?          true
+                                 on-selected-fn (fn [{:keys [interval]}]
+                                                  (println "CHART -> SELECT INTERVAL: " interval))}
 
                           :as opts}]
   (let [chart-width  (- main-width left rigth)
@@ -132,8 +134,12 @@
             (-> paths
                 (.style "stroke" (fn [srow] (:stroke srow)))
                 (.style "stroke-width" "1.5px")
-                (.style "fill" (fn [srow] (:stroke srow)))
-                (.style "fill-opacity" "0.25")
+                (as-> paths
+                    (if fill?
+                      (-> paths
+                          (.style "fill" (fn [srow] (:stroke srow)))
+                          (.style "fill-opacity" "0.25"))
+                      paths))
                 (.datum (fn [{:keys [y-value-fn filter-fn] :as srow}]
                           (let [data (->> data
                                           (reduce
@@ -146,12 +152,17 @@
                                                    (conj a next-row)
                                                    a))))
                                            []))
-                                data (if-let [[x _] (last data)]
-                                       (conj data [x, (y-scale 0)])
+
+                                data (if fill?
+                                       (let [data (if-let [[x _] (last data)]
+                                                    (conj data [x, (y-scale 0)])
+                                                    data)
+                                             data (if-let [[x _] (first data)]
+                                                    (concat [[x (y-scale 0)]] data)
+                                                    data)]
+                                         data)
                                        data)
-                                data (if-let [[x _] (first data)]
-                                       (concat [[x (y-scale 0)]] data)
-                                       data)
+
                                 ]
                             (into-array data))))
                 (.attr "d" (-> js/d3
@@ -175,7 +186,7 @@
               (.call x-axis))
 
           ;; Селектор [<--selector-->] ----------------------------------------------------------------------------
-          (when on-brushend-fn
+          (when on-selected-fn
             (let [brush (-> js/d3 .-svg .brush (.x x-scale))]
               (.on brush "brushend"
                    (fn [v]
@@ -224,9 +235,7 @@
                                      (for [s   yx-schema
                                            row interval]
                                        (assoc s :row row)))
-                             ]
-
-                         (println "CHART -> SELECT INTERVAL: " interval)
+                             ]                         
 
 
                          ;; CIRCLES ----------------------------------------------------------------
@@ -278,14 +287,9 @@
                                .exit
                                .remove))
 
-
-
                          ;; вызов функции по реальному селектору
                          (when on-selected-fn
-                           (on-selected-fn {:interval interval :selected-rows selected-rows})))
-
-
-                       (on-brushend-fn selected))))
+                           (on-selected-fn {:interval interval :selected-rows selected-rows}))))))
 
               (-> chart-pano
                   (.selectAll "g.x.brush")
@@ -301,10 +305,7 @@
                   (.attr "x1" 0)
                   (.attr "y1" 0)
                   (.attr "x2" 0)
-                  (.attr "y2" 0))
-
-              #_(on-brushend-fn [nil nil])
-              ))
+                  (.attr "y2" 0))))
 
           ))
 
