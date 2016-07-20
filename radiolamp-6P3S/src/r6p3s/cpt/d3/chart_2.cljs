@@ -132,18 +132,28 @@
             (-> paths
                 (.style "stroke" (fn [srow] (:stroke srow)))
                 (.style "stroke-width" "1.5px")
-                (.style "fill" "none")
+                (.style "fill" (fn [srow] (:stroke srow)))
+                (.style "fill-opacity" "0.25")
                 (.datum (fn [{:keys [y-value-fn filter-fn] :as srow}]
-                          (->> data
-                               (reduce
-                                (fn [a row]
-                                  (let [next-row [(x-scale (x-value-fn row)),
-                                                  (y-scale (y-value-fn row))]]
-                                    (if (nil? filter-fn) (conj a next-row)
-                                        (if (filter-fn row) (conj a next-row)
-                                            a))))
-                                [])
-                               into-array)))
+                          (let [data (->> data
+                                          (reduce
+                                           (fn [a row]
+                                             (let [next-row [(x-scale (x-value-fn row)),
+                                                             (y-scale (y-value-fn row))]]
+                                               (if (nil? filter-fn)
+                                                 (conj a next-row)
+                                                 (if (filter-fn row)
+                                                   (conj a next-row)
+                                                   a))))
+                                           []))
+                                data (if-let [[x _] (last data)]
+                                       (conj data [x, (y-scale 0)])
+                                       data)
+                                data (if-let [[x _] (first data)]
+                                       (concat [[x (y-scale 0)]] data)
+                                       data)
+                                ]
+                            (into-array data))))
                 (.attr "d" (-> js/d3
                                .-svg
                                .line
@@ -246,9 +256,9 @@
 
                          ;; TEXT ----------------------------------------------------------------
                          (let [texts (-> chart-pano
-                                           (.select "g.charting.pathes")
-                                           (.selectAll "text")
-                                           (.data data-2))]
+                                         (.select "g.charting.pathes")
+                                         (.selectAll "text")
+                                         (.data data-2))]
 
                            (-> texts
                                .enter
@@ -315,13 +325,15 @@
 
          (dom/svg #js {:width main-width :height main-height}
                   (dom/g #js {:id chart-pano-id :transform (str "translate(" left "," top ")")}
-                         (dom/g #js {:className "y axis"}
-                                (dom/text #js {:transform "rotate(-90)"
-                                               :y         "6" :dy ".71em" :style #js {:textAnchor "end"}}
-                                          y-label))
-                         (dom/g #js {:className "x axis" :transform (str "translate(0," chart-height ")")})
+
                          (dom/g #js {:className "charting pathes"})
                          (dom/g #js {:className "x brush" :width chart-width :height chart-height})
                          (dom/g #js {:className "lines brush"}
                                 (dom/line #js {:className "brush-line-left"})
-                                (dom/line #js {:className "brush-line-right"})))))))))
+                                (dom/line #js {:className "brush-line-right"}))
+
+                         (dom/g #js {:className "x axis" :transform (str "translate(0," chart-height ")")})
+                         (dom/g #js {:className "y axis"}
+                                (dom/text #js {:transform "rotate(-90)"
+                                               :y         "6" :dy ".71em" :style #js {:textAnchor "end"}}
+                                          y-label)))))))))
