@@ -28,7 +28,7 @@
                                  y-label
                                  title
                                  description
-                                 x-value-as-num-fn
+                                 on-selected-fn
                                  ]
                           :or   {main-width  d3c/full-screen-width
                                  main-height 300
@@ -38,10 +38,11 @@
                                  bottom      20
                                  y-label     ""}
 
-                          :as   opts}]
+                          :as opts}]
   (let [chart-width  (- main-width left rigth)
         chart-height (- main-height top bottom)
         ;;y-values-scheme (map #(assoc % :path-id (rc/uniq-id "path")) y-values-scheme)-and-data-and-data
+
         ]
 
 
@@ -85,38 +86,40 @@
 
               {:keys [x-value-fn
                       yx-schema
-                      data]}       @app
+                      data]} @app
+
+
               ;; Размерность x
-              x-scale              (-> js/d3 .-time  .scale
-                                       (.domain (d3c/min-max (or x-value-as-num-fn #(-> % x-value-fn .getTime))
-                                                             min max data))
-                                       ;;(.domain (.extent js/d3 data :pdate))
-                                       (.range #js [0 chart-width]))
+              x-scale   (-> js/d3 .-time  .scale
+                            (.domain (d3c/min-max #(-> % x-value-fn .getTime) min max data))
+                            ;;(.domain (.extent js/d3 data :pdate))
+                            (.range #js [0 chart-width]))
               ;; Размерность y
-              all-y                (->> yx-schema
-                                        (map :y-value-fn)
-                                        (reduce
-                                         (fn [a y-value-fn]
-                                           (let [[min max] (d3c/min-max y-value-fn min 1 max 1.1 data)]
-                                             (conj a min max)))
-                                         []))
-              y-min-max            #js [(or domain-y-min (apply min all-y))
-                                        (or domain-y-max (apply max all-y))]
-              y-scale              (-> js/d3 .-scale .linear
-                                       ;;(.domain (min-max y-value-fn min 1 max 1.1 data))
-                                       (.domain y-min-max)
-                                       (.range  #js [chart-height 0]))
+              all-y     (->> yx-schema
+                             (map :y-value-fn)
+                             (reduce
+                              (fn [a y-value-fn]
+                                (let [[min max] (d3c/min-max y-value-fn min 1 max 1.1 data)]
+                                  (conj a min max)))
+                              []))
+              y-min-max #js [(or domain-y-min (apply min all-y))
+                             (or domain-y-max (apply max all-y))]
+              y-scale   (-> js/d3 .-scale .linear
+                            ;;(.domain (min-max y-value-fn min 1 max 1.1 data))
+                            (.domain y-min-max)
+                            (.range  #js [chart-height 0]))
 
               ;; Линейки
-              x-axis               (-> js/d3 .-svg .axis (.scale x-scale) (.orient "bottom"))
-              y-axis               (-> js/d3 .-svg .axis (.scale y-scale) (.orient "left"))
+              x-axis (-> js/d3 .-svg .axis (.scale x-scale) (.orient "bottom"))
+              y-axis (-> js/d3 .-svg .axis (.scale y-scale) (.orient "left"))
 
 
 
-              yx-schema-array      (into-array yx-schema)
+              yx-schema-array (into-array yx-schema)
 
               ]
 
+          ;; PATHES ------------------------------------------------------------------------------------------------
           (let [paths (-> chart-pano
                           (.select "g.charting.pathes")
                           (.selectAll "path")
@@ -151,7 +154,7 @@
                 .remove))
 
 
-          ;; Масштабные линейки
+          ;; Масштабные линейки -----------------------------------------------------------------------------------
           (-> chart-pano
               (.selectAll "g.y.axis")
               (.call y-axis))
@@ -160,13 +163,13 @@
               (.selectAll "g.x.axis")
               (.call x-axis))
 
-          ;; Селектор [<--selector-->]
+          ;; Селектор [<--selector-->] ----------------------------------------------------------------------------
           (when on-brushend-fn
             (let [brush (-> js/d3 .-svg .brush (.x x-scale))]
               (.on brush "brushend"
                    (fn [v]
                      (let [selected (js->clj (.extent brush))
-                           [x1 x2] selected]
+                           [x1 x2]  selected]
 
                        ;; Левая пунктирная линия
                        (-> chart-pano
@@ -184,7 +187,37 @@
                            (.attr "x2" (x-scale x2))
                            (.attr "y2" (+ chart-height 7)))
 
-                       (on-brushend-fn selected))))              
+                       ;; CIRCLES and TEXTS -----------------------------------------------------------------------
+                       (let [selected-rows (->> data
+                                                (filter
+                                                 (fn [row]
+                                                   (let [v (x-value-fn row)]
+                                                     (and (<= x1 v) (<= v x2)))))
+                                                vec)
+                             selected-rows (if-not (empty? selected-rows) selected-rows
+                                                   ;; Тогда выбираем первое от первого селектора
+                                                   (loop [[r & t] data]
+                                                     (cond (nil? r)               []
+                                                           (>= (x-value-fn r) x1) [r]
+                                                           :else                  (recur t))))
+
+                             x1-row (first selected-rows)
+                             x2-row (last selected-rows)
+
+                             interval (condp = (count selected-rows)
+                                        0 []
+                                        1 [x1-row]
+                                        [x1-row x2-row])
+                             ]
+
+                         (println "CHART -> SELECT INTERVAL: " interval)
+                         
+                         ;; вызов функции по реальному селектору
+                         (when on-selected-fn
+                           (on-selected-fn {:interval interval :selected-rows selected-rows})))
+
+
+                       (on-brushend-fn selected))))
 
               (-> chart-pano
                   (.selectAll "g.x.brush")
@@ -201,7 +234,7 @@
                   (.attr "y1" 0)
                   (.attr "x2" 0)
                   (.attr "y2" 0))
-              
+
               #_(on-brushend-fn [nil nil])
               ))
 
