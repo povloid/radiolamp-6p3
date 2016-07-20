@@ -137,7 +137,8 @@
                           (->> data
                                (reduce
                                 (fn [a row]
-                                  (let [next-row [(x-scale (x-value-fn row)), (y-scale (y-value-fn row))]]
+                                  (let [next-row [(x-scale (x-value-fn row)),
+                                                  (y-scale (y-value-fn row))]]
                                     (if (nil? filter-fn) (conj a next-row)
                                         (if (filter-fn row) (conj a next-row)
                                             a))))
@@ -187,7 +188,7 @@
                            (.attr "x2" (x-scale x2))
                            (.attr "y2" (+ chart-height 7)))
 
-                       ;; CIRCLES and TEXTS -----------------------------------------------------------------------
+                       ;; SELECTION ----------------------------------------------------------------------------
                        (let [selected-rows (->> data
                                                 (filter
                                                  (fn [row]
@@ -207,11 +208,68 @@
                              interval (condp = (count selected-rows)
                                         0 []
                                         1 [x1-row]
-                                        [x1-row x2-row])
+                                        [x1-row (assoc x2-row :left-text? true)])
+
+                             data-2 (into-array
+                                     (for [s   yx-schema
+                                           row interval]
+                                       (assoc s :row row)))
                              ]
 
                          (println "CHART -> SELECT INTERVAL: " interval)
-                         
+
+
+                         ;; CIRCLES ----------------------------------------------------------------
+                         (let [circles (-> chart-pano
+                                           (.select "g.charting.pathes")
+                                           (.selectAll "circle")
+                                           (.data data-2))]
+
+                           (-> circles
+                               .enter
+                               (.append "circle"))
+
+                           (-> circles
+                               (.style "stroke" (fn [srow] (:stroke srow)))
+                               (.style "stroke-width" "2px")
+                               (.style "fill" (fn [srow] (:stroke srow)))
+                               (.attr "r" "3px")
+
+                               (.attr "cx" (fn [{:keys [row]}]
+                                             (x-scale (x-value-fn row))))
+                               (.attr "cy" (fn [{:keys [row y-value-fn]}]
+                                             (y-scale (y-value-fn row)))))
+
+                           (-> circles
+                               .exit
+                               .remove))
+
+                         ;; TEXT ----------------------------------------------------------------
+                         (let [texts (-> chart-pano
+                                           (.select "g.charting.pathes")
+                                           (.selectAll "text")
+                                           (.data data-2))]
+
+                           (-> texts
+                               .enter
+                               (.append "text"))
+
+                           (-> texts
+                               (.style "fill" (fn [srow] (:stroke srow)))
+                               (.attr "dy" "1.2em")
+                               (.attr "x" (fn [{:keys [row]}]
+                                            (+ (x-scale (x-value-fn row)) (if (:left-text? row) -25 5))))
+                               (.attr "y" (fn [{:keys [row y-value-fn]}]
+                                            (- (y-scale (y-value-fn row)) 18)))
+                               (.text (fn [{:keys [row y-value-fn]}]
+                                        (str (y-value-fn row)))))
+
+                           (-> texts
+                               .exit
+                               .remove))
+
+
+
                          ;; вызов функции по реальному селектору
                          (when on-selected-fn
                            (on-selected-fn {:interval interval :selected-rows selected-rows})))
