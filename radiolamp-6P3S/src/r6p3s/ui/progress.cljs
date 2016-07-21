@@ -16,7 +16,7 @@
 
 
 
-(defn render [{:keys [max-value]} progress-bars]
+(defn render [{:keys [max-value style]} progress-bars]
   (->> progress-bars
        (translate-into-percentages max-value)
        (map (fn [{:keys [percent value title type] :or {title ""}}]
@@ -30,7 +30,8 @@
                                               (name type)))
                             :style     #js {:width (str percent "%")}}
                        (str title " " value))))
-       (apply dom/div #js {:className "progress"})))
+       (apply dom/div #js {:className "progress"
+                           :style style})))
 
 
 

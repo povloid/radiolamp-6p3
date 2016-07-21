@@ -176,8 +176,9 @@
       (render-state [_ {:keys [chart-pano-id path-id chan-update]}]
         (dom/div
          #js {:className "chart-frame"}
-         (dom/h3 #js {:className "" :style #js {:marginLeft left}} title)
-         (dom/p #js {:className "text-info" :style #js {:marginLeft left}} description)
+         (dom/h4 #js {:className "" :style #js {:marginLeft left}} title)
+         (when description
+           (dom/p #js {:className "text-info" :style #js {:marginLeft left}} description))
          (dom/svg #js {:width main-width :height main-height}
                   (dom/g #js {:id        chart-pano-id :transform (str "translate(" (/ chart-width 2.0) "," (/ chart-height 2.0) ")")
                               :className "arc"}
