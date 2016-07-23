@@ -138,7 +138,7 @@
                     (if fill?
                       (-> paths
                           (.style "fill" (fn [srow] (:stroke srow)))
-                          (.style "fill-opacity" "0.25"))
+                          (.style "fill-opacity" "0.2"))
                       paths))
                 (.datum (fn [{:keys [y-value-fn filter-fn] :as srow}]
                           (let [data (->> data

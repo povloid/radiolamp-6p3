@@ -5,7 +5,16 @@
 
 
 
-(defn render [{:keys [heading heading-glyphicon badge body after-body type style class+]}]
+(defn render [{:keys [heading
+                      heading-style
+                      heading-glyphicon
+                      badge
+                      body
+                      body-style
+                      after-body
+                      type
+                      style
+                      class+]}]
   (dom/div #js {:className (str "panel panel-"
                                 (get {:default "default"
                                       :primary "primary"
@@ -17,7 +26,7 @@
                                 (or (str " " class+) ""))
                 :style     style}
            (when heading
-             (dom/div #js {:className "panel-heading"}
+             (dom/div #js {:className "panel-heading" :style heading-style}
                       (when heading-glyphicon
                         (gicon/render heading-glyphicon))
                       (when heading-glyphicon " ")
@@ -27,7 +36,7 @@
 
            (when body
              (apply
-              dom/div #js {:className "panel-body"}
+              dom/div #js {:className "panel-body" :style body-style}
               (if (coll? body) body [body])))
 
            after-body))
