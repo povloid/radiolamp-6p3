@@ -253,7 +253,7 @@
                                (.style "stroke-width" "2px")
                                (.style "fill" "white")
                                ;;(.style "fill" (fn [srow] (:stroke srow)))
-                               (.attr "r" "4px")
+                               (.attr "r" "3px")
 
                                (.attr "cx" (fn [{:keys [row]}]
                                              (x-scale (x-value-fn row))))

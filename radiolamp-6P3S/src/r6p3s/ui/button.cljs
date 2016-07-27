@@ -11,7 +11,8 @@
                       disabled?
                       active?
                       on-click
-                      style]
+                      style
+                      class+]
                :or   {text "Кнопка"
                       type :default}}]
   (dom/button #js {:className  (str "btn "
@@ -28,7 +29,7 @@
                                         "")
                                     (if block? " btn-block" "")
                                     (if active? " active" "")
-                                    )
+                                    (if class+ (str " " class+) ""))
                    :type       "button"
                    :disabled   (if disabled? "disabled" "")
                    :onClick    (c/on-click-com-fn on-click)

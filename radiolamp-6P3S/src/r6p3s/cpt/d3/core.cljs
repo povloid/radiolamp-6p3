@@ -2,7 +2,7 @@
 
 
 
-(def full-screen-width (- (-> js/window .-innerWidth) 40))
+(def full-screen-width (- (-> js/window .-innerWidth) 50))
 
 
 
