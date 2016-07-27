@@ -251,8 +251,9 @@
                            (-> circles
                                (.style "stroke" (fn [srow] (:stroke srow)))
                                (.style "stroke-width" "2px")
-                               (.style "fill" (fn [srow] (:stroke srow)))
-                               (.attr "r" "3px")
+                               (.style "fill" "white")
+                               ;;(.style "fill" (fn [srow] (:stroke srow)))
+                               (.attr "r" "4px")
 
                                (.attr "cx" (fn [{:keys [row]}]
                                              (x-scale (x-value-fn row))))
@@ -320,10 +321,11 @@
               :yx-schema
               (reduce
                (fn [a {:keys [stroke title]}]
-                 (conj a (dom/span #js {:style #js {:color stroke}}
-                                   "Δ" title " ")))
+                 (conj a (dom/span #js {:className "text-muted"}
+                                   (dom/b #js {:style #js {:color stroke :fontSize "1.5em"}} "⚫")
+                                   title " ")))
                [])
-              (apply dom/p #js {:style #js {:marginLeft left}}))
+              (apply dom/div #js {:style #js {:marginLeft left }}))
 
          (dom/svg #js {:width main-width :height main-height}
                   (dom/g #js {:id chart-pano-id :transform (str "translate(" left "," top ")")}
