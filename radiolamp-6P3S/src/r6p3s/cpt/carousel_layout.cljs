@@ -22,7 +22,7 @@
       (dom/div
        #js {:className ""
             :style     #js {:padding 0}}
-       
+
        (->> content-vec
             (map-indexed (fn [i element]
                            (dom/div #js {:style #js {:display
@@ -40,6 +40,7 @@
                                              app :active
                                              #(let [i (dec %)]
                                                 (if (< i 0) (dec pages) i))))})
+                (dom/div #js {})
                 (button/render {:text     (glyphicon/render "chevron-down")
                                 :style     #js {:marginTop 4}
                                 :on-click (fn []
