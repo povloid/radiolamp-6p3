@@ -59,7 +59,8 @@
                   " страница "
                   (dom/b nil page)
                   (when (and count-all page-size) " из ")
-                  (when (and count-all page-size) (dom/b nil (inc (quot count-all page-size))))
+                  (when (and count-all page-size) (dom/b nil (+ (quot count-all page-size)
+                                                                (if (< 0 (rem count-all page-size)) 1 0))))
 
                   (when count-all (dom/br nil))
                   (when count-all "всего записей ")
