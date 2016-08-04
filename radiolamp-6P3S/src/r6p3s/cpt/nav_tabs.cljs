@@ -29,6 +29,12 @@
 (defn active-tab [app]
   (get app :active-tab 0))
 
+(defn set-active-tab [app i]
+  (assoc app :active-tab i))
+
+(defn set-active-tab! [app i]
+  (om/update! app :active-tab i))
+
 (defn enable-inly-one [app ii]
   (om/transact!
    app (fn [app]
