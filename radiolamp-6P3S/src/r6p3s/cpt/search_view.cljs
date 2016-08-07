@@ -4,14 +4,15 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [r6p3s.core :as c]
-            [r6p3s.ui.button :as button]
+            ;;[r6p3s.ui.button :as button]
             [r6p3s.cpt.paginator :as paginator]
-            [r6p3s.cpt.input :as input]))
+            ;;[r6p3s.cpt.input :as input]
+            [r6p3s.cpt.input-search :as input-search]))
 
 
 
 (def app-init
-  (merge {:fts-query input/app-init
+  (merge {:fts-query input-search/app-init
           :data      []}
          paginator/app-init))
 
@@ -75,53 +76,64 @@
 
         (when tools-top tools-top)
 
+        
         (when show-search-input?
-          (dom/div #js {:className "input-group col-xs-12 col-sm-12 col-md-12 col-lg-12" :style #js {:marginBottom 6}}
-                   (dom/span #js {:className "input-group-btn"}
-                             (button/render {:type     :default
-                                           :on-click (fn [_]
-                                                       (om/update! app :page 1)
-                                                       (om/update! app [:fts-query :value] "")
-                                                       (put! chan-update 1)
-                                                       1)
-                                           :text     (dom/span #js {:className   "glyphicon glyphicon-remove"
-                                                                    :aria-hidden "true"})
-                                           }))
-                   (om/build input/component (:fts-query app)
-                             {:opts {:placeholder   input-placeholder
-                                     :onKeyPress-fn #(do #_(println
-                                                            (.-type %)
-                                                            (.-which %)
-                                                            (.-timeStamp %))
+          ;; новый вариант
+          (om/build input-search/component (app :fts-query)
+                    {:opts {:class+            "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+                            :chan-update       chan-update
+                            :clear-fn          #(om/update! app :page 1)
+                            :add-fn            add-button-fn
+                            :input-placeholder input-placeholder
+                            :enter-fn          #(om/update! app :page 1)}})
+          ;; старый вариант - теперь вынесен в компонент input-search
+                                        ;TODO: в будущем надо стереть
+          #_(dom/div #js {:className "input-group col-xs-12 col-sm-12 col-md-12 col-lg-12" :style #js {:marginBottom 6}}
+                     (dom/span #js {:className "input-group-btn"}
+                               (button/render {:type     :default
+                                               :on-click (fn [_]
+                                                           (om/update! app :page 1)
+                                                           (om/update! app [:fts-query :value] "")
+                                                           (put! chan-update 1)
+                                                           1)
+                                               :text     (dom/span #js {:className   "glyphicon glyphicon-remove"
+                                                                        :aria-hidden "true"})
+                                               }))
+                     (om/build input/component (:fts-query app)
+                               {:opts {:placeholder   input-placeholder
+                                       :onKeyPress-fn #(do #_(println
+                                                              (.-type %)
+                                                              (.-which %)
+                                                              (.-timeStamp %))
 
-                                                         (when (= 13 (.-which %))
-                                                           (do
-                                                             (om/update! app :page 1)
-                                                             (put! chan-update 1)))
-                                                         1)
-                                     }})
+                                                           (when (= 13 (.-which %))
+                                                             (do
+                                                               (om/update! app :page 1)
+                                                               (put! chan-update 1)))
+                                                           1)
+                                       }})
 
-                   (dom/span #js {:className "input-group-btn"}
-                             (button/render {:type     :success
-                                           :on-click (fn [_]
-                                                       (om/update! app :page 1)
-                                                       (put! chan-update 1)
-                                                       1)
-                                           :text     (dom/span #js {:className   "glyphicon glyphicon-search"
-                                                                    :aria-hidden "true"})
-                                           })
+                     (dom/span #js {:className "input-group-btn"}
+                               (button/render {:type     :success
+                                               :on-click (fn [_]
+                                                           (om/update! app :page 1)
+                                                           (put! chan-update 1)
+                                                           1)
+                                               :text     (dom/span #js {:className   "glyphicon glyphicon-search"
+                                                                        :aria-hidden "true"})
+                                               })
 
-                             (when add-button-fn
-                               (button/render {:type     :danger
-                                             :on-click (fn [_]
-                                                         (add-button-fn)
-                                                         1)
-                                             :text     (dom/span #js {:className   "glyphicon glyphicon-plus"
-                                                                      :aria-hidden "true"})
-                                             }))
+                               (when add-button-fn
+                                 (button/render {:type     :danger
+                                                 :on-click (fn [_]
+                                                             (add-button-fn)
+                                                             1)
+                                                 :text     (dom/span #js {:className   "glyphicon glyphicon-plus"
+                                                                          :aria-hidden "true"})
+                                                 }))
 
-                             )
-                   ))
+                               )
+                     ))
 
         ;;(dom/br nil)
         (when tools tools)
@@ -144,4 +156,3 @@
                           ;; При отрабатывании прокручивать страницу на верх
                           :on-click-fn #(.scrollTo js/window 0 0)}}))
         (dom/br nil))))))
-
