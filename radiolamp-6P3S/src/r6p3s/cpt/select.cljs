@@ -3,7 +3,7 @@
             [om.dom :as dom :include-macros true]
             [r6p3s.net :as rnet]
             [r6p3s.core :as c]
-            [r6p3s.common-input :as common-input]          
+            [r6p3s.common-input :as common-input]
             [r6p3s.cpt.helper-p :as helper-p]))
 
 
@@ -35,6 +35,16 @@
 (defn selected-int-or-nil [app]
   (when-let [v (selected app)]
     (js/parseInt v)))
+
+
+(defn get-selected-row [app & [value-field-key]]
+  (let [sel (selected app)]
+    ;;(println ">>> " sel " >> " (:list app))
+    (->> app
+         :list
+         (filter (fn [row]
+                   (= sel (str (row (or value-field-key :id))))))
+         first)))
 
 
 (defn component [app _ {:keys [first-item-text
