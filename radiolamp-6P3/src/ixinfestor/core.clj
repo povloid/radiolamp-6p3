@@ -296,6 +296,19 @@
   (-> query* (kc/limit size) (kc/offset (* page size))))
 
 
+;;------------------------------------------------------------------------------
+;; BEGIN: Специфичный для postgresql код
+;; tag: <postgresql sql specific>
+;; description: 
+;;------------------------------------------------------------------------------
+
+
+;;----------------------------------------------------------
+;; BEGIN: Полнотекстовый поиск
+;; tag: <postgresql sql specific fts>
+;; description: 
+;;----------------------------------------------------------
+
 (def spec-word-or #"\|")
 
 (def spec-query-prefix "tsquery//")
@@ -313,6 +326,81 @@
                                      (#(str "(" % ")")))))
                          (clojure.string/join " | ")))]
     (kc/where query* (kc/raw (str " " (name fts-field) " @@ to_tsquery('" fts-query "')")))))
+
+;; END Полнотекстовый поиск
+;;..........................................................
+
+;;----------------------------------------------------------
+;; BEGIN: Функционал для работы с деревьями
+;; tag: <postgresql sql specific tree>
+;; description: 
+;;----------------------------------------------------------
+
+(defn pg--raw-make-fields-str
+  "Конструирование строки полей для SQL SELECT"
+  ([fields]
+   (pg--raw-make-fields-str nil fields))
+  ([select-table-alias fields]
+   (let [c                  (dec (count fields))
+         select-table-alias (if select-table-alias (str (name select-table-alias) ".") "")]
+     (->> fields
+          (map-indexed (fn [i field]
+                         (str select-table-alias
+                              (name field)
+                              (if (= i c) "" ", "))))
+          (apply str)))))
+
+(defn pg--raw--select-tree-sub-childs
+  "Выбрать всех потомков конкретного узла дерева"
+  ([row table]
+   (pg--raw--select-tree-sub-childs row table [:id :parent_id :keyname]))
+  ([{:keys [id]} table fields]
+   (kc/exec-raw [(str "
+WITH RECURSIVE r AS (
+   SELECT " (pg--raw-make-fields-str :a fields) "
+   FROM " table " a
+   WHERE parent_id = ?
+
+   UNION
+
+   SELECT " (pg--raw-make-fields-str :b fields) "
+   FROM " table " b JOIN r ON b.parent_id = r.id
+)
+
+SELECT * FROM r;
+") [id]] :results)))
+
+
+(defn pg--raw--select-tree-parents
+  "Выбрать всех предков конкретного узла дерева, включая его самого 
+(формирует порядок от младшего к старшему)"
+  ([row table]
+   (pg--raw--select-tree-parents row table [:id :parent_id :keyname]))
+  ([{:keys [id]} table fields]
+   (kc/exec-raw [(str "
+WITH RECURSIVE r AS (
+   SELECT " (pg--raw-make-fields-str :a fields) "
+   FROM " table " a
+   WHERE id = ?
+
+   UNION
+
+   SELECT " (pg--raw-make-fields-str :b fields) "
+   FROM " table " b JOIN r ON b.id = r.parent_id
+)
+
+SELECT * FROM r;
+") [id]] :results)))
+
+;; END Функционал для работы с деревьями
+;;..........................................................
+
+
+;; END Специфичный для postgresql код
+;;..............................................................................
+
+
+
 
 
 (defn com-defn-add-rel-many-to-many
