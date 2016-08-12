@@ -106,8 +106,8 @@
 
            :add-button
            (button/render {:type     ui-type--add-button--type
-                         :on-click #(modal/show (:modal app))
-                         :text     ui-type--add-button--text })
+                           :on-click #(modal/show (:modal app))
+                           :text     ui-type--add-button--text })
 
            :input-select
            (dom/div #js {:className (str "form-group " class+ " "(common-input/input-css-string-has? @app))}
@@ -120,6 +120,14 @@
                       (dom/div
                        #js {:className input-class+}
                        (dom/div #js {:className "input-group"}
+                                (dom/span #js {:className "input-group-btn"}
+                                          (button/render {:type     :default
+                                                          :on-click (fn []
+                                                                      (om/update! app :sel [])
+                                                                      (when on-selected-fn (on-selected-fn)))
+                                                          :text     (dom/span #js {:className   "glyphicon glyphicon-remove"
+                                                                                   :aria-hidden "true"})
+                                                          }))
                                 (dom/input #js {:value       (let [r (get-in @app [:sel 0])]
                                                                (if one--row-to-text-fn
                                                                  (one--row-to-text-fn r)
@@ -128,9 +136,9 @@
                                                 :className   "form-control"})
                                 (dom/span #js {:className "input-group-btn"}
                                           (button/render {:type     :default
-                                                        :on-click #(modal/show (:modal app))
-                                                        :text     (dom/span #js {:className   "glyphicon glyphicon-list-alt"
-                                                                                 :aria-hidden "true"})})))
+                                                          :on-click #(modal/show (:modal app))
+                                                          :text     (dom/span #js {:className   "glyphicon glyphicon-list-alt"
+                                                                                   :aria-hidden "true"})})))
                        (om/build helper-p/component app))
 
                       :multi
@@ -187,8 +195,8 @@
 
                         (dom/div #js {:className "panel-footer"}
                                  (button/render {:type     ui-type--add-button--type
-                                               :on-click #(modal/show (:modal app))
-                                               :text     ui-type--add-button--text }))))
+                                                 :on-click #(modal/show (:modal app))
+                                                 :text     ui-type--add-button--text }))))
 
 
 
@@ -247,7 +255,7 @@
                                                   :text "Выбрать"})
 
                                                 (button/render {:on-click (fn [_] (modal/hide (:modal app)) 1)
-                                                              :text     "Закрыть"})
+                                                                :text     "Закрыть"})
                                                 )
                            }})
          )))))
