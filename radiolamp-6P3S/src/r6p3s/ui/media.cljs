@@ -13,8 +13,9 @@
                       button-do-fn
                       button-do-text
                       heading-tag
+                      class+
                       ]}]
-  (dom/div #js {:className "media" :style style
+  (dom/div #js {:className (str "media " (or class+ "")) :style style
                 :onClick   on-click-fn}
            (dom/div #js {:className "media-left"}
                     (dom/a #js {:href    href
