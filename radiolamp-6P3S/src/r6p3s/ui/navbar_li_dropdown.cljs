@@ -4,7 +4,8 @@
 
 
 
-(defn render [{:keys [glyphicon glyphicon-class+ text a-class+]} & body]
+(defn render [{:keys [glyphicon glyphicon-class+ text a-class+
+                      style style-max-height style-overflow]} & body]
   (dom/li #js {:className "dropdown"}
           (dom/a #js {:href          "#"
                       :className     (str "dropdown-toggle " a-class+)
@@ -17,4 +18,8 @@
                                   :aria-hidden "true"}))
                  (str " " text)
                  (dom/span #js {:className "caret"}))
-          (apply dom/ul #js {:className "dropdown-menu"} body)))
+          (apply dom/ul #js {:className "dropdown-menu"
+                             :style     (or style
+                                            #js {:maxHeight (or style-max-height 300)
+                                                 :overflow  (or style-overflow "auto")})}
+                 body)))

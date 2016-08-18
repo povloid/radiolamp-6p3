@@ -38,8 +38,7 @@
 (defn get-selected-one [app]
   (first (get-selected app)))
 
-(defn component [app own {:keys [selection-type
-                                                     onClick-fn]}]
+(defn component [app own {:keys [selection-type onClick-fn]}]
   (reify
     om/IRender
     (render [_]
