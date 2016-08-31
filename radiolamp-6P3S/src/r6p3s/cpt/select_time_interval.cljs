@@ -48,7 +48,7 @@
 
 
 
-(defn component [app own {:keys [placeholder selected-fn] :as opts}]
+(defn component [app own {:keys [placeholder on-selected-fn] :as opts}]
   (reify
     om/IRender
     (render [_]
@@ -99,7 +99,7 @@
                                                                      :onChange-valid?-fn common-input/vldfn-not-empty-date}}})
 
                                       (form-group/render
-                                       {:label "Установлена продолжитльность"
+                                       {:label "продолжитльность"
                                         :body  (dom/b #js {:className "text-primary"}                                                     
                                                       (interval-as-string from-time to-time))}))
 
@@ -110,7 +110,7 @@
                                         {:from-time from-time 
                                          :to-time   to-time})
                                        (modal/hide app-modal)
-                                       (when selected-fn (selected-fn)))
+                                       (when on-selected-fn (on-selected-fn)))
                                      }})))))))
 
 
