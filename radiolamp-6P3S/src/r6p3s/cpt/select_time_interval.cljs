@@ -1,6 +1,6 @@
 (ns r6p3s.cpt.select-time-interval
-  (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :refer [put! chan <!]]
+  #_(:require-macros [cljs.core.async.macros :refer [go]])
+  (:require ;;[cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [r6p3s.core :as c]
@@ -48,7 +48,7 @@
 
 
 
-(defn component [app own {:keys [placeholder on-selected-fn] :as opts}]
+(defn component [app own {:keys [on-selected-fn] :as opts}]
   (reify
     om/IRender
     (render [_]
