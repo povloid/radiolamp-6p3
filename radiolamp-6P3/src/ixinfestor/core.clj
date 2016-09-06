@@ -30,6 +30,9 @@
 (def development?
   (= "dev" (get (System/getenv) "IX_MODE")))
 
+(def repl?
+  (= "true" (get (System/getenv) "IX_REPL")))
+
 
 ;;**************************************************************************************************
 ;;* BEGIN Translit
