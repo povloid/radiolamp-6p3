@@ -4,3 +4,4 @@
 
 (defn render [ths]
   (dom/thead nil (apply dom/tr nil ths)))
+
