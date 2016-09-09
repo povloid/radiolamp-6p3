@@ -18,9 +18,9 @@
                       responsive? true}
                :as   options}]
   (let [empty-cols? (empty? cols)
-        t-width (when empty-cols?
-                  (when-let [c (first rows)]
-                    (str (quot 100 (count c)) "%")))]
+        t-width     (when empty-cols?
+                      (when-let [c (first rows)]
+                        (str (quot 100 (count c)) "%")))]
     (panel/render
      (assoc options
             :after-body
