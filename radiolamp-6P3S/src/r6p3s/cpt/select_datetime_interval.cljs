@@ -140,7 +140,11 @@
                    (let [from-date (get-input-datetime-value @app-modal :from-date)
                          to-date   (get-input-datetime-value @app-modal :to-date)]
                      (om/build modal-yes-no/component app-modal
-                               {:opts {:label "Указать интервал времени"
+                               {:opts {:label (dom/span nil
+                                                        (glyphicon/render "chevron-left")
+                                                        (glyphicon/render "time")
+                                                        (glyphicon/render "chevron-right")
+                                                        " Указать интервал времени")
 
                                        :body
                                        (dom/div
