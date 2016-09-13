@@ -308,6 +308,11 @@
   (let [[d h m] (the-time-has-passed-from-the-date date)]
     (gstring/format "прошло: %d дн. %02d час. %02d мин." d h m)))
 
+(defn the-time-has-passed-from-the-date-to-date [from-date to-date]
+  (when (and from-date to-date)
+    (let [[d h m] (the-time-has-passed-from from-date to-date)]
+      (str d " сут. " h " час. " m " мин. "))))
+
 
 ;; END date and time functions
 ;;..................................................................................................

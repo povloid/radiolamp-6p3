@@ -59,9 +59,7 @@
         (assoc-in [:interval :to-date] now))))
 
 
-(defn interval-as-string [from-date to-date]
-  (let [[d h m] (c/the-time-has-passed-from from-date to-date)]
-    (str d " сут. " h " час. " m " мин. ")))
+
 
 
 
@@ -87,7 +85,7 @@
                             (dom/div #js{:style #js {:width 20 :float "left"}} "до")
                             (datetime/render to-date))
                    (dom/b nil "выбрано: ")
-                   (interval-as-string from-date to-date)
+                   (c/the-time-has-passed-from-the-date-to-date from-date to-date)
 
 
                    (dom/div
@@ -161,7 +159,8 @@
                                         (form-group/render
                                          {:label "продолжитльность"
                                           :body  (dom/b #js {:className "text-primary"}
-                                                        (interval-as-string from-date to-date))}))
+                                                        (c/the-time-has-passed-from-the-date-to-date
+                                                         from-date to-date))}))
 
                                        :act-yes-fn
                                        (fn []
