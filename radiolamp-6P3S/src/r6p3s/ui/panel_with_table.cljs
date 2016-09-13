@@ -9,16 +9,18 @@
 
 
 (defn render [{:keys [cols rows
-                      striped? bordered? hover? responsive?]
-               :or   {cols        []
-                      rows        []
-                      striped?    true
-                      bordered?   true
-                      hover?      true
-                      responsive? true}
+                      striped? bordered? hover? responsive?
+                      colls-auto-width?]
+               :or   {cols              []
+                      rows              []
+                      colls-auto-width? false
+                      striped?          true
+                      bordered?         true
+                      hover?            true
+                      responsive?       true}
                :as   options}]
   (let [empty-cols? (empty? cols)
-        t-width     (when empty-cols?
+        t-width     (when (and empty-cols? (not colls-auto-width?))
                       (when-let [c (first rows)]
                         (str (quot 100 (count c)) "%")))]
     (panel/render
