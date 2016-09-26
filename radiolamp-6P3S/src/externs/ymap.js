@@ -24,3 +24,5 @@ ymaps.control.Button;
 ymaps.multiRouter.MultiRoute;
 
 ymaps.GeoObject = function (a) {};
+ymaps.GeoObject.properties;
+ymaps.GeoObject.properties.set = function (a) {};
