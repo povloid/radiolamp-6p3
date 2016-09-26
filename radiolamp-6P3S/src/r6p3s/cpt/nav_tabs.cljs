@@ -81,7 +81,8 @@
                 (fn [{:keys [glyphicon icon text href disabled?]} i]
                   (dom/li #js {:className (if disabled? "disabled"
                                               (if (= i (app :active-tab)) "active" ""))
-                               :role      "presentation"}
+                               :role      "presentation"
+                               :style     #js {:cursor "pointer"}}
                           (dom/a #js {:href       href
                                       :onClick    (on-click i)
                                       :onTouchEnd (on-click i)

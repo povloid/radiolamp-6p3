@@ -37,25 +37,49 @@
 
 
 
-(defn geo-object [{:keys [type coordinates preset
-                          balloon-content-header
-                          balloon-content-body
-                          icon-content hint-content
-                          preset]
-                   :or   {type "Point"}}]
-  (new js/ymaps.GeoObject
-       ;;feature
-       (clj->js {"geometry"   (clj->js {:coordinates coordinates
-                                        :type        type})
-                 "properties" (clj->js {:balloonContentHeader balloon-content-header
-                                        :balloonContentBody   balloon-content-body
-                                        :iconContent          icon-content
-                                        :hintContent          hint-content
-                                        })
-                 })
+(defn geo-object
+  [{:keys [type coordinates preset
+           balloon-content-header
+           balloon-content-body
+           icon-content hint-content
+           preset icon-color
+           balloonopen-fn]
+    :or   {type "Point"}}]
+  (-> (new js/ymaps.GeoObject
+            ;;feature
+           (clj->js {"geometry"   (clj->js {:coordinates coordinates
+                                            :type        type})
+                     "properties" (clj->js {:balloonContentHeader balloon-content-header
+                                            :balloonContentBody   balloon-content-body                                        
+                                            :iconContent          icon-content
+                                            :hintContent          hint-content
+                                            })
+                     })
 
-       ;; options
-       (clj->js {:preset (or preset  "islands#redStretchyIcon")})))
+            ;; options
+           (clj->js {:preset                 (or preset  "islands#redStretchyIcon")                    
+                     :openEmptyBalloon       (if balloonopen-fn true false)
+                     :balloonPanelMaxMapArea (when balloonopen-fn 0)}))
+      (as-> geo-object
+          (if balloonopen-fn
+            (do (-> geo-object .-events
+                    (.add "balloonopen"
+                          (fn [e]
+                            (balloonopen-fn {:e e :geo-object geo-object}))))
+                (-> geo-object .-properties (.set :balloonContent "Идет загрузка данных..."))
+                geo-object)
+            geo-object))))
+
+
+(defn geo-object--properties-set [geo-object property value]
+  (-> geo-object .-properties (.set property value)))
+
+(defn geo-object--properties-set--balloonContentHeader [geo-object value]
+  (geo-object--properties-set geo-object "balloonContentHeader" value))
+
+(defn geo-object--properties-set--balloonContentBody [geo-object value]
+  (geo-object--properties-set geo-object "balloonContentBody" value))
+
 
 (defonce ids (atom 0))
 (defn get-id [] (str "ymap-" (swap! ids inc)))
