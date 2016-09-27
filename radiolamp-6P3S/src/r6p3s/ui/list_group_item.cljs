@@ -9,7 +9,7 @@
                                      :warning " list-group-item-warning"
                                      :danger  " list-group-item-danger"
                                      } type "")
-                               (if active? "active" "")
+                               (if active? " active" "")
                                " " (or class+ "")
                                )}
          (when badge (dom/span #js {:className "badge"} badge))

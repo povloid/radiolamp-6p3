@@ -5,7 +5,8 @@
 
 
 (defn render [points f
-              {:keys [text nil-text order-fn order-direction
+              {:keys [text type
+                      nil-text order-fn order-direction
                       show-percents? show-numeration?]
                :or   {text     "метка в заголовке"
                       nil-text "не указано"}}]
@@ -44,6 +45,7 @@
                          :type  (if (nil? gi) :warning :default)}))))
            [(list-group-item/render
              {:text    text
+              :type    type
               :active? true
               :badge   (dom/span nil  points-count
                                  (when show-percents?
