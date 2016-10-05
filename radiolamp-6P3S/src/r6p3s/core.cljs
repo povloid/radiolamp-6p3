@@ -320,3 +320,8 @@
 ;;..................................................................................................
 
 
+(defn calc-percent [objects-all objects & [precision]]
+  (.toFixed (/ objects (/ objects-all  100)) (or  precision 2)))
+
+(defn calc-percent-as-str [objects-all objects & [precision]]
+  (str (calc-percent objects-all objects precision) '%))
