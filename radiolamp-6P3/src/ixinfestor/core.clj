@@ -16,6 +16,7 @@
             [image-resizer.format :as format]
             [image-resizer.pad :as pad]
 
+             [cheshire.core :as cheshire-c]
 
             [cemerick.friend :as friend]
             (cemerick.friend [workflows :as workflows]
@@ -565,6 +566,21 @@ SELECT * FROM r;
 (defn transform-sql-date-to-date [field row]
   (if-empty?-row-or-nil?-val-then-row-else-do
    field #(->> % .getTime (new java.util.Date)) row))
+
+;; ---------------------------------------
+;; JSON transformations
+
+(defn prepare-as-json  [field row]
+  (if-empty?-row-or-nil?-val-then-row-else-do
+   field cheshire-c/generate-string row))
+
+(defn transform-as-clj [field keywordize? row]
+  (if-empty?-row-or-nil?-val-then-row-else-do
+   field
+   (fn [v]
+     (cheshire-c/parse-string (str v) keywordize?))
+   row))
+
 
 ;; ---------------------------------------
 
