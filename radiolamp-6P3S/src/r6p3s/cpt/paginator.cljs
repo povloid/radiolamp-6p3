@@ -4,7 +4,8 @@
             [om.dom :as dom :include-macros true]
 
             [r6p3s.core :as c]
-            [r6p3s.ui.button :as button]))
+            [r6p3s.ui.button :as button]
+            [r6p3s.ui.glyphicon :as glyphicon]))
 
 
 
@@ -17,67 +18,76 @@
   (reify
     om/IRender
     (render [this]
-      (dom/div #js {:className (str  "input-group " (if class+ class+ ""))
-                    :style     #js {:textAlign "center"
-                                    :maxWidth  500
-                                    :float     "none"
-                                    :margin    "0 auto"}}
-               (dom/span #js {:className "input-group-btn"}
-                         (button/render {:type     :default
-                                         :on-click (fn [_]
-                                                     (om/update! app :page 1)
-                                                     (when chan-update
-                                                       (put! chan-update 1))
+      (let [{:keys [page page-size count-all]} @app
+            and-count-all-page-size?           (and count-all page-size)]
+        (dom/div #js {:className (str  "input-group " (if class+ class+ ""))
+                      :style     #js {:textAlign "center"
+                                      :maxWidth  500
+                                      :float     "none"
+                                      :margin    "0 auto"}}
+                 (dom/span #js {:className "input-group-btn"}
+                           (button/render {:type     :default
+                                           :on-click (fn [_]
+                                                       (om/update! app :page 1)
+                                                       (when chan-update
+                                                         (put! chan-update 1))
 
-                                                     (when on-click-fn (on-click-fn))
-                                                     1)
-                                         :text     (dom/span #js {:className   "glyphicon glyphicon-fast-backward"
-                                                                  :aria-hidden "true"})
-                                         })
+                                                       (when on-click-fn (on-click-fn))
+                                                       1)
+                                           :text (glyphicon/render "fast-backward")
+                                           })
 
-                         (button/render {:type     :default
-                                         :on-click (fn [_]
-                                                     (om/transact! app :page
-                                                                   #(if (= 1 %) % (dec %)))
-                                                     (when chan-update
-                                                       (put! chan-update 1))
+                           (button/render {:type     :default
+                                           :on-click (fn [_]
+                                                       (om/transact! app :page
+                                                                     #(if (= 1 %) % (dec %)))
+                                                       (when chan-update
+                                                         (put! chan-update 1))
 
-                                                     (when on-click-fn (on-click-fn))
-                                                     1)
-                                         :text     (dom/span nil
-                                                             (dom/span #js {:className   "glyphicon glyphicon-step-backward"
-                                                                            :aria-hidden "true"})
-                                                             " Назад")
-                                         })
-                         )
+                                                       (when on-click-fn (on-click-fn))
+                                                       1)
+                                           :text (dom/span nil
+                                                           (glyphicon/render "step-backward")
+                                                           " Назад")
+                                           })
+                           )
 
 
-               (let [{:keys [page page-size count-all]} @app]
                  (dom/div
                   #js {:className "input-control"
-                       :style #js {:lineHeight 1.2}}
+                       :style     #js {:lineHeight 1.2}}
                   " страница "
                   (dom/b nil page)
-                  (when (and count-all page-size) " из ")
-                  (when (and count-all page-size) (dom/b nil (+ (quot count-all page-size)
-                                                                (if (< 0 (rem count-all page-size)) 1 0))))
+                  (when and-count-all-page-size? " из ")
+                  (when and-count-all-page-size? (dom/b nil (+ (quot count-all page-size)
+                                                               (if (< 0 (rem count-all page-size)) 1 0))))
 
                   (when count-all (dom/br nil))
                   (when count-all "всего записей ")
-                  (when count-all (dom/b nil (str count-all)))))
+                  (when count-all (dom/b nil (str count-all))))
 
-               (dom/span #js {:className "input-group-btn"}
-                         (button/render {:type     :default
-                                         :on-click (fn [_]
-                                                     (om/transact! app :page inc)
-                                                     (when chan-update
-                                                       (put! chan-update 1))
+                 (dom/span #js {:className "input-group-btn"}
+                           (button/render {:type     :default
+                                           :on-click (fn [_]
+                                                       (om/transact! app :page inc)
+                                                       (when chan-update
+                                                         (put! chan-update 1))
 
-                                                     (when on-click-fn (on-click-fn))
-                                                     1)
-                                         :text     (dom/span nil "Вперед "
-                                                             (dom/span #js {:className   "glyphicon glyphicon-step-forward"
-                                                                            :aria-hidden "true"}))
-                                         })
+                                                       (when on-click-fn (on-click-fn))
+                                                       1)
+                                           :text (dom/span nil "Вперед "
+                                                           (glyphicon/render "step-forward"))
+                                           })
 
-                         )))))
+                           (when and-count-all-page-size?
+                             (button/render {:type     :default
+                                             :on-click (fn [_]
+                                                         (om/update! app :page (inc (quot count-all page-size)))
+                                                         (when chan-update
+                                                           (put! chan-update 1))
+
+                                                         (when on-click-fn (on-click-fn))
+                                                         1)
+                                             :text (dom/span nil
+                                                             (glyphicon/render "fast-forward"))
+                                             }))))))))

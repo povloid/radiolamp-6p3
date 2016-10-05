@@ -25,10 +25,12 @@
          (assoc app :data-view))))
 
 
-(defn set-data [app data]
+(defn set-data [app data & [{:keys [not-clean-pagination?]}]]
   (-> app
-      (assoc :data data
-             :paginator paginator/app-init)
+      (assoc :data data)
+      (as-> app
+          (if not-clean-pagination?
+            app (assoc app :paginator paginator/app-init)))
       (assoc-in [:paginator :count-all] (count data))
       step))
 
