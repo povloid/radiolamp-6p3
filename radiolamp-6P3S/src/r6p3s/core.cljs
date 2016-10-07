@@ -291,7 +291,11 @@
 
         diff-ms   (.floor js/Math
                           (/ time-diff
-                             (* 1000 60)))]
+                             (* 1000 60)))
+
+        diff-ss   (.floor js/Math
+                          (/ time-diff
+                             1000))]
     [
      ;; Дни
      diff-ds
@@ -299,19 +303,34 @@
      (- diff-hs (* diff-ds 24))
      ;; Минуты
      (- diff-ms (* diff-hs 60))
+     ;; Секунды
+     (- diff-ss (* diff-ms 60))
      ]))
 
 (defn the-time-has-passed-from-the-date [date]
   (the-time-has-passed-from date (new js/Date)))
 
+
+(defn- time-diff-str [d h m s]
+  (str (when (< 0 d) (str d " сут. "))
+       (when (< 0 h) (str h " час. "))
+       (when (< 0 m) (str m " мин. "))
+       (when (< 0 s) (str s " сек. "))))
+
 (defn the-time-has-passed-from-the-date-as-str [date]
   (let [[d h m] (the-time-has-passed-from-the-date date)]
-    (gstring/format "прошло: %d дн. %02d час. %02d мин." d h m)))
+    #_(gstring/format "прошло: %d дн. %02d час. %02d мин." d h m)
+    (str "прошло: " (time-diff-str d h m 0))))
 
 (defn the-time-has-passed-from-the-date-to-date [from-date to-date]
   (when (and from-date to-date)
     (let [[d h m] (the-time-has-passed-from from-date to-date)]
-      (str d " сут. " h " час. " m " мин. "))))
+      (time-diff-str d h m 0))))
+
+(defn the-time-has-passed-from-the-date-to-date+ss [from-date to-date]
+  (when (and from-date to-date)
+    (let [[d h m s] (the-time-has-passed-from from-date to-date)]
+      (time-diff-str d h m s))))
 
 
 ;; END date and time functions

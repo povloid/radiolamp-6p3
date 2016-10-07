@@ -7,7 +7,4 @@
 
 
 (defn render [d]
-  (dom/span
-   #js {:className "text-muted"}
-   (gicon/render "time") " "
-   (rc/date-com-format-datetime d)))
+  (dom/span nil (gicon/render "time") " " (rc/date-com-format-datetime d)))
