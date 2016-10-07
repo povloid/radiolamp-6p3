@@ -316,24 +316,24 @@
 (defn- time-diff-str [d h m s ms]
   (str (when (< 0 d) (str d " сут. "))
        (when (< 0 h) (str h " час. "))
-       (str m " мин. ") ;; Минуты отображаем всегда
-       (when (< 0 s) (str s " сек. "))
-       (when (< 0 ms) (str ms " милисек."))))
+       (when m  (str m " мин. ")) ;; Минуты отображаем всегда
+       (when s  (str s " сек. "))
+       (when ms (str ms " милисек."))))
 
 (defn the-time-has-passed-from-the-date-as-str [date]
   (let [[d h m] (the-time-has-passed-from-the-date date)]
     #_(gstring/format "прошло: %d дн. %02d час. %02d мин." d h m)
-    (str "прошло " (time-diff-str d h m 0 0))))
+    (str "прошло " (time-diff-str d h m nil nil))))
 
 (defn the-time-has-passed-from-the-date-to-date [from-date to-date]
   (when (and from-date to-date)
     (let [[d h m] (the-time-has-passed-from from-date to-date)]
-      (time-diff-str d h m 0 0))))
+      (time-diff-str d h m nil nil))))
 
 (defn the-time-has-passed-from-the-date-to-date+ss [from-date to-date]
   (when (and from-date to-date)
     (let [[d h m s] (the-time-has-passed-from from-date to-date)]
-      (time-diff-str d h m s 0))))
+      (time-diff-str d h m s nil))))
 
 (defn the-time-has-passed-from-the-date-to-date+ss+ms [from-date to-date]
   (when (and from-date to-date)
