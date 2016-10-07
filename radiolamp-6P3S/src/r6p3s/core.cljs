@@ -318,7 +318,7 @@
        (when (< 0 h) (str h " час. "))
        (when m  (str m " мин. ")) ;; Минуты отображаем всегда
        (when s  (str s " сек. "))
-       (when ms (str ms " милисек."))))
+       (when ms (str ms " мс"))))
 
 (defn the-time-has-passed-from-the-date-as-str [date]
   (let [[d h m] (the-time-has-passed-from-the-date date)]
