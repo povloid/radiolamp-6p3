@@ -20,7 +20,7 @@
                  [clj-time "0.12.0"]
 
                  ;;[org.postgresql/postgresql "9.4.1211"]
-                 [postgresql "9.3-1102.jdbc41"]
+                 [postgresql "9.4-1206-jdbc41"]
                  [korma "0.4.2"]
                  
 
