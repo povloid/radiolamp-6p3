@@ -20,7 +20,8 @@
                  [clj-time "0.12.0"]
 
                  [org.postgresql/postgresql "9.4.1211"]
-                 [korma "0.4.3"]
+                 [korma "0.4.2"]
+                 
 
                  [net.sourceforge.htmlcleaner/htmlcleaner "2.16"]
 
