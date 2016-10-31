@@ -95,6 +95,7 @@
                      #js {:className "btn-group"}                     
                      (button/render {:type     :default
                                      :text     (glyphicon/render "calendar")
+                                     :title    "задать интервал времени"
                                      :on-click (fn []
                                                  (om/transact!
                                                   app-modal
@@ -105,6 +106,7 @@
                                                  (modal/show app-modal))})
                      (button/render {:type     :default
                                      :text     (glyphicon/render "time")
+                                     :title    "на текущее время"
                                      :on-click (fn []
                                                  (om/transact! app move-to-now)
                                                  (on-selected-fn-2))}))
@@ -113,21 +115,25 @@
                      #js {:className "btn-group"}
                      (button/render {:type     :default
                                      :text     (glyphicon/render "fast-backward")
+                                     :title    "сдвинуть интервал на неделю назад"
                                      :on-click (fn []
                                                  (om/transact! app (partial move-interval (* 1000 60 60 24 -7)))
                                                  (on-selected-fn-2))})
                      (button/render {:type     :default
                                      :text     (glyphicon/render "step-backward")
+                                     :title    "сдвинуть интервал на день назад"
                                      :on-click (fn []
                                                  (om/transact! app (partial move-interval (* 1000 60 60 24 -1)))
                                                  (on-selected-fn-2))})
                      (button/render {:type     :default
                                      :text     (glyphicon/render "step-forward")
+                                     :title    "сдвинуть интервал на день вперед"
                                      :on-click (fn []
                                                  (om/transact! app (partial move-interval (* 1000 60 60 24  1)))
                                                  (on-selected-fn-2))})
                      (button/render {:type     :default
                                      :text     (glyphicon/render "fast-forward")
+                                     :title    "сдвинуть интервал на неделю вперед"
                                      :on-click (fn []
                                                  (om/transact! app (partial move-interval (* 1000 60 60 24  7)))
                                                  (on-selected-fn-2))})

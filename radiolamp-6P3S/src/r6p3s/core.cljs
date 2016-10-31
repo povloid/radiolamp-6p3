@@ -316,8 +316,8 @@
 (defn- time-diff-str [d h m s ms]
   (str (when (< 0 d) (str d " сут. "))
        (when (< 0 h) (str h " час. "))
-       (when m  (str m " мин. ")) ;; Минуты отображаем всегда
-       (when s  (str s " сек. "))
+       (when m  (str m  " мин. ")) ;; Минуты отображаем всегда
+       (when s  (str s  " сек. "))
        (when ms (str ms " мс"))))
 
 (defn the-time-has-passed-from-the-date-as-str [date]

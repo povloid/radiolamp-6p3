@@ -38,7 +38,7 @@
                                  fill        "orange"
                                  over-fill   "rebeccapurple"}
 
-                          :as   opts}]
+                          :as opts}]
 
   (let [chart-width  (- main-width left rigth)
         chart-height (- main-height top bottom)]
@@ -82,21 +82,21 @@
         (let [{:keys [chart-pano
                       path-id]} (om/get-state own)
 
-              data              (@app :data)
+              data (@app :data)
 
-              x-scale           (-> js/d3 .-scale .ordinal
-                                    (.domain (->> data (map x-value-fn) into-array))
-                                    (.rangeRoundBands #js [0 chart-width] 0.1))
+              x-scale (-> js/d3 .-scale .ordinal
+                          (.domain (->> data (map x-value-fn) into-array))
+                          (.rangeRoundBands #js [0 chart-width] 0.1))
 
-              y-scale           (-> js/d3 .-scale .linear
-                                    (.domain (d3c/min-max y-value-fn min 1 max 1.1 data))
-                                    (.range  #js [chart-height 0]))
+              y-scale (-> js/d3 .-scale .linear
+                          (.domain (d3c/min-max y-value-fn min 1 max 1.1 data))
+                          (.range  #js [chart-height 0]))
 
-              x-axis            (-> js/d3 .-svg .axis (.scale x-scale) (.orient "bottom"))
-              y-axis            (-> js/d3 .-svg .axis (.scale y-scale) (.orient "left"))
+              x-axis (-> js/d3 .-svg .axis (.scale x-scale) (.orient "bottom"))
+              y-axis (-> js/d3 .-svg .axis (.scale y-scale) (.orient "left"))
 
 
-              data-array        (into-array data)
+              data-array (into-array data)
               ]
 
           (-> chart-pano

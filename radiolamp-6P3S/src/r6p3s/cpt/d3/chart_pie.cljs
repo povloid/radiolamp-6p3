@@ -40,7 +40,7 @@
                                  to-str-fn    str
                                  rotate-angle 0}
 
-                          :as   opts}]
+                          :as opts}]
 
   (let [chart-width  (- main-width left rigth)
         chart-height (- main-height top bottom)]
@@ -63,42 +63,42 @@
       (did-update [_ _ _]
         (let [{:keys [chart-pano path-id]} (om/get-state own)
 
-              data                         (@app :data)
+              data (@app :data)
 
-              data-array                   (into-array data)
+              data-array (into-array data)
 
-              radius                       (/ (min chart-width chart-height) 2.0)
+              radius (/ (min chart-width chart-height) 2.0)
 
-              color                        (-> js/d3 .-scale .ordinal
-                                               (.range (clj->js colors)))
+              color (-> js/d3 .-scale .ordinal
+                        (.range (clj->js colors)))
 
-              arc                          (-> js/d3 .-svg .arc
-                                               (.outerRadius (* radius 0.8))
-                                               (.innerRadius (* radius 0.4))
-                                               (.startAngle
-                                                (fn [d] (+ (.-startAngle d) rotate-angle)))
-                                               (.endAngle
-                                                (fn [d] (+ (.-endAngle d) rotate-angle))))
+              arc (-> js/d3 .-svg .arc
+                      (.outerRadius (* radius 0.8))
+                      (.innerRadius (* radius 0.4))
+                      (.startAngle
+                       (fn [d] (+ (.-startAngle d) rotate-angle)))
+                      (.endAngle
+                       (fn [d] (+ (.-endAngle d) rotate-angle))))
 
-              outer-arc                    (-> js/d3 .-svg .arc
-                                               (.outerRadius (* radius 0.9))
-                                               (.innerRadius (* radius 0.9))
-                                               (.startAngle
-                                                (fn [d] (+ (.-startAngle d) rotate-angle)))
-                                               (.endAngle
-                                                (fn [d] (+ (.-endAngle d) rotate-angle))))
+              outer-arc (-> js/d3 .-svg .arc
+                            (.outerRadius (* radius 0.9))
+                            (.innerRadius (* radius 0.9))
+                            (.startAngle
+                             (fn [d] (+ (.-startAngle d) rotate-angle)))
+                            (.endAngle
+                             (fn [d] (+ (.-endAngle d) rotate-angle))))
 
 
               ;; label-arc                    (-> js/d3 .-svg .arc
               ;;                                  (.outerRadius (- radius 40))
               ;;                                  (.innerRadius (- radius 40)))
 
-              pie                          (-> js/d3 .-layout .pie
-                                               (.sort nil)
-                                               (.value (fn [[_ v]] v)))
+              pie (-> js/d3 .-layout .pie
+                      (.sort nil)
+                      (.value (fn [[_ v]] v)))
 
 
-              g                            chart-pano
+              g chart-pano
 
               ]
 

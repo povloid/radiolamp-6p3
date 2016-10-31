@@ -5,6 +5,7 @@
 
 
 (defn render [{:keys [text
+                      title
                       type
                       size
                       block?
@@ -30,6 +31,7 @@
                                     (if block? " btn-block" "")
                                     (if active? " active" "")
                                     (if class+ (str " " class+) ""))
+                   :title      title
                    :type       "button"
                    :disabled   (if disabled? "disabled" "")
                    :onClick    (c/on-click-com-fn on-click)
