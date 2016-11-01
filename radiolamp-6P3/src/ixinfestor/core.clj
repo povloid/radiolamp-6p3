@@ -239,6 +239,21 @@
                                            (= field-1 (row field-1))
                                            (= field-2 (row field-2))))))))))
 
+(defn com-save-for-field-3
+  "Сохранить сущность"
+  [entity field-1 field-2 field-3 row]
+  (kdb/transaction
+   (let [r (kc/update entity (kc/set-fields row) (kc/where (and
+                                                            (= field-1 (row field-1))
+                                                            (= field-2 (row field-2))
+                                                            (= field-3 (row field-3)))))]
+     (if (= r 0)
+       (kc/insert entity (kc/values row))
+       (first (kc/select entity (kc/where (and
+                                           (= field-1 (row field-1))
+                                           (= field-2 (row field-2))
+                                           (= field-3 (row field-3))))))))))
+
 (defn com-save-for-id
   "Сохранить сущность"
   [entity row]

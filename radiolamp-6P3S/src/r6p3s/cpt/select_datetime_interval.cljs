@@ -65,7 +65,8 @@
 
 
 
-(defn component [app own {:keys [on-selected-fn] :as opts}]
+(defn component
+  [app own {:keys [on-selected-fn] :as opts}]
   (letfn [(on-selected-fn-2 []
             (when on-selected-fn (on-selected-fn)))]
     (reify
@@ -92,7 +93,7 @@
                     #js {:className "btn-toolbar"}
 
                     (dom/div
-                     #js {:className "btn-group"}                     
+                     #js {:className "btn-group"}
                      (button/render {:type     :default
                                      :text     (glyphicon/render "calendar")
                                      :title    "задать интервал времени"
@@ -175,21 +176,21 @@
                                           {:from-date from-date
                                            :to-date   to-date})
                                          (modal/hide app-modal)
-                                         (on-selected-fn-2))
-                                       }}))))))))
+                                         (on-selected-fn-2))}}))))))))
 
 
 
 
-(defn component-form-group  [app _ {:keys [label
-                                           type
-                                           label-class+
-                                           input-class+
-                                           spec-input]
-                                    :or   {label        "Метка"
-                                           label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                                           input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
-                                           spec-select  {}}}]
+(defn component-form-group
+  [app _ {:keys [label
+                 type
+                 label-class+
+                 input-class+
+                 spec-input]
+          :or   {label        "Метка"
+                 label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                 input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                 spec-select  {}}}]
   (reify
     om/IRender
     (render [_]
