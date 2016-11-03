@@ -55,14 +55,14 @@
         (dom/input #js {:value       value
                         :onChange    (fn [e]
                                        (let [new-value (.. e -target -value)]
-                                         (if (onChange-valid?-fn app new-value)
-                                           (do (om/update! app :value new-value)
-                                               (when onChange-updated-valid-fn
-                                                 (onChange-updated-valid-fn)))
-                                           (om/update! app :value value))
+                                         (when (onChange-valid?-fn app new-value)
+                                           (when onChange-updated-valid-fn
+                                             (onChange-updated-valid-fn)))
+                                         
+                                         (om/update! app :value new-value)
+                                         
                                          (when onChange-updated-fn
-                                           (onChange-updated-fn))
-                                         ))
+                                           (onChange-updated-fn))))
                         :onKeyPress  onKeyPress-fn
                         :type        type
                         :min         min :max max :step step
@@ -73,6 +73,7 @@
 (defn component-form-group  [app owner {:keys [label
                                                type
                                                label-class+
+                                               label-style
                                                input-class+
                                                spec-input]
                                         :or   {label        "Метка"
@@ -83,7 +84,8 @@
     om/IRender
     (render [this]
       (dom/div #js {:className (str "form-group " (common-input/input-css-string-has? app))}
-               (dom/label #js {:className (str "control-label " label-class+) } label)
+               (dom/label #js {:className (str "control-label " label-class+)
+                               :style label-style} label)
                (dom/div #js {:className input-class+ :style #js {}}
                         (om/build component app {:opts spec-input})
                         (om/build helper-p/component app {}))))))

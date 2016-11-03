@@ -39,6 +39,7 @@
 (defn component-form-group  [app owner {:keys [label
                                                type
                                                label-class+
+                                               label-style
                                                input-class+
                                                spec-input]
                                         :or   {label        "Метка"
@@ -49,7 +50,8 @@
     om/IRender
     (render [this]
       (dom/div #js {:className (str "form-group " (common-input/input-css-string-has? app))}
-               (dom/label #js {:className (str "control-label " label-class+) } label)
+               (dom/label #js {:className (str "control-label " label-class+)
+                               :style     label-style} label)
                (dom/div #js {:className input-class+ :style #js {}}
                         (dom/b nil "введено: "
                                (c/date-com-format-datetime-to-min (parse-str-to-date (@app :value))))

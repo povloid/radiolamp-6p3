@@ -57,6 +57,8 @@
                          row-pk-fiels
                          one--row-to-text-fn
                          multi-table-caption
+                         label-class+              
+                         input-class+             
                          ]
                   :or   {class+                    ""
                          selection-type            :one
@@ -68,6 +70,8 @@
                          ui-type--add-button--text "Выбрать..."
                          row-pk-fiels              [:id]
                          multi-table-caption       "Наименование"
+                         label-class+              "col-xs-12 col-sm-4 col-md-4 col-lg-4"
+                         input-class+              "col-xs-12 col-sm-8 col-md-8 col-lg-8"
                          }}]
   (fn [app _ {:keys [label-one
                      label-multi
@@ -245,7 +249,7 @@
                                                                        reverse
                                                                        vec)))
 
-                                                        :one   (om/update! app :sel (vec selected)))
+                                                        :one (om/update! app :sel (vec selected)))
 
                                                       (modal/hide (:modal app))
 

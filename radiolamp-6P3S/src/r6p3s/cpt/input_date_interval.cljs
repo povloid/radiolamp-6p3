@@ -7,7 +7,8 @@
             [r6p3s.common-input :as common-input]
             [r6p3s.cpt.input :as input]
             [r6p3s.cpt.input-datetime :as input-datetime]
-            [r6p3s.ui.button :as button]))
+            [r6p3s.ui.button :as button]
+            [r6p3s.ui.glyphicon :as glyphicon]))
 
 
 
@@ -27,7 +28,7 @@
 
 
 
-(defn component [app own {:keys [selected-fn style] :as opts}]
+(defn component [app own {:keys [selected-fn class-name style] :as opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -60,25 +61,29 @@
       (let [{:keys []} (om/get-state own)]
         (println "OM: date-paginator -> will-unmount")))
 
-    
+
     om/IRenderState
     (render-state [_ {:keys [chan-update]}]
-      (dom/div #js {:className "form-inline" :style style}
+      (let [app-v @app]
+        (dom/div #js {:className class-name :style style}
+                 (dom/div nil
 
-               (om/build input/component-form-group (app :from-date)
-                         {:opts {:label      "с даты"
-                                 :spec-input {:type                      "date" :placeholder "yyyy-MM-dd"
-                                              :onChange-valid?-fn        common-input/vldfn-not-empty-date
-                                              :onChange-updated-valid-fn #(put! chan-update 1)}}})
-
-               (om/build input/component-form-group (app :to-date)
-                         {:opts {:label      "по дату"
-                                 :spec-input {:type                      "date" :placeholder "yyyy-MM-dd"
-                                              :onChange-valid?-fn        common-input/vldfn-not-empty-date
-                                              :onChange-updated-valid-fn #(put! chan-update 1)}}})
-
-               (button/render {:text     "обновить"
-                               :type     :primary
-                               :on-click #(put! chan-update 1)})
-
-               ))))
+                          (dom/div #js {:className "col-xs-12 col-sm-6 col-md-6 col-lg-6"}
+                                   (om/build input/component-form-group (app :from-date)
+                                             {:opts {:label       "с даты"
+                                                     :label-style #js {:textAlign "right"}
+                                                     :spec-input  {:type                      "date" :placeholder "yyyy-MM-dd"
+                                                                   :onChange-valid?-fn        common-input/vldfn-not-empty-date
+                                                                   :onChange-updated-valid-fn #(put! chan-update 1)}}}))
+                          (dom/div #js {:className "col-xs-12 col-sm-6 col-md-6 col-lg-6"}
+                                   (om/build input/component-form-group (app :to-date)
+                                             {:opts {:label       "по дату"
+                                                     :label-style #js {:textAlign "right"}
+                                                     :spec-input  {:type                      "date" :placeholder "yyyy-MM-dd"
+                                                                   :onChange-valid?-fn        common-input/vldfn-not-empty-date
+                                                                   :onChange-updated-valid-fn #(put! chan-update 1)}}})))
+                 (when (or (get-in app-v [:from-date :text-warning]) (get-in app-v [:to-date :text-warning]))
+                   (dom/div #js {:className "text-info"
+                                 :style #js {:textAlign "center"}}
+                            (glyphicon/render "info-sign")
+                            " Необходиме вводить в дату в формате yyyy-MM-dd, наример 2016-11-01")))))))

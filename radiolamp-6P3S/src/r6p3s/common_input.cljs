@@ -106,29 +106,40 @@
 (defn vldfn-not-empty [app v]
   (helper-p/clean app)
   (input-css-string-has?-clean app)
-  (when (= (count (.trim v)) 0)
-    (om/transact! app #(assoc % :has-warning? true :text-warning "Пустое поле")))
-  true)
+  
+  (if (= (count (.trim v)) 0)
+    (do
+      (om/transact! app #(assoc % :has-warning? true :text-warning "Пустое поле"))
+      false)
+    (do
+      (om/transact! app #(assoc % :has-success? true))
+      true)))
 
 
 (defn vldfn-not-empty-or-0 [app v]
   (helper-p/clean app)
   (input-css-string-has?-clean app)
-  (when (or (= (count (.trim v)) 0) (= (.valueOf (new js/Number v)) 0))
-    (om/transact! app #(assoc % :has-warning? true :text-warning "Показание пустое либо равно нулю")))
-  (do
-    (om/transact! app #(assoc % :has-success? true))
-    true))
+  
+  (if (or (= (count (.trim v)) 0) (= (.valueOf (new js/Number v)) 0))
+    (do
+      (om/transact! app #(assoc % :has-warning? true :text-warning "Показание пустое либо равно нулю"))
+      false)    
+    (do
+      (om/transact! app #(assoc % :has-success? true))
+      true)))
 
 
 (defn vldfn-not-empty-date [app v]
   (helper-p/clean app)
   (input-css-string-has?-clean app)
-  (when-not (c/str-to-date v)
-    (om/transact! app #(assoc % :has-warning? true :text-warning "Неправильная дата")))
-  true)
-
-
+  
+  (if (c/str-to-date v)
+    (do
+      (om/transact! app #(assoc % :has-success? true))
+      true)
+    (do
+      (om/transact! app #(assoc % :has-warning? true :text-warning "Неправильная дата"))
+      false)))
 
 
 ;; END input
