@@ -44,7 +44,7 @@
               (println "OM: date-paginator -> chan-update -> run! ")
 
               (when selected-fn
-                (let [app-v @app
+                (let [app-v             @app
                       selected-interval [(-> app-v :from-date input/value rc/str-to-date)
                                          (-> app-v :to-date   input/value rc/str-to-date)]]
                   (println "OM: date-paginator -> call selected-fn -> " selected-interval)
@@ -60,25 +60,25 @@
       (let [{:keys []} (om/get-state own)]
         (println "OM: date-paginator -> will-unmount")))
 
-
+    
     om/IRenderState
     (render-state [_ {:keys [chan-update]}]
       (dom/div #js {:className "form-inline" :style style}
 
                (om/build input/component-form-group (app :from-date)
                          {:opts {:label      "с даты"
-                                 :spec-input {:type                "date" :placeholder "yyyy-MM-dd"
-                                              :onChange-valid?-fn  common-input/vldfn-not-empty-date
-                                              :onChange-updated-fn #(put! chan-update 1)}}})
+                                 :spec-input {:type                      "date" :placeholder "yyyy-MM-dd"
+                                              :onChange-valid?-fn        common-input/vldfn-not-empty-date
+                                              :onChange-updated-valid-fn #(put! chan-update 1)}}})
 
                (om/build input/component-form-group (app :to-date)
                          {:opts {:label      "по дату"
-                                 :spec-input {:type                "date" :placeholder "yyyy-MM-dd"
-                                              :onChange-valid?-fn  common-input/vldfn-not-empty-date
-                                              :onChange-updated-fn #(put! chan-update 1)}}})
+                                 :spec-input {:type                      "date" :placeholder "yyyy-MM-dd"
+                                              :onChange-valid?-fn        common-input/vldfn-not-empty-date
+                                              :onChange-updated-valid-fn #(put! chan-update 1)}}})
 
-               (button/render {:text "обновить"
-                               :type         :primary
-                               :on-click     #(put! chan-update 1)})
+               (button/render {:text     "обновить"
+                               :type     :primary
+                               :on-click #(put! chan-update 1)})
 
                ))))

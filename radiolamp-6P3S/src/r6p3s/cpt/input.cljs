@@ -32,20 +32,22 @@
 
 (defn value [app] (get app :value))
 
-(defn component [app owner {:keys [class+
-                                   type
-                                   onChange-valid?-fn
-                                   onChange-updated-fn
-                                   onKeyPress-fn
-                                   placeholder
-                                   readonly?
-                                   min max step]
-                            :or   {class+             ""
-                                   type               "text"
-                                   onChange-valid?-fn (fn [_ _] true)
-                                   onKeyPress-fn      (fn [_] nil)
-                                   placeholder        ""
-                                   }}]
+(defn component
+  [app owner {:keys [class+
+                     type
+                     onChange-valid?-fn
+                     onChange-updated-valid-fn
+                     onChange-updated-fn
+                     onKeyPress-fn
+                     placeholder
+                     readonly?
+                     min max step]
+              :or   {class+             ""
+                     type               "text"
+                     onChange-valid?-fn (fn [_ _] true)
+                     onKeyPress-fn      (fn [_] nil)
+                     placeholder        ""
+                     }}]
   (reify
     om/IRender
     (render [this]
@@ -54,7 +56,9 @@
                         :onChange    (fn [e]
                                        (let [new-value (.. e -target -value)]
                                          (if (onChange-valid?-fn app new-value)
-                                           (om/update! app :value new-value)
+                                           (do (om/update! app :value new-value)
+                                               (when onChange-updated-valid-fn
+                                                 (onChange-updated-valid-fn)))
                                            (om/update! app :value value))
                                          (when onChange-updated-fn
                                            (onChange-updated-fn))
