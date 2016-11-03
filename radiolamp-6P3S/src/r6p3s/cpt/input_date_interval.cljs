@@ -45,11 +45,14 @@
               (println "OM: date-paginator -> chan-update -> run! ")
 
               (when selected-fn
-                (let [app-v             @app
-                      selected-interval [(-> app-v :from-date input/value rc/str-to-date)
-                                         (-> app-v :to-date   input/value rc/str-to-date)]]
-                  (println "OM: date-paginator -> call selected-fn -> " selected-interval)
-                  (selected-fn selected-interval))))))))
+                (let [app-v     @app
+                      from-date (-> app-v :from-date input/value rc/str-to-date)
+                      to-date   (-> app-v :to-date   input/value rc/str-to-date)]
+
+                  (when (and from-date to-date) ;; если оба распознанны как даты то тогда можем говорить что даты выбраны
+                    (let [selected-interval [from-date to-date]]
+                      (println "OM: date-paginator -> call selected-fn -> " selected-interval)
+                      (selected-fn selected-interval))))))))))
 
     om/IDidMount
     (did-mount [_]
