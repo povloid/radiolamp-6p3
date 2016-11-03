@@ -83,7 +83,9 @@
                                                                    :onChange-valid?-fn        common-input/vldfn-not-empty-date
                                                                    :onChange-updated-valid-fn #(put! chan-update 1)}}})))
 
-                 (when (or (get-in app-v [:from-date :text-warning]) (get-in app-v [:to-date :text-warning]))
+                 (when (or
+                        (get-in app-v [:from-date :text-warning])
+                        (get-in app-v [:to-date :text-warning]))
                    (dom/p #js {:className "text-warning"
                                :style #js {:textAlign "center"}}
                           (glyphicon/render "info-sign")
