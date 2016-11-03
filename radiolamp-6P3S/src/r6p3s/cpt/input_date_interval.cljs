@@ -66,8 +66,8 @@
     (render-state [_ {:keys [chan-update]}]
       (let [app-v @app]
         (dom/div #js {:className class-name :style style}
-                 (dom/div nil
 
+                 (dom/div #js {:className "col-xs-12 col-sm-12 col-md-12 col-lg-12"}
                           (dom/div #js {:className "col-xs-12 col-sm-6 col-md-6 col-lg-6"}
                                    (om/build input/component-form-group (app :from-date)
                                              {:opts {:label       "с даты"
@@ -82,8 +82,9 @@
                                                      :spec-input  {:type                      "date" :placeholder "yyyy-MM-dd"
                                                                    :onChange-valid?-fn        common-input/vldfn-not-empty-date
                                                                    :onChange-updated-valid-fn #(put! chan-update 1)}}})))
+
                  (when (or (get-in app-v [:from-date :text-warning]) (get-in app-v [:to-date :text-warning]))
-                   (dom/div #js {:className "text-info"
-                                 :style #js {:textAlign "center"}}
-                            (glyphicon/render "info-sign")
-                            " Необходиме вводить в дату в формате yyyy-MM-dd, наример 2016-11-01")))))))
+                   (dom/p #js {:className "text-warning"
+                               :style #js {:textAlign "center"}}
+                          (glyphicon/render "info-sign")
+                          " Необходиме вводить в дату в формате yyyy-MM-dd, наример 2016-11-01")))))))
