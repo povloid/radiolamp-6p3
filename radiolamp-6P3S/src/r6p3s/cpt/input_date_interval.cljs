@@ -88,7 +88,7 @@
                  (when (or
                         (get-in app-v [:from-date :text-warning])
                         (get-in app-v [:to-date :text-warning]))
-                   (dom/p #js {:className "text-warning"
+                   (dom/p #js {:className "text-info"
                                :style     #js {:textAlign "center"}}
                           (glyphicon/render "info-sign")
                           " Необходиме вводить в дату в формате yyyy-MM-dd, наример 2016-11-01")))))))
