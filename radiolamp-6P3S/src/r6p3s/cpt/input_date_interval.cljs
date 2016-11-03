@@ -72,14 +72,16 @@
                                    (om/build input/component-form-group (app :from-date)
                                              {:opts {:label       "с даты"
                                                      :label-style #js {:textAlign "right"}
-                                                     :spec-input  {:type                      "date" :placeholder "yyyy-MM-dd"
+                                                     :spec-input  {:type                      "date"
+                                                                   :placeholder               "yyyy-MM-dd"
                                                                    :onChange-valid?-fn        common-input/vldfn-not-empty-date
                                                                    :onChange-updated-valid-fn #(put! chan-update 1)}}}))
                           (dom/div #js {:className "col-xs-12 col-sm-6 col-md-6 col-lg-6"}
                                    (om/build input/component-form-group (app :to-date)
                                              {:opts {:label       "по дату"
                                                      :label-style #js {:textAlign "right"}
-                                                     :spec-input  {:type                      "date" :placeholder "yyyy-MM-dd"
+                                                     :spec-input  {:type                      "date"
+                                                                   :placeholder               "yyyy-MM-dd"
                                                                    :onChange-valid?-fn        common-input/vldfn-not-empty-date
                                                                    :onChange-updated-valid-fn #(put! chan-update 1)}}})))
 
@@ -87,6 +89,6 @@
                         (get-in app-v [:from-date :text-warning])
                         (get-in app-v [:to-date :text-warning]))
                    (dom/p #js {:className "text-warning"
-                               :style #js {:textAlign "center"}}
+                               :style     #js {:textAlign "center"}}
                           (glyphicon/render "info-sign")
                           " Необходиме вводить в дату в формате yyyy-MM-dd, наример 2016-11-01")))))))
