@@ -54,15 +54,15 @@
                       (println "OM: date-paginator -> call selected-fn -> " selected-interval)
                       (selected-fn selected-interval))))))))))
 
-    om/IDidMount
-    (did-mount [_]
-      (let [{:keys []} (om/get-state own)]
-        (println "OM: date-paginator -> did-mount")))
+    ;; om/IDidMount
+    ;; (did-mount [_]
+    ;;   (let [{:keys []} (om/get-state own)]
+    ;;     (println "OM: date-paginator -> did-mount")))
 
-    om/IWillUnmount
-    (will-unmount [_]
-      (let [{:keys []} (om/get-state own)]
-        (println "OM: date-paginator -> will-unmount")))
+    ;; om/IWillUnmount
+    ;; (will-unmount [_]
+    ;;   (let [{:keys []} (om/get-state own)]
+    ;;     (println "OM: date-paginator -> will-unmount")))
 
 
     om/IRenderState

@@ -32,6 +32,9 @@
 
 (defn value [app] (get app :value))
 
+(defn set-value! [app value]
+  (assoc app :value value))
+
 (defn component
   [app owner {:keys [class+
                      type
