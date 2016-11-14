@@ -1,4 +1,4 @@
-(ns r6p3s.cpt.d3.chart-histogramm
+(ns r6p3s.cpt.d3.chart-histogramm-horizontal
   (:require [cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
@@ -67,13 +67,13 @@
 
               data (@app :data)             
 
-              x-scale (-> js/d3 .-scale .ordinal
+              y-scale (-> js/d3 .-scale .ordinal
                           (.domain (->> data (map x-value-fn) into-array))
-                          (.rangeRoundBands #js [0 chart-width] 0.1))
+                          (.rangeRoundBands #js [0 chart-height] 0.1))
 
-              y-scale (-> js/d3 .-scale .linear
+              x-scale (-> js/d3 .-scale .linear
                           (.domain (d3c/min-max y-value-fn min 1 max 1.1 data))
-                          (.range  #js [chart-height 0]))
+                          (.range  #js [2 chart-width]))
 
               x-axis (-> js/d3 .-svg .axis (.scale x-scale) (.orient "bottom"))
               y-axis (-> js/d3 .-svg .axis (.scale y-scale) (.orient "left"))              
@@ -110,10 +110,11 @@
                              (.style "fill" fill))))))
 
             (-> rects
-                (.attr "x" #(x-scale (x-value-fn %)))
-                (.attr "y" #(y-scale (y-value-fn %)))
-                (.attr "width" (.rangeBand x-scale))
-                (.attr "height"#(- chart-height (y-scale (y-value-fn %)))))
+                (.attr "y"      #(y-scale (x-value-fn %)))
+                (.attr "height"  (.rangeBand y-scale))
+                
+                (.attr "x"     (x-scale 0))                
+                (.attr "width" #(x-scale (y-value-fn %))))
 
             (-> rects
                 .exit
@@ -129,9 +130,12 @@
          (dom/svg #js {:id svg-id :width "100%" :height main-height}
                   (dom/g #js {:id chart-pano-id :transform (str "translate(" left "," top ")")}
                          (dom/path #js {:id path-id})
-                         (dom/g #js {:className "y axis"}
-                                (dom/text #js {:transform "rotate(-90)"
-                                               :y         "6" :dy ".71em" :style #js {:textAnchor "end"}}
+                         (dom/g #js {:className "x brush" :width chart-width :height chart-height})
+
+                         (dom/g #js {:className "x axis" :transform (str "translate(0," chart-height ")")}
+                                (dom/text #js {:y     -14
+                                               :x     (- chart-width left)
+                                               :dy    ".71em"
+                                               :style #js {:textAnchor "end"}}
                                           y-label))
-                         (dom/g #js {:className "x axis" :transform (str "translate(0," chart-height ")")})
-                         (dom/g #js {:className "x brush" :width chart-width :height chart-height}))))))))
+                         (dom/g #js {:className "y axis"}))))))))

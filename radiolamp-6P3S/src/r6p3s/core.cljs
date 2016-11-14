@@ -352,3 +352,7 @@
 
 (defn calc-percent-as-str [objects-all objects & [precision]]
   (str (calc-percent objects-all objects precision) '%))
+
+
+
+

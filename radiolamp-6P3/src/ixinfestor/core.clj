@@ -585,6 +585,7 @@ SELECT * FROM r;
 ;; ---------------------------------------
 ;; JSON transformations
 
+
 (defn prepare-as-json  [field row]
   (if-empty?-row-or-nil?-val-then-row-else-do
    field cheshire-c/generate-string row))
@@ -598,6 +599,12 @@ SELECT * FROM r;
 
 
 ;; ---------------------------------------
+
+
+
+
+
+
 
 (defn check-row [is-error-fn? message row]
   (if (is-error-fn? row) (throw (Exception. (str "Error on row -> " message "\nrow: " row)))
