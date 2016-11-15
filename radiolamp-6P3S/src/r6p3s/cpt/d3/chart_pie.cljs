@@ -17,30 +17,28 @@
 (def app-init
   {:data []})
 
-(defn component [app own {:keys [
-                                 main-width
-                                 main-height
-                                 top
-                                 left
-                                 rigth
-                                 bottom
-                                 values
-                                 title
-                                 colors
-                                 description
-                                 to-str-fn
-                                 rotate-angle]
-                          :or   {main-width   d3c/full-screen-width
-                                 main-height  300
-                                 top          15
-                                 left         60
-                                 rigth        15
-                                 bottom       20
-                                 colors       d3c/order-colors
-                                 to-str-fn    str
-                                 rotate-angle 0}
-
-                          :as opts}]
+(defn component
+  [app own {:keys [main-width
+                   main-height
+                   top
+                   left
+                   rigth
+                   bottom
+                   values
+                   title
+                   colors
+                   description
+                   to-str-fn
+                   rotate-angle]
+            :or   {main-width   d3c/full-screen-width
+                   main-height  300
+                   top          15
+                   left         60
+                   rigth        15
+                   bottom       20
+                   colors       d3c/order-colors
+                   to-str-fn    str
+                   rotate-angle 0}}]
 
   (let [chart-width  (- main-width left rigth)
         chart-height (- main-height top bottom)]
@@ -51,12 +49,12 @@
          :chart-pano-id (rc/uniq-id "chart-pano")
          :chart-pano    nil})
 
-      om/IDidMount
-      (did-mount [_]
-        (let [{:keys [chart-pano-id]} (om/get-state own)]
-          (println "OM: chart-pie -> did-mount")
-          (let [svg-pano (.select js/d3 (str "#" chart-pano-id))]
-            (om/set-state! own :chart-pano svg-pano))))
+      ;; om/IDidMount
+      ;; (did-mount [_]
+      ;;   (let [{:keys [chart-pano-id]} (om/get-state own)]
+      ;;     (println "OM: chart-pie -> did-mount")
+      ;;     (let [svg-pano (.select js/d3 (str "#" chart-pano-id))]
+      ;;       (om/set-state! own :chart-pano svg-pano))))
 
 
       om/IDidUpdate

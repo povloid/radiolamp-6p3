@@ -73,7 +73,7 @@
 
               x-scale (-> js/d3 .-scale .linear
                           (.domain (d3c/min-max y-value-fn min 1 max 1.1 data))
-                          (.range  #js [2 chart-width]))
+                          (.range  #js [0 chart-width]))
 
               x-axis (-> js/d3 .-svg .axis (.scale x-scale) (.orient "bottom"))
               y-axis (-> js/d3 .-svg .axis (.scale y-scale) (.orient "left"))              
@@ -113,10 +113,36 @@
                 (.attr "y"      #(y-scale (x-value-fn %)))
                 (.attr "height"  (.rangeBand y-scale))
                 
-                (.attr "x"     (x-scale 0))                
-                (.attr "width" #(x-scale (y-value-fn %))))
+                (.attr "x"     1)                
+                (.attr "width" (fn [row]
+                                 (let [d (x-scale (y-value-fn row))]
+                                   (if (< 1 d) d 1)))))
 
             (-> rects
+                .exit
+                .remove))
+
+
+
+          (let [texts (-> chart-pano
+                          (.selectAll "text.value")
+                          (.data data-array))]
+            (-> texts
+                .enter
+                (.append "text")
+                (.attr "class" "value"))
+
+            (-> texts
+                ;;(.style "text-anchor" "middle")
+                (.attr "x" (fn [row]
+                                 (let [d (x-scale (y-value-fn row))]
+                                   (+ 2 (if (< 1 d) d 1)))))                
+                (.attr "y" #(+
+                             (y-scale (x-value-fn %))
+                             (/ (.rangeBand y-scale) 2)))
+                (.text (fn [row] (str (y-value-fn row)))))
+
+            (-> texts
                 .exit
                 .remove))))
 
@@ -124,9 +150,9 @@
       (render-state [_ {:keys [svg-id chart-pano-id path-id chan-update]}]
         (dom/div
          #js {:className "chart-frame"}
-         (dom/h4 #js {:className "" :style #js {:marginLeft left}} title)
+         (dom/h4 #js {:className "" :style #js {:marginLeft 60}} title)
          (when description
-           (dom/p #js {:className "text-info" :style #js {:marginLeft left}} description))
+           (dom/p #js {:className "text-info" :style #js {:marginLeft 60}} description))
          (dom/svg #js {:id svg-id :width "100%" :height main-height}
                   (dom/g #js {:id chart-pano-id :transform (str "translate(" left "," top ")")}
                          (dom/path #js {:id path-id})

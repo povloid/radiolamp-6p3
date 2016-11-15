@@ -110,25 +110,48 @@
                              (.style "fill" fill))))))
 
             (-> rects
-                (.attr "x" #(x-scale (x-value-fn %)))
-                (.attr "y" #(y-scale (y-value-fn %)))
+                (.attr "x" #(x-scale (x-value-fn %)))                
                 (.attr "width" (.rangeBand x-scale))
-                (.attr "height"#(- chart-height (y-scale (y-value-fn %)))))
+                (.attr "y" (fn [row]
+                             (let [y (- (y-scale (y-value-fn row)) 1)]
+                               (if (< 0 y) y 0))))
+                (.attr "height" #(- chart-height (y-scale (y-value-fn %)))))
 
             (-> rects
+                .exit
+                .remove))
+
+
+          (let [texts (-> chart-pano
+                          (.selectAll "text.value")
+                          (.data data-array))]
+            (-> texts
+                .enter
+                (.append "text")
+                (.attr "class" "value"))
+
+            (-> texts
+                (.style "text-anchor" "middle")
+                (.attr "x" #(+ (x-scale (x-value-fn %))
+                               (/ (.rangeBand x-scale) 2)))                
+                (.attr "y" (fn [row]
+                             (let [y (- (y-scale (y-value-fn row)) 1)]
+                               (- (if (< 0 y) y 0) 2))))
+                (.text (fn [row] (str (y-value-fn row)))))
+
+            (-> texts
                 .exit
                 .remove))))
 
       om/IRenderState
-      (render-state [_ {:keys [svg-id chart-pano-id path-id chan-update]}]
+      (render-state [_ {:keys [svg-id chart-pano-id chan-update]}]
         (dom/div
          #js {:className "chart-frame"}
          (dom/h4 #js {:className "" :style #js {:marginLeft left}} title)
          (when description
            (dom/p #js {:className "text-info" :style #js {:marginLeft left}} description))
          (dom/svg #js {:id svg-id :width "100%" :height main-height}
-                  (dom/g #js {:id chart-pano-id :transform (str "translate(" left "," top ")")}
-                         (dom/path #js {:id path-id})
+                  (dom/g #js {:id chart-pano-id :transform (str "translate(" left "," top ")")}                                                  
                          (dom/g #js {:className "y axis"}
                                 (dom/text #js {:transform "rotate(-90)"
                                                :y         "6" :dy ".71em" :style #js {:textAnchor "end"}}
