@@ -42,9 +42,7 @@
     (reify
       om/IInitState
       (init-state [_]
-        {;;:chan-update (chan)
-         :svg-id        (rc/uniq-id "chart-svg")
-         :path-id       (rc/uniq-id "path")
+        {;;:chan-update (chan)   
          :chart-pano-id (rc/uniq-id "chart-pano")
          :chart-pano    nil})
 
@@ -54,13 +52,7 @@
           (let [svg (.select js/d3 (str "#" chart-pano-id))]
             (om/set-state! own :chart-pano svg))))
 
-      om/IWillUpdate
-      (will-update [_ _ _]
-        (let [{:keys [svg-id]} (om/get-state own)
-              svg              (.getElementById js/document svg-id)]
-          (println "svg>>" svg (-> svg .-style))))
-      
-      
+         
       om/IDidUpdate
       (did-update [_ _ _]
         (let [{:keys [chart-pano]} (om/get-state own)
@@ -144,17 +136,17 @@
                 .remove))))
 
       om/IRenderState
-      (render-state [_ {:keys [svg-id chart-pano-id chan-update]}]
+      (render-state [_ {:keys [chart-pano-id chan-update]}]
         (dom/div
-         #js {:className "chart-frame"}
+         nil
          (dom/h4 #js {:className "" :style #js {:marginLeft left}} title)
          (when description
            (dom/p #js {:className "text-info" :style #js {:marginLeft left}} description))
-         (dom/svg #js {:id svg-id :width "100%" :height main-height}
-                  (dom/g #js {:id chart-pano-id :transform (str "translate(" left "," top ")")}                                                  
+         (dom/svg #js {:width main-width :height main-height}
+                  (dom/g #js {:id chart-pano-id :transform (str "translate(" left "," top ")")}
                          (dom/g #js {:className "y axis"}
                                 (dom/text #js {:transform "rotate(-90)"
-                                               :y         "6" :dy ".71em" :style #js {:textAnchor "end"}}
+                                               :y         "2" :dy ".71em" :style #js {:textAnchor "end"}}
                                           y-label))
                          (dom/g #js {:className "x axis" :transform (str "translate(0," chart-height ")")})
                          (dom/g #js {:className "x brush" :width chart-width :height chart-height}))))))))

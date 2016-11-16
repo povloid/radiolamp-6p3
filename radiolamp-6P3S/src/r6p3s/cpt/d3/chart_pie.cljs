@@ -173,7 +173,7 @@
       om/IRenderState
       (render-state [_ {:keys [chart-pano-id path-id chan-update]}]
         (dom/div
-         #js {:className "chart-frame"}
+         nil
          (dom/h4 #js {:className "" :style #js {:marginLeft left}} title)
          (when description
            (dom/p #js {:className "text-info" :style #js {:marginLeft left}} description))

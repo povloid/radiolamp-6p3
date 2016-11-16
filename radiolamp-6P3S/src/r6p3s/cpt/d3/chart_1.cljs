@@ -158,7 +158,7 @@
       om/IRenderState
       (render-state [_ {:keys [chart-pano-id path-id chan-update]}]
         (dom/div
-         #js {:className "chart-frame"}
+         nil
          (dom/h4 #js {:className "" :style #js {:marginLeft left}} title)
          (when description
            (dom/p #js {:className "text-info" :style #js {:marginLeft left}} description))
@@ -167,7 +167,7 @@
                          (dom/path #js {:id path-id})
                          (dom/g #js {:className "y axis"}
                                 (dom/text #js {:transform "rotate(-90)"
-                                               :y         "6" :dy ".71em" :style #js {:textAnchor "end"}}
+                                               :y         "2" :dy ".71em" :style #js {:textAnchor "end"}}
                                           y-label))
                          (dom/g #js {:className "x axis" :transform (str "translate(0," chart-height ")")})
                          (dom/g #js {:className "x brush" :width chart-width :height chart-height}))))))))

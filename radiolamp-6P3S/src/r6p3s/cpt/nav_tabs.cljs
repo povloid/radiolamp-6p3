@@ -58,12 +58,14 @@
 
 (defn component [app _ {:keys [justified?
                                type
-                               chan-update]
+                               chan-update
+                               on-select-fn]
                         :or   {type "nav-pills"}}]
   (letfn [(on-click [i]
             (c/on-click-com-fn
              (fn []
                (om/update! app :active-tab i)
+               (when on-select-fn (on-select-fn i))
                (when chan-update
                  (put! chan-update i)))))]
     (reify
