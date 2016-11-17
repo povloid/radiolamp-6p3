@@ -22,7 +22,10 @@
                    bottom
                    x-value-fn
                    y-value-fn
+                   y-value-label-fn
                    y-label
+                   min-p
+                   max-p
                    title
                    description
                    fill
@@ -34,6 +37,8 @@
                    rigth       15
                    bottom      20
                    y-label     ""
+                   min-p       1
+                   max-p       1.1
                    fill        "orange"
                    over-fill   "rebeccapurple"}}]
 
@@ -65,7 +70,7 @@
                           (.rangeRoundBands #js [0 chart-height] 0.1))
 
               x-scale (-> js/d3 .-scale .linear
-                          (.domain (d3c/min-max y-value-fn min 1 max 1.1 data))
+                          (.domain (d3c/min-max y-value-fn min min-p max max-p data))
                           (.range  #js [0 chart-width]))
 
               x-axis (-> js/d3 .-svg .axis (.scale x-scale) (.orient "bottom"))
@@ -128,12 +133,16 @@
             (-> texts
                 ;;(.style "text-anchor" "middle")
                 (.attr "x" (fn [row]
-                                 (let [d (x-scale (y-value-fn row))]
+                             (let [d (x-scale (y-value-fn row))]
                                    (+ 2 (if (< 1 d) d 1)))))                
                 (.attr "y" #(+
                              (y-scale (x-value-fn %))
                              (/ (.rangeBand y-scale) 2)))
-                (.text (fn [row] (str (y-value-fn row)))))
+                (.text (fn [row]
+                         (str
+                          (if y-value-label-fn
+                            (y-value-label-fn row)
+                            (y-value-fn row))))))
 
             (-> texts
                 .exit
