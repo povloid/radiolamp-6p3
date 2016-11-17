@@ -38,7 +38,7 @@
 (defn get-selected-one [app]
   (first (get-selected app)))
 
-(defn component [app own {:keys [selection-type onClick-fn]}]
+(defn component [app own {:keys [selection-type onClick-fn style]}]
   (reify
     om/IRender
     (render [_]
@@ -60,5 +60,6 @@
                         (when onClick-fn (onClick-fn)))
                       :text      text}))))
            (apply
-            dom/div #js {:className "btn-group" :role "group"})))))
+            dom/div #js {:className "btn-group" :role "group"
+                         :style style})))))
 
