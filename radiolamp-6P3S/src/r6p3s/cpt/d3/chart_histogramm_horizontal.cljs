@@ -29,7 +29,8 @@
                    title
                    description
                    fill
-                   over-fill]
+                   over-fill
+                   style]
             :or   {main-width  d3c/full-screen-width
                    main-height 300
                    top         15
@@ -151,7 +152,7 @@
       om/IRenderState
       (render-state [_ {:keys [chart-pano-id path-id chan-update]}]
         (dom/div
-         nil
+         #js {:style style}
          (dom/h4 #js {:className "" :style #js {:marginLeft 60}} title)
          (when description
            (dom/p #js {:className "text-info" :style #js {:marginLeft 60}} description))

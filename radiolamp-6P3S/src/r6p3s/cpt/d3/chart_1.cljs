@@ -135,7 +135,7 @@
               (.select (str "#" path-id))
               (.datum data-array)
               (.attr "d" area-1)
-              (.style "fill" "blueviolet"))
+              (.style "fill" "deepskyblue"))
 
           (-> chart-pano
               (.selectAll "g.y.axis")
