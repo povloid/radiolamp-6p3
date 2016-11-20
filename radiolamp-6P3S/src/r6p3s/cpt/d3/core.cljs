@@ -27,5 +27,9 @@
              [min-v max-v] (reduce
                             (fn [[min-v max-v] row]
                               [(f-min min-v (f-v row)) (f-max max-v (f-v row))])
-                            [v v] t)]
+                            [v v] t)
+             [min-v max-v] (if (= min-v max-v)
+                             [(- min-v max-v) max-v]
+                             [min-v           max-v])]
+         
          (into-array [(* min-v margin-k-min) (* max-v margin-k-max)])))))
