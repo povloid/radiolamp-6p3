@@ -26,7 +26,10 @@
                    title
                    description
                    fill
-                   over-fill]
+                   over-fill
+                   min-p
+                   min-v
+                   max-p]
             :or   {main-width  d3c/full-screen-width
                    main-height 300
                    top         15
@@ -35,8 +38,10 @@
                    bottom      20
                    y-label     ""
                    fill        "orange"
-                   over-fill   "rebeccapurple"}}]
-
+                   over-fill   "rebeccapurple"
+                   min-p       1
+                   max-p       1.1}}]
+  
   (let [chart-width  (- main-width left rigth)
         chart-height (- main-height top bottom)]
     (reify
@@ -64,7 +69,9 @@
                           (.rangeRoundBands #js [0 chart-width] 0.1))
 
               y-scale (-> js/d3 .-scale .linear
-                          (.domain (d3c/min-max y-value-fn min 1 max 1.1 data))
+                          (.domain (if (not (nil? min-v))
+                                     (d3c/min-max y-value-fn (fn [_] min-v) min-p max max-p data)
+                                     (d3c/min-max y-value-fn min            min-p max max-p data)))
                           (.range  #js [chart-height 0]))
 
               x-axis (-> js/d3 .-svg .axis (.scale x-scale) (.orient "bottom"))

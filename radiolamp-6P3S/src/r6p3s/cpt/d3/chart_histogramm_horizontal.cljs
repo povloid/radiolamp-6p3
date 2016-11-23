@@ -24,6 +24,7 @@
                    y-value-fn
                    y-value-label-fn
                    y-label
+                   min-v
                    min-p
                    max-p
                    title
@@ -71,7 +72,9 @@
                           (.rangeRoundBands #js [0 chart-height] 0.1))
 
               x-scale (-> js/d3 .-scale .linear
-                          (.domain (d3c/min-max y-value-fn min min-p max max-p data))
+                          (.domain (if (not (nil? min-v))
+                                     (d3c/min-max y-value-fn (fn [_] min-v) min-p max max-p data)
+                                     (d3c/min-max y-value-fn min            min-p max max-p data)))
                           (.range  #js [0 chart-width]))
 
               x-axis (-> js/d3 .-svg .axis (.scale x-scale) (.orient "bottom"))
