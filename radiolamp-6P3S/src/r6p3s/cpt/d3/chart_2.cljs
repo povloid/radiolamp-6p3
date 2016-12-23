@@ -306,8 +306,21 @@
                   (.attr "x1" 0)
                   (.attr "y1" 0)
                   (.attr "x2" 0)
-                  (.attr "y2" 0))))
+                  (.attr "y2" 0))
 
+
+              (-> chart-pano
+                  (.selectAll "g.charting.pathes circle")
+                  .remove)
+              
+              (-> chart-pano
+                  (.selectAll "g.charting.pathes text")
+                  .remove)
+
+              (when on-selected-fn
+                (on-selected-fn {:interval [] :selected-rows []}))
+
+              ))
           ))
 
       om/IRenderState
