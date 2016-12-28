@@ -38,6 +38,14 @@
 (defn get-selected-one [app]
   (first (get-selected app)))
 
+(defn set-selected [app ks]
+  (let [ks (set ks)]
+    (update-in app [:buttons]
+               #(->> %
+                     (map (fn [{:keys [key] :as row}]                       
+                            (assoc row :value (contains? ks key))))
+                     vec))))
+
 (defn component [app own {:keys [selection-type onClick-fn style]}]
   (reify
     om/IRender
@@ -62,4 +70,3 @@
            (apply
             dom/div #js {:className "btn-group" :role "group"
                          :style style})))))
-
