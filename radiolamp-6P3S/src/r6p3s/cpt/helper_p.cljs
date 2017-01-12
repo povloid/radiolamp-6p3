@@ -39,16 +39,19 @@
 
 
 
+
+(defn clean-text [app]
+  (dissoc app
+          :text-muted
+          :text-primary
+          :text-success
+          :text-info
+          :text-warning
+          :text-danger))
+
+
 (defn clean [app]
-  (om/transact! app
-                (fn [app]
-                  (dissoc app
-                          :text-muted
-                          :text-primary
-                          :text-success
-                          :text-info
-                          :text-warning
-                          :text-danger))))
+  (om/transact! app clean-text))
 
 (defn clean-and-set!! [app k message]
   (om/transact! app (fn [app]

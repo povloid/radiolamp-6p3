@@ -42,31 +42,36 @@
                      onChange-updated-valid-fn
                      onChange-updated-fn
                      onKeyPress-fn
+                     onKeyDown-fn
+                     onKeyUp-fn
                      placeholder
                      readonly?
                      min max step]
               :or   {class+             ""
                      type               "text"
                      onChange-valid?-fn (fn [_ _] true)
-                     onKeyPress-fn      (fn [_] nil)
+                     ;;onKeyPress-fn      (fn [_] nil)
+                     ;;onKeyUp-fn         (fn [_] nil)
                      placeholder        ""
                      }}]
   (reify
     om/IRender
     (render [this]
       (let [value (or (:value @app) "")]
-        (dom/input #js {:value       value
-                        :onChange    (fn [e]
-                                       (let [new-value (.. e -target -value)]
-                                         (when (onChange-valid?-fn app new-value)
-                                           (when onChange-updated-valid-fn
-                                             (onChange-updated-valid-fn)))
-                                         
-                                         (om/update! app :value new-value)
-                                         
-                                         (when onChange-updated-fn
-                                           (onChange-updated-fn))))
+        (dom/input #js {:value    value
+                        :onChange (fn [e]
+                                    (let [new-value (.. e -target -value)]
+                                      (when (onChange-valid?-fn app new-value)
+                                        (when onChange-updated-valid-fn
+                                          (onChange-updated-valid-fn)))
+                                      
+                                      (om/update! app :value new-value)
+                                      
+                                      (when onChange-updated-fn
+                                        (onChange-updated-fn))))
                         :onKeyPress  onKeyPress-fn
+                        :onKeyDown   onKeyDown-fn
+                        :onKeyUp     onKeyUp-fn
                         :type        type
                         :min         min :max max :step step
                         :placeholder placeholder
