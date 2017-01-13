@@ -81,7 +81,8 @@
                                          {:text     (glyphicon/render "fullscreen")
                                           :type     :default
                                           :size     :lg
-                                          :on-click #(put! image-full-screen-viewer/chan-show {:src src})})))
+                                          :on-click #(put! image-full-screen-viewer/chan-show
+                                                           {:src src :deg deg})})))
 
                       (dom/div #js {:className "btn-group"}
                                (button/render {:text     (glyphicon/render "chevron-left")

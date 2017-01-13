@@ -34,11 +34,13 @@
     (will-mount [this]
       (go
         (while true
-          (let [{:keys [path src title top_description description]}
+          (let [{:keys [path src title top_description description deg]
+                 :or   {deg (@app :deg)}}
                 (<! chan-show)]
             (println "<<[SHOW FULL SCREEN PHOTO]>>")
             (om/transact!
              app #(assoc % :src (or path src)
+                         :deg deg
                          :descrioption description
                          :top_description (or top_description title)))))))
     om/IRender
@@ -47,8 +49,8 @@
         (let [{:keys [deg zoom?]} @app
               deg-2               (str "rotate(" deg "deg)")]
           (dom/div
-           #js {:style #js {:position "fixed" :zIndex           3000
-                            :top      0       :bottom           0 :left 0 :right 0
+           #js {:style #js {:position "fixed" :zIndex          3000
+                            :top      0       :bottom          0 :left 0 :right 0
                             :overflow "auto"  :backgroundColor "rgba(0, 0, 0, 0.7)"}}
 
            (dom/div #js {:style #js {:position "fixed" :left 0 :top 0 :zIndex 3005}}
