@@ -6,14 +6,14 @@
 
 
 
-
-#_(def app-init
-    {:alert-muted   nil
-     :alert-primary nil
-     :alert-success nil
-     :alert-info    nil
-     :alert-warning nil
-     :alert-danger  nil})
+;; Вид структуры данных
+;; (def app-init
+;;     {:alert-muted   nil
+;;      :alert-primary nil
+;;      :alert-success nil
+;;      :alert-info    nil
+;;      :alert-warning nil
+;;      :alert-danger  nil})
 
 
 (defn component [app _]

@@ -49,36 +49,40 @@
         (let [{:keys [deg zoom?]} @app
               deg-2               (str "rotate(" deg "deg)")]
           (dom/div
-           #js {:style #js {:position "fixed" :zIndex          3000
-                            :top      0       :bottom          0 :left 0 :right 0
-                            :overflow "auto"  :backgroundColor "rgba(0, 0, 0, 0.7)"}}
-
+           #js {:className "image-full-screen-viewer"}
            (dom/div #js {:style #js {:position "fixed" :left 0 :top 0 :zIndex 3005}}
-                    (dom/button #js {:className "close"
-                                     :onClick   #(om/transact! app :zoom? not)}
-                                (glyphicon/render (if zoom? "zoom-out" "zoom-in") "" "3em"))
-                    (dom/button #js {:className "close"
-                                     :onClick   #(om/transact!
-                                                  app :deg (fn [deg]
-                                                             (let [deg (+ deg 90)]
-                                                               (if (> deg 270) 0 deg))))}
-                                (glyphicon/render "retweet" "" "3em")))
+                     (dom/button #js {:className ""
+                                      :onClick   #(om/transact! app :zoom? not)}
+                                 (glyphicon/render (if zoom? "zoom-out" "zoom-in") "" "3em"))
+                     (dom/button #js {:className ""
+                                      :onClick   #(om/transact!
+                                                   app :deg (fn [deg]
+                                                              (let [deg (+ deg 90)]
+                                                                (if (> deg 270) 0 deg))))}
+                                 (glyphicon/render "retweet" "" "3em")))
 
-           (dom/button #js {:className "close"
-                            :style     #js {:position "fixed" :right 0 :top 0 :zIndex 3005}
-                            :onClick   (fn []
-                                         (om/transact!
-                                          app #(assoc % :src nil :descrioption nil
-                                                      :top_description nil))
-                                         1)}
-                       (glyphicon/render "remove" "" "3em"))
+            (dom/button #js {:className ""
+                             :style     #js {:position "fixed" :right 0 :top 0 :zIndex 3005}
+                             :onClick   (fn []
+                                          (om/transact!
+                                           app #(assoc % :src nil :descrioption nil
+                                                       :top_description nil))
+                                          1)}
+                        (glyphicon/render "remove" "" "3em"))
+           
+           (dom/div
+            #js {:style #js {:position "fixed" :zIndex          3000
+                             :top      0       :bottom          0 :left 0 :right 0
+                             :overflow "auto"  :backgroundColor "black"}}
 
-           (dom/img #js {:src   src
-                         :style #js {:msTransform     deg-2
-                                     :WebkitTransform deg-2
-                                     :transform       deg-2
-                                     ;;:height (if (#{90 270} deg) (if zoom? nil (.-innerWidth js/window)) nil)
-                                     :width           (if zoom? nil (.-innerWidth  js/window))}})))))))
+            
+
+            (dom/img #js {:src   src
+                          :style #js {:msTransform     deg-2
+                                      :WebkitTransform deg-2
+                                      :transform       deg-2
+                                      ;;:height (if (#{90 270} deg) (if zoom? nil (.-innerWidth js/window)) nil)
+                                      :width           (if zoom? nil (.-innerWidth  js/window))}}))))))))
 
 
 ;; Инициализация

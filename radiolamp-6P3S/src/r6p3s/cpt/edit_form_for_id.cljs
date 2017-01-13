@@ -90,12 +90,12 @@
                      (fn [result]
                        (when post-save-fn (post-save-fn result))
                        ;; SUCCESS MESSAGE
-                       (om/transact! app #(assoc % :alert-danger nil :alert-success "Сохранено успешно")))
+                       (om/transact!
+                        app #(assoc % :alert-danger nil :alert-success "Сохранено успешно")))
 
                      (fn [error-response]
-                       (om/transact! app #(assoc % :alert-danger
-                                                 (str "Ошибка сохранения: " error-response))))
-                     )
+                       (om/transact!
+                        app #(assoc % :alert-danger (str "Ошибка сохранения: " error-response)))))
 
                     ;; иначе альтернитиваная функция
                     (when post-save-fn
@@ -113,11 +113,16 @@
     om/IRender
     (render [_]
       (dom/div ;; Common mistakes - Form inside of another form
-       #js {:className "form-horizontal col-xs-12 col-sm-12 col-md-12 col-lg-12"}
+       #js {:className "form-horizontal col-xs-12 col-sm-12 col-md-12 col-lg-12"
+            :style     #js {:paddingTop 6}}
        ;; HELPER FOR MESSAGES
-       (om/build alert/component app)
+       ;; Такой вариант сбивает форму в диалогах
+       ;;(om/build alert/component app)
 
        (if form-body
          form-body
-         (dom/h1 nil "Элементы формы еще не определены"))))))
+         (dom/h1 nil "Элементы формы еще не определены"))
 
+       (dom/br nil)
+       ;; HELPER FOR MESSAGES
+       (om/build alert/component app)))))
