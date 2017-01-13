@@ -51,17 +51,17 @@
 
 
 
-(defn get-selected [app]
+(defn selected [app]
   (:selected app))
 
 
-(defn set-selected
+(defn selected-set
   ([app row]
-   (set-selected app row {:text-fn :keyname}))
+   (selected-set app row {:text-fn :keyname}))
   ([app row {:keys [text-fn]}]
    (-> app
        (assoc :selected row)
-       (update-in [:input] input/set-value! (text-fn row)))))
+       (update-in [:input] input/set-value! (or (text-fn row) "")))))
 
 
 (def select-step-omut (partial select-step [:omut-row :selected]))
@@ -92,8 +92,8 @@
                                   vec
                                   (put! chan-ret-data))))
         ui-row-fn      (or ui-row-fn
-                           (fn [row]
-                             [(dom/td nil (text-fn @row))]))]
+                           (fn [row-v]
+                             [(dom/td nil (text-fn row-v))]))]
 
     (reify
       om/IInitState
@@ -130,7 +130,7 @@
                        input/value
                        (search-data-fn chan-ret-data)))
 
-                (get-selected []
+                (selected []
                   (->> @app
                        :data
                        (filter #(get-in % [:omut-row :selected]))
@@ -158,9 +158,9 @@
                     (do
                       (om/transact!
                        app (fn [app]
-                             (let [selected (get-selected)]
+                             (let [selected (selected)]
                                (if (empty? selected)
-                                 app (set-selected app selected {:text-fn text-fn})))))
+                                 app (selected-set app selected {:text-fn text-fn})))))
                       (om/set-state! own :show-popup? false))
                     ;; Или повторно открываем поиск...
                     (open)))]
@@ -176,6 +176,7 @@
                                         :text     (glyphicon/render "remove")}))
 
 
+              
               (om/build input/component (app :input)
                         {:opts {:placeholder         "Введите текст для поиска..."
                                 :onKeyDown-fn
@@ -217,7 +218,7 @@
               #js {:style #js {:display    (if show-popup? "" "none")
                                :position   "absolute"
                                :width      "100%"
-                               :zIndex     1
+                               :zIndex     10
                                :boxShadow  "0px 2px 8px"
                                :background "white"}}
               (table/render {:hover?      true
@@ -247,7 +248,7 @@
                        (button/render
                         {:type      :primary
                          :on-click  select-value
-                         :disabled? (empty? (get-selected))
+                         :disabled? (empty? (selected))
                          :text      (dom/span nil
                                               (glyphicon/render "ok")
                                               " Выбрать")})
@@ -259,9 +260,8 @@
                                              " Закрыть")})))
 
              ;; Отображаем выбраное
-             (if (app-v :selected)
-               (->> app
-                    :selected
+             (if-let [selected (app-v :selected)]
+               (->> selected
                     ui-row-fn
                     (apply dom/tr nil)
                     (dom/tbody nil)
