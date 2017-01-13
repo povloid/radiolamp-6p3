@@ -49,12 +49,12 @@
          :chart-pano-id (rc/uniq-id "chart-pano")
          :chart-pano    nil})
 
-      ;; om/IDidMount
-      ;; (did-mount [_]
-      ;;   (let [{:keys [chart-pano-id]} (om/get-state own)]
-      ;;     (println "OM: chart-pie -> did-mount")
-      ;;     (let [svg-pano (.select js/d3 (str "#" chart-pano-id))]
-      ;;       (om/set-state! own :chart-pano svg-pano))))
+      om/IDidMount
+      (did-mount [_]
+        (let [{:keys [chart-pano-id]} (om/get-state own)]
+          (println "OM: chart-pie -> did-mount")
+          (let [svg-pano (.select js/d3 (str "#" chart-pano-id))]
+            (om/set-state! own :chart-pano svg-pano))))
 
 
       om/IDidUpdate
