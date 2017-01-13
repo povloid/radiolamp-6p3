@@ -115,30 +115,30 @@
                         :tabIndex        "-1"}
 
 
-                   (dom/button #js {:type         "button" :className  "close"
-                                    :data-dismiss "modal"  :aria-label "Close"
-                                    :style        #js {:position "fixed"
-                                                       :top      "10%"
-                                                       :right    35
-                                                       :zIndex   5
-                                                       :fontSize "2.5em"}
-                                    :onClick      (fn []
-                                                    (set! (.-scrollTop (.getElementById js/document (om/get-state owner :id))) 0))}
-                               (glyphicon/render "triangle-top"))
-
-                   (dom/button #js {:type         "button" :className  "close"
-                                    :data-dismiss "modal"  :aria-label "Close"
-                                    :style        #js {:position "fixed"
-                                                       :bottom   "10%"
-                                                       :right    35
-                                                       :zIndex   5
-                                                       :fontSize "2.5em"}
-                                    :onClick      (fn []
-                                                    (let [e (.getElementById js/document (om/get-state owner :id))]
-                                                      (set! (.-scrollTop e) (.-scrollHeight e))))}
-                               (glyphicon/render "triangle-bottom"))
-
-
+                   (button/render {:style #js {:position     "fixed"
+                                               :top          "15%"
+                                               :right        25
+                                               :zIndex       5
+                                               :borderRadius 25
+                                               :width        40
+                                               :height       40}
+                                   :on-click
+                                   (fn []
+                                     (set! (.-scrollTop (.getElementById js/document (om/get-state owner :id))) 0))
+                                   :text  (glyphicon/render "chevron-up")})
+                   
+                   (button/render {:style #js {:position     "fixed"
+                                               :bottom       "15%"
+                                               :right        25
+                                               :zIndex       5
+                                               :borderRadius 25
+                                               :width        40
+                                               :height       40}
+                                   :on-click
+                                   (fn []
+                                     (let [e (.getElementById js/document (om/get-state owner :id))]
+                                       (set! (.-scrollTop e) (.-scrollHeight e))))
+                                   :text  (glyphicon/render "chevron-down")})
 
                    (dom/div #js {:className (str "modal-dialog"
                                                  (condp = modal-size
