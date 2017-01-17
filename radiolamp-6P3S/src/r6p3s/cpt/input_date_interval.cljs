@@ -70,8 +70,10 @@
       (let [app-v @app]
         (dom/div #js {:className class-name :style style}
 
-                 (dom/div #js {:className "col-xs-12 col-sm-12 col-md-12 col-lg-12"}
-                          (dom/div #js {:className "col-xs-12 col-sm-6 col-md-6 col-lg-6"}
+                 (dom/div #js {:className "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+                               :style     #js {:paddingRight 0 :paddingLeft 0}}
+                          (dom/div #js {:className "col-xs-12 col-sm-6 col-md-6 col-lg-6"
+                                        :style     #js {:paddingRight 0 :paddingLeft 0}}
                                    (om/build input/component-form-group (app :from-date)
                                              {:opts {:label       "с даты"
                                                      :label-style #js {:textAlign "right"}
@@ -79,7 +81,8 @@
                                                                    :placeholder               "yyyy-MM-dd"
                                                                    :onChange-valid?-fn        common-input/vldfn-not-empty-date
                                                                    :onChange-updated-valid-fn #(put! chan-update 1)}}}))
-                          (dom/div #js {:className "col-xs-12 col-sm-6 col-md-6 col-lg-6"}
+                          (dom/div #js {:className "col-xs-12 col-sm-6 col-md-6 col-lg-6"
+                                        :style     #js {:paddingRight 0 :paddingLeft 0}}
                                    (om/build input/component-form-group (app :to-date)
                                              {:opts {:label       "по дату"
                                                      :label-style #js {:textAlign "right"}
