@@ -16,16 +16,29 @@
           :data      []}
          paginator/app-init))
 
-(defn app-data [app]
-  (@app :data))
 
-(defn app-data-selected [app]
-  (->> @app
-       :data
+
+
+(defn data [app-v]
+  (app-v :data))
+
+(defn selected [app-v]
+  (->> app-v data
        (filter c/omut-row-selected?)))
 
+(defn selected-first [app-v]
+  (first (selected app-v)))
+
+
+
+(defn app-data [app]
+  (data @app))
+
+(defn app-data-selected [app]
+  (selected @app))
+
 (defn app-data-selected-first [app]
-  (first (app-data-selected app)))
+  (selected-first @app))
 
 
 (defn component [app owner
