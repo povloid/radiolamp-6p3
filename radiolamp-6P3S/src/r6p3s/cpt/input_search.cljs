@@ -17,33 +17,6 @@
 (defn component [app own {:keys [input-placeholder chan-update clear-fn enter-fn add-fn class+]
                           :or {input-placeholder  "введите сюда поисковый запрос"}}]
   (reify
-    ;; om/IInitState
-    ;; (init-state [_]
-    ;;   {:chan-update (chan)})
-
-    ;; om/IWillMount
-    ;; (will-mount [this]
-    ;;   (let [{:keys [chan-update]} (om/get-state own)]
-    ;;     (println "OM: componenet -> will-mount")
-
-    ;;     (go
-    ;;       (while true
-    ;;         (let [_ (<! chan-update)]
-    ;;           (println "OM: componenet -> chan-update -> run! "))))
-
-    ;;     (put! chan-update 1)))
-
-    ;; om/IDidMount
-    ;; (did-mount [_]
-    ;;   (let [{:keys []} (om/get-state own)]
-    ;;     (println "OM: componenet -> did-mount")))
-
-    ;; om/IWillUnmount
-    ;; (will-unmount [_]
-    ;;   (let [{:keys []} (om/get-state own)]
-    ;;     (println "OM: componenet -> will-unmount")))
-
-
     om/IRenderState
     (render-state [_ _]
       (dom/div #js {:className (str "input-group " class+) :style #js {:marginBottom 6}}

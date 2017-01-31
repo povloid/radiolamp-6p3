@@ -1,20 +1,16 @@
 (ns r6p3s.yandex.ymap
   (:require-macros [cljs.core.async.macros :refer [go]])
-
   (:require [cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
 
             [goog.dom.classes :as gdc]
 
-
             [r6p3s.net :as rnet]
             [r6p3s.core :as rc]
 
             [clojure.set :as clojset]
-            [clojure.string :as clojstr]
-            )
-
+            [clojure.string :as clojstr])
   (:import [goog.dom query]))
 
 
@@ -50,7 +46,7 @@
            (clj->js {"geometry"   (clj->js {:coordinates coordinates
                                             :type        type})
                      "properties" (clj->js {:balloonContentHeader balloon-content-header
-                                            :balloonContentBody   balloon-content-body                                        
+                                            :balloonContentBody   balloon-content-body
                                             :iconContent          icon-content
                                             :hintContent          hint-content
                                             })

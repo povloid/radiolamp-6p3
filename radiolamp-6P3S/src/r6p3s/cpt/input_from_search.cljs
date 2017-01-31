@@ -32,8 +32,7 @@
 
 (defn app-init [search-view-app-init]
   {:modal (assoc modal/app-init :search-view search-view-app-init)
-   :sel   []
-   })
+   :sel   []})
 
 (defn get-selected [app]
   (:sel app))

@@ -7,7 +7,7 @@
                       heading heading-2
                       on-click-fn
                       on-click-in-image-fn
-                      href
+                      href target
                       style
                       body
                       button-do-fn
@@ -18,7 +18,8 @@
   (dom/div #js {:className (str "media " (or class+ "")) :style style
                 :onClick   on-click-fn}
            (dom/div #js {:className "media-left"}
-                    (dom/a #js {:href    href
+                    (dom/a #js {:target  target
+                                :href    href
                                 :onClick (fn [e]
                                            (when on-click-in-image-fn (on-click-in-image-fn))
                                            ;; Далее прервать выполнение события для родительского

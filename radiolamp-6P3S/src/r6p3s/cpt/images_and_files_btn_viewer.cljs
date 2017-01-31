@@ -41,6 +41,7 @@
                               (media/render
                                {:media-object (glyphicon/render "file" "" "2em")
                                 :href         path
+                                :target       "_blank"
                                 :on-click-fn
                                 (fn [e]
                                   ;; Далее прервать выполнение события для родительского
