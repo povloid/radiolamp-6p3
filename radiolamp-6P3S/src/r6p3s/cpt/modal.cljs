@@ -96,40 +96,44 @@
       om/IRenderState
       (render-state [this {id :id}]
         ;;(println "modal id:" id)
-        (let [show? (:show app)]
-          (swap! modals-status (if show? conj disj) id)
+        (let [show?                 (:show app)
+              modals-status-v       (swap! modals-status (if show? conj disj) id)
+              modals-status-v-count (count modals-status-v)]
+          
           (dom/div
            #js {:style (if show?
                          #js {:display     "block"
                               :paddingLeft 0}
                          #js {:display "none" })}
 
-           (button/render {:style #js {:position     "fixed"
-                                       :top          "15%"
-                                       :right        25
-                                       :zIndex       2000
-                                       :borderRadius 25
-                                       :width        50
-                                       :height       50}
-                           :size  :lg
-                           :on-click
-                           (fn []
-                             (set! (.-scrollTop (.getElementById js/document (om/get-state owner :id))) 0))
-                           :text  (glyphicon/render "chevron-up")})
-
-           (button/render {:style #js {:position     "fixed"
-                                       :bottom       "15%"
-                                       :right        25
-                                       :zIndex       2000
-                                       :borderRadius 25
-                                       :width        50
-                                       :height       50}
-                           :size  :lg
-                           :on-click
-                           (fn []
-                             (let [e (.getElementById js/document (om/get-state owner :id))]
-                               (set! (.-scrollTop e) (.-scrollHeight e))))
-                           :text  (glyphicon/render "chevron-down")})
+           (when (= 1 modals-status-v-count)
+             (button/render {:style #js {:position     "fixed"
+                                         :top          "15%"
+                                         :right        25
+                                         :zIndex       2000
+                                         :borderRadius 25
+                                         :width        50
+                                         :height       50}
+                             :size  :lg
+                             :on-click
+                             (fn []
+                               (set! (.-scrollTop (.getElementById js/document (om/get-state owner :id))) 0))
+                             :text  (glyphicon/render "chevron-up")}))
+           
+           (when (= 1 modals-status-v-count)
+             (button/render {:style #js {:position     "fixed"
+                                         :bottom       "15%"
+                                         :right        25
+                                         :zIndex       2000
+                                         :borderRadius 25
+                                         :width        50
+                                         :height       50}
+                             :size  :lg
+                             :on-click
+                             (fn []
+                               (let [e (.getElementById js/document (om/get-state owner :id))]
+                                 (set! (.-scrollTop e) (.-scrollHeight e))))
+                             :text  (glyphicon/render "chevron-down")}))
 
            (dom/div #js {:id              id
                          :aria-hidden     "true"

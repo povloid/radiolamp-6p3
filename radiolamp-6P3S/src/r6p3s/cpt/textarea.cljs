@@ -17,6 +17,8 @@
 
 (defn component [app owner {:keys [class+
                                    onChange-valid?-fn
+                                   onChange-updated-valid-fn
+                                   onChange-updated-fn
                                    onKeyPress-fn
                                    placeholder
                                    readonly
@@ -40,9 +42,15 @@
     (render [this]
       (dom/textarea #js {:value       (or (:value @app) "")
                          :onChange    (fn [e]
-                                        (let [v (.. e -target -value)]
-                                          (when (onChange-valid?-fn app v)
-                                            (om/update! app :value v))))
+                                        (let [new-value (.. e -target -value)]
+                                          (when (onChange-valid?-fn app new-value)
+                                            (when onChange-updated-valid-fn
+                                              (onChange-updated-valid-fn)))
+
+                                          (om/update! app :value new-value)
+
+                                          (when onChange-updated-fn
+                                            (onChange-updated-fn))))
                          :onKeyPress  onKeyPress-fn
                          :placeholder placeholder
                          :className   (str "form-control " class+)

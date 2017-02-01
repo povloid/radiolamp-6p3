@@ -7,6 +7,7 @@
             [r6p3s.net :as rnet]
             [r6p3s.core :as c]
             [r6p3s.common-input :as common-input]
+            [r6p3s.ui.glyphicon :as glyphicon]
             [r6p3s.ui.button :as button]
             [r6p3s.ui.table :as table]
             [r6p3s.ui.tbody :as tbody]
@@ -57,9 +58,11 @@
                          one--row-to-text-fn
                          multi-table-caption
                          label-class+              
-                         input-class+             
+                         input-class+
+                         modal-header
                          ]
-                  :or   {class+                    ""
+                  :or   {modal-header              "Поиск..."
+                         class+                    ""
                          selection-type            :one
                          label-one                 "Выбрать ???"
                          label-multi               "Выбрано ???"
@@ -132,9 +135,10 @@
                                                                                    :aria-hidden "true"})
                                                           }))
                                 (dom/input #js {:value       (let [r (get-in @app [:sel 0])]
-                                                               (if one--row-to-text-fn
-                                                                 (one--row-to-text-fn r)
-                                                                 (:keyname r)))
+                                                               (cond
+                                                                 (empty? r)          "ничего не выбрано"
+                                                                 one--row-to-text-fn (one--row-to-text-fn r)
+                                                                 :else               (:keyname r)))
                                                 :placeholder placeholder
                                                 :className   "form-control"})
                                 (dom/span #js {:className "input-group-btn"}
@@ -215,6 +219,8 @@
 
          (om/build modal/component (:modal app)
                    {:opts {:modal-size :lg
+                           :header     (dom/span #js {:style #js {:fontSize "large"}}
+                                                 (glyphicon/render "search") " " modal-header)
                            :body       (om/build search-view (get-in app [:modal :search-view])
                                                  {:opts (merge {:selection-type selection-type} search-view-opts)})
                            :footer     (dom/div #js {:className "btn-toolbar  pull-right"}
