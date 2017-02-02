@@ -7,8 +7,8 @@
 
 
 
-(def label-class "col-xs-12 col-sm-4 col-md-3 col-lg-2")
-(def input-class "col-xs-12 col-sm-8 col-md-9 col-lg-10")
+(def label-class "col-xs-12 col-sm-4 col-md-3 col-lg-3")
+(def input-class "col-xs-12 col-sm-8 col-md-9 col-lg-9")
 
 
 (defn form-show-invalid-messages!! [app message & [input-app input-message]]

@@ -46,7 +46,7 @@
                             (assoc row :value (contains? ks key))))
                      vec))))
 
-(defn component [app own {:keys [selection-type onClick-fn style]}]
+(defn component [app own {:keys [selection-type onClick-fn style size]}]
   (reify
     om/IRender
     (render [_]
@@ -58,6 +58,7 @@
                      {:type      (or bs-type :default)
                       :active?   value
                       :disabled? disabled?
+                      :size      size
                       :on-click
                       (fn [_]
                         (when (= selection-type :one)
@@ -69,4 +70,4 @@
                       :text      text}))))
            (apply
             dom/div #js {:className "btn-group" :role "group"
-                         :style style})))))
+                         :style     style})))))
