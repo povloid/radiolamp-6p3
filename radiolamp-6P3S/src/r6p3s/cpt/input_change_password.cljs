@@ -3,6 +3,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [r6p3s.core :as c]
+            [r6p3s.common-form :as common-form]
             [r6p3s.common-input :as common-input]
             [r6p3s.cpt.input :as input]
             [r6p3s.cpt.helper-p :as helper-p]))
@@ -57,16 +58,16 @@
 (defn component-form-group  [app owner {:keys [label
                                                type
                                                label-class+
-                                               class+
+                                               label-class+
                                                spec-input]
                                         :or   {label        "Пароль"
-                                               label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                                               class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                                               label-class+ common-form/label-class
+                                               input-class+ common-form/input-class
                                                spec-input   {}}}]
   (reify
     om/IRender
     (render [this]
       (dom/div #js {:className (str "form-group " (common-input/input-css-string-has? app))}
                (dom/label #js {:className (str "control-label " label-class+) } label)
-               (dom/div #js {:className class+}
+               (dom/div #js {:className label-class+}
                         (om/build component app {:opts spec-input}))))))

@@ -3,6 +3,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [r6p3s.core :as c]
+            [r6p3s.common-form :as common-form]
             [r6p3s.common-input :as common-input]
             [r6p3s.cpt.input :as input]
             [r6p3s.cpt.helper-p :as helper-p]
@@ -43,8 +44,8 @@
                                                input-class+
                                                spec-input]
                                         :or   {label        "Метка"
-                                               label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                                               input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                                               label-class+ common-form/label-class
+                                               input-class+ common-form/input-class
                                                spec-input   {}}}]
   (reify
     om/IRender

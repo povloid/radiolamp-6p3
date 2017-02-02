@@ -4,6 +4,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [r6p3s.core :as rc]
+            [r6p3s.common-form :as common-form]
             [r6p3s.common-input :as common-input]
             [r6p3s.cpt.input :as input]
             [r6p3s.cpt.input-datetime :as input-datetime]
@@ -28,7 +29,10 @@
 
 
 
-(defn component [app own {:keys [selected-fn class-name style] :as opts}]
+(defn component [app own
+                 {:keys [selected-fn
+                         class-name style]
+                  :as opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -53,17 +57,6 @@
                     (let [selected-interval [from-date to-date]]
                       (println "OM: date-paginator -> call selected-fn -> " selected-interval)
                       (selected-fn selected-interval))))))))))
-
-    ;; om/IDidMount
-    ;; (did-mount [_]
-    ;;   (let [{:keys []} (om/get-state own)]
-    ;;     (println "OM: date-paginator -> did-mount")))
-
-    ;; om/IWillUnmount
-    ;; (will-unmount [_]
-    ;;   (let [{:keys []} (om/get-state own)]
-    ;;     (println "OM: date-paginator -> will-unmount")))
-
 
     om/IRenderState
     (render-state [_ {:keys [chan-update]}]

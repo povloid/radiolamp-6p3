@@ -5,6 +5,7 @@
             [om.dom :as dom :include-macros true]
             [r6p3s.net :as rnet]
             [r6p3s.core :as c]
+            [r6p3s.common-form :as common-form]
             [r6p3s.common-input :as common-input]
             [r6p3s.ui.button :as button]
             [r6p3s.ui.table :as table]
@@ -287,15 +288,15 @@
                      input-class+
                      spec-input]
               :or   {label        "Метка"
-                     label-class+ "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                     input-class+ "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                     label-class+ common-form/label-class
+                     input-class+ common-form/input-class
                      spec-input   {}}}]
   (reify
     om/IRender
     (render [this]
       (dom/div #js {:className (str "form-group " (common-input/input-css-string-has? app))}
                (dom/label #js {:className (str "control-label " label-class+)
-                               :style label-style} label)
+                               :style     label-style} label)
                (dom/div #js {:className input-class+ :style #js {}}
                         (om/build component app {:opts spec-input})
                         (om/build helper-p/component app {}))))))

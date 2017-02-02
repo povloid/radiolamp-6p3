@@ -6,6 +6,7 @@
             [r6p3s.io :as ix-io]
             [r6p3s.net :as rnet]
             [r6p3s.core :as c]
+            [r6p3s.common-form :as common-form]
             [r6p3s.common-input :as common-input]
             [r6p3s.ui.glyphicon :as glyphicon]
             [r6p3s.ui.button :as button]
@@ -72,8 +73,8 @@
                          ui-type--add-button--text "Выбрать..."
                          row-pk-fiels              [:id]
                          multi-table-caption       "Наименование"
-                         label-class+              "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                         input-class+              "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                         label-class+              common-form/label-class
+                         input-class+              common-form/input-class
                          }}]
   (fn [app _ {:keys [label-one
                      label-multi
@@ -94,8 +95,8 @@
                      ui-type--add-button--type ui-type--add-button--type
                      ui-type--add-button--text ui-type--add-button--text
                      on-selected-fn            on-selected-fn
-                     label-class+              "col-xs-12 col-sm-4 col-md-4 col-lg-4"
-                     input-class+              "col-xs-12 col-sm-8 col-md-8 col-lg-8"
+                     label-class+              common-form/label-class
+                     input-class+              common-form/input-class
                      search-view-opts          {}
                      multi-table-caption       multi-table-caption}}]
 
