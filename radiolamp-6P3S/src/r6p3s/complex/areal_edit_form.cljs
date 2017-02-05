@@ -20,7 +20,10 @@
           }))
 
 
-(defn component [app _ opts]
+(defn component [app _ {:keys [uri
+                               uri-upload-image]
+                        :or   {uri ""}
+                        :as   opts}]
   (reify
     om/IRender
     (render [_]
@@ -28,7 +31,7 @@
        edit-form-for-id/component app
        {:opts
         (merge opts
-               {:uri "/camerton/rb/areal/find"
+               {:uri (str uri "/areal/find")
                 :fill-app-fn
                 (fn [row]
                   (om/transact!
@@ -42,7 +45,7 @@
                          (assoc-in [:description :value] (get-in row [:description] ""))
                          (assoc-in [:logotype :image]    (get-in row [:logotype] ""))))))
 
-                :uri-save "/camerton/rb/areal/save"
+                :uri-save (str uri "/areal/save")
                 :app-to-row-fn
                 (fn []
                   (let [app-v @app]
@@ -67,7 +70,7 @@
                  (om/build one-image-uploader/component-form-group (get-in app [:logotype])
                            {:opts {:label "Логотип"
                                    :spec-one-image-uploader
-                                   {:uri "/camerton/upload/image"}}})
+                                   {:uri (or uri-upload-image "/upload/image")}}})
 
                  (om/build textarea/component-form-group (get-in app [:description])
                            {:opts {:label "Описание"}})

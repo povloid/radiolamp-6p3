@@ -28,12 +28,13 @@
       (korma.core/order :path_keynames)
       rc/com-exec))
 
-(defn rest-areal-find [{{id :id} :params}]
+(defn rest-areal-find [{{id :id} :params} _]
   (-> (if id
         (rc/com-find c/areal id)
         {})))
 
 (defn rest-areal-save [request {:keys [edit-role]}]
+  (println request edit-role)
   (rc/throw-when-no-role-from-request request edit-role)
   (let [{:keys [row]} (request :params)
         row (c/areal-save row)]

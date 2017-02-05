@@ -80,8 +80,10 @@
     :modal-yes-no (assoc modal-yes-no/app-init :row {})
     }))
 
-(defn component [app _ {:keys [selection-type editable?]
-                        :or   {selection-type :one}}]
+(defn component [app _ {:keys [uri uri-upload-image
+                               selection-type editable?]
+                        :or   {uri            ""
+                               selection-type :one}}]
   (reify
     om/IInitState
     (init-state [_]
@@ -98,7 +100,7 @@
           (cut-buffer-paste [parent_id]
             (if-let [child_id (get-in @app [:cut-buffer :id])]
               (rnet/get-data
-               "/camerton/rb/areal/save"
+               (str uri "/areal/save")
                {:row {:id child_id :parent_id parent_id}}
                (fn [_]
                  (om/update! app :cut-buffer nil)
@@ -135,7 +137,7 @@
                             {:chan-update chan-update
                              :data-update-fn
                              (fn [app]
-                               (rnet/get-data "/camerton/rb/areal/list"
+                               (rnet/get-data (str uri "/areal/list")
                                               {:fts-query (get-in @app [:fts-query :value])
                                                :page      (get-in @app [:page])}
                                               (fn [response]
@@ -200,6 +202,8 @@
 
                  (om/build modal-edit-form/component (:modal-add app)
                            {:opts {:label            "Работа с записью"
+                                   :uri              uri
+                                   :uri-upload-image uri-upload-image
                                    :chan-load-for-id chan-modal-add-id
                                    :post-save-fn     #(do
                                                         (when chan-update
@@ -219,7 +223,7 @@
                                      :act-yes-fn
                                      (fn []
                                        (rnet/get-data
-                                        "/camerton/rb/areal/delete"
+                                        (str uri "/areal/delete")
                                         {:id (get-in @app [:modal-yes-no :row :id])}
                                         (fn [_]
                                           (when chan-update
