@@ -1024,8 +1024,7 @@ SELECT * FROM r;
             (image-file_as_w_png file-src w)
 
             println))
-      (println "OK")
-      )))
+      (println "OK"))))
 
 (defn save-file [tempfile dir filename]
   (save-file-o tempfile dir filename {}))
