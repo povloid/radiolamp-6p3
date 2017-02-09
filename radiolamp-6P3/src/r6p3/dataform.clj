@@ -99,8 +99,15 @@
 
 
 
-(defn scheme-init [{main-map         :main-map
-                    {:keys [fields]} :rbs-sheme}]
+(defn scheme-init [{{:keys [entity-main entitys]
+                     :as   main-map}                :main-map
+                    {:keys [realtype-field fields]} :rbs-scheme}]
+  (make-sql-raw
+   (str
+    "ALTER TABLE " (:table entity-main)
+    " ADD COLUMN " (name realtype-field)
+    " character varying(50);"))
+  
   (map
    (fn [[field-k params]]
      (make-sql main-map field-k params))
@@ -119,6 +126,7 @@
 
 (defn rbs-data [{{:keys [entitys]} :main-map
                  {:keys [fields]}  :rbs-sheme}]
+  
   (if (empty? entitys) {} ;; если еще не проиниц. пропускаем
     (->> entitys seq
          (reduce
