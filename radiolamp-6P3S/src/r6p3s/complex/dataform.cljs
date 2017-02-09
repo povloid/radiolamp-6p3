@@ -35,11 +35,11 @@
                  {}))})
 
 
-(defn fill [app row {:keys [realtype-field] :as rbs-scheme}]
+(defn fill [app row rb-ks {:keys [realtype-field] :as rbs-scheme}]
   (-> app
       (update-in [:fields]
                  (fn [app]
-                   (let [rb-data (get-in row [:rb :dataform])]
+                   (let [rb-data (get-in row rb-ks)]
                      (->> rbs-scheme
                           :fields seq
                           (reduce
