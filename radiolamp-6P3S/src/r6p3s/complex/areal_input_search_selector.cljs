@@ -13,12 +13,11 @@
 (def selected-set input-search-selector/selected-set)
 
 
-
-(def opts-1
+(defn make-opts-1 [{:keys [uri]}]
   {:search-data-fn
    (fn [chan-ret-data text]
      (rnet/get-data
-      "/camerton/rb/areal/list"
+      uri
       {:fts-query text
        :page-size 10}
       (fn [response]
@@ -35,10 +34,10 @@
 (def component
   (fn [app own opts]
     (input-search-selector/component
-     app own (merge opts-1 opts))))
+     app own (merge (make-opts-1 opts) opts))))
 
 
 (def component-form-group
   (fn [app own opts]
     (input-search-selector/component-form-group
-     app own (merge {:spec-input opts-1} opts))))
+     app own (merge {:spec-input (make-opts-1 opts)} opts))))

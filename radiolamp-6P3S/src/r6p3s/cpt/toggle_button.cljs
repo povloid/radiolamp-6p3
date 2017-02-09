@@ -12,6 +12,11 @@
 (def app-init
   {:value false})
 
+(defn value [app] (get app :value))
+
+(defn set-value! [app value]
+  (assoc app :value value))
+
 (defn component [app _ {:keys [bs-type
                                class+
                                onClick-fn

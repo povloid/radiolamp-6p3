@@ -16,6 +16,9 @@
 
 (defn value [app] (get app :value))
 
+(defn set-value! [app value]
+  (assoc app :value value))
+
 (defn component [app owner {:keys [class+
                                    onChange-valid?-fn
                                    onChange-updated-valid-fn

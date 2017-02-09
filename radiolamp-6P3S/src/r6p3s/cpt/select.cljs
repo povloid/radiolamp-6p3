@@ -17,6 +17,8 @@
 (defn list-get [app]
   (app :list))
 
+
+
 (defn list-set! [app new-list]
   (assoc app :list new-list))
 
