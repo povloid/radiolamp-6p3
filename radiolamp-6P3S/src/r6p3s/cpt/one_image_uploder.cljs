@@ -29,7 +29,6 @@
 (defn value-set! [app v]
   (assoc app :image v))
 
-
 (defn component [app own {:keys [class+]
                           :as   opts}]
   (reify
