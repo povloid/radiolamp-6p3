@@ -107,7 +107,7 @@
     "ALTER TABLE " (:table entity-main)
     " ADD COLUMN " (name realtype-field)
     " character varying(50);"))
-  
+
   (map
    (fn [[field-k params]]
      (make-sql main-map field-k params))
@@ -126,21 +126,21 @@
 
 (defn rbs-data [{{:keys [entitys]} :main-map
                  {:keys [fields]}  :rbs-sheme}]
-  
+
   (if (empty? entitys) {} ;; если еще не проиниц. пропускаем
-    (->> entitys seq
-         (reduce
-          (fn [a [k ent]]
-            (->> (kc/select ent
-                            (kc/fields :id :keyname :rbtype)
-                            (kc/where (not (= :rbtype nil))))                           
-                 (group-by :rbtype)
-                 (reduce-kv
-                  (fn [a k v]
-                    (assoc a k (map #(dissoc % :rbtype) v)))
-                  {})
-                 (assoc a k)))
-          {}))))
+      (->> entitys seq
+           (reduce
+            (fn [a [k ent]]
+              (->> (kc/select ent
+                              (kc/fields :id :keyname :rbtype)
+                              (kc/where (not (= :rbtype nil))))
+                   (group-by :rbtype)
+                   (reduce-kv
+                    (fn [a k v]
+                      (assoc a k (map #(dissoc % :rbtype) v)))
+                    {})
+                   (assoc a k)))
+            {}))))
 
 
 ;;; END Korma tools
@@ -172,6 +172,44 @@
     (if (get-in data rb-ks)
       data
       (assoc-in data rb-ks (or (list-fn data) (list))))))
+
+
+
+
+
+(defn fill-rows-rb-values
+  "Заполняем справочными данними список записей"
+  [{{:keys [entitys]}      :main-map
+    {:keys [fields] :as a} :rbs-scheme}
+   rows]
+  (let [rbs (->> entitys
+                 (reduce-kv
+                  (fn [a k e]
+                    (println k e)
+                    (->> (kc/select e)
+                         (reduce #(assoc %1 (%2 :id) (dissoc %2 :id)) {})
+                         (assoc a k)))
+                  {}))
+
+        fm (->> fields
+                seq
+                (filter (comp #{:rbs} :type second)))]
+    (map
+
+     (fn [row]
+       (reduce
+        (fn [row [field-k {:keys [rbentity in-row]}]]
+          (if-let [id (row field-k)]
+            (assoc row in-row (get-in rbs [rbentity id]))
+            row))
+        row fm))
+
+     rows)))
+
+
+(defn fill-row-rb-values [dataform-scheme row]
+  (first (fill-rows-rb-values dataform-scheme [row])))
+
 
 
 

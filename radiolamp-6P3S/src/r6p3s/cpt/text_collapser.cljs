@@ -19,7 +19,7 @@
                                :size     :xs
                                :active?  (not (c/omut-row-collapsed? @app k))
                                :on-click #(c/omut-row-set-collapsed-not!! app k)})
-
+               " "
                (if (and (c/omut-row-collapsed? @app k) (> text-count 90))
                  (str (.substring text 0 89) "...")
                  text))))))

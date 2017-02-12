@@ -26,7 +26,7 @@
 (defn value [app]
   (get app :image))
 
-(defn value-set! [app v]
+(defn set-value! [app v]
   (assoc app :image v))
 
 (defn component [app own {:keys [class+]

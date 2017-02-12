@@ -1,6 +1,7 @@
 (ns r6p3s.ui.panel
   (:require [om.dom :as dom :include-macros true]
-            [r6p3s.ui.glyphicon :as gicon]))
+            [r6p3s.ui.glyphicon :as gicon]
+            [r6p3s.ui.font-icon :as font-icon]))
 
 
 
@@ -8,6 +9,7 @@
 (defn render [{:keys [heading
                       heading-style
                       heading-glyphicon
+                      heading-font-icon
                       badge
                       body
                       body-style
@@ -29,7 +31,11 @@
              (dom/div #js {:className "panel-heading" :style heading-style}
                       (when heading-glyphicon
                         (gicon/render heading-glyphicon))
-                      (when heading-glyphicon " ")
+                      (when heading-font-icon
+                        (font-icon/render heading-font-icon))
+                      (when (or  heading-glyphicon
+                                 heading-font-icon)
+                        " ")
                       heading
                       (when badge (dom/span #js {:className "badge"
                                                  :style     #js {:float "right"}} badge))))

@@ -13,7 +13,7 @@
             [r6p3s.ui.button :as button]
             [r6p3s.ui.thead-tr :as thead-tr]
             [r6p3s.ui.media :as media]
-            [r6p3s.ui.media-object :as media-object]
+            [r6p3s.ui.media-object-2 :as media-object-2]
             [r6p3s.ui.glyphicon :as glyphicon]
             [r6p3s.ui.th-title :as th-title]
             [r6p3s.cpt.tbody-trs-sel :as tbody-trs-sel]
@@ -26,16 +26,6 @@
 
 
 
-(defn media-object-render [logotype px]
-  (if (empty? logotype)
-    (glyphicon/render "tree-conifer" nil (str px "px"))
-    (media-object/render
-     {:class+ ""
-      :src (str logotype "_as_" px ".png")
-      :style #js {:width px}})))
-
-
-
 
 (defn row-view [app _ {:keys []}]
   (reify
@@ -45,7 +35,7 @@
         (media/render
          {:heading (dom/h4 #js {:className "text-primary"} keyname)
 
-          :media-object (media-object-render logotype 60)
+          :media-object (media-object-2/render logotype 60)
           :body         (dom/div nil
                                  (dom/span #js {:className "text-info"} path_keynames)
                                  (dom/hr #js {:style #js {:marginTop 4 :marginBottom 4}})
@@ -130,7 +120,7 @@
                               :body         (let [{:keys [id logotype keyname path_keynames description]} cut-buffer]
                                               (media/render
                                                {:heading      (dom/span #js {:className "text-primary"} keyname)
-                                                :media-object (media-object-render logotype 30)
+                                                :media-object (media-object-2/render logotype 30)
                                                 :body         (dom/span #js {:className "text-info"} path_keynames)}))})))
                  (om/build search-view/component app
                            {:opts
@@ -151,7 +141,7 @@
                                               :thead       (thead-tr/render [(th-title/render
                                                                               {:colspan    1
                                                                                :class-name "rb-th-title"
-                                                                               :icon       "icon-cam-location2"
+                                                                               :icon       "glyphicon glyphicon-globe"
                                                                                :title      "Географические области"})])
                                               :tbody
                                               (om/build tbody-trs-sel/component  (:data app-2)

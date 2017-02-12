@@ -29,6 +29,12 @@
                :icon "eye-open"}})})
 
 
+(defn value [app] (get app :value))
+
+(defn set-value! [app value]
+  (assoc app :value value))
+
+
 
 (defn component [app own
                  {:keys [class+ placeholder
