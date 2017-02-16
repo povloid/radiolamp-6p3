@@ -14,6 +14,8 @@
 
 (def get-selected input-from-search/get-selected)
 
+
+
 (def component
   (input-from-search/component
    areal-search-view/component
@@ -24,5 +26,4 @@
     :ui-type--add-button--text "Добавть область..."
     :multiselect-row-render-fn (fn [app-row]
                                  (om/build areal-search-view/td-view app-row))
-    :one--row-to-text-fn       :path_keynames
-    }))
+    :one--row-to-text-fn       :path_keynames}))

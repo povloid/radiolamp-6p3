@@ -59,8 +59,10 @@
 (defn component [app owner {:keys [uri params
                                    uri-upload
                                    uri-delete
-                                   chan-update]
-                            :or   {params {}}}]
+                                   chan-update
+                                   max-height]
+                            :or   {params     {}
+                                   max-height 500}}]
   (reify
     om/IInitState
     (init-state [_]
@@ -93,7 +95,9 @@
                                  }})
                (apply
                 dom/div #js {:className "row"
-                             :style     #js {:margin 5}}
+                             :style     #js {:margin    5
+                                             :maxHeight max-height
+                                             :overflow  "auto"}}
                 (map
                  (fn [{:as row}]
                    (om/build thumbinal/component row

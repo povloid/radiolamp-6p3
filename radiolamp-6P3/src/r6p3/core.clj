@@ -16,7 +16,7 @@
             [image-resizer.format :as format]
             [image-resizer.pad :as pad]
 
-             [cheshire.core :as cheshire-c]
+            [cheshire.core :as cheshire-c]
 
             [cemerick.friend :as friend]
             (cemerick.friend [workflows :as workflows]
@@ -343,14 +343,14 @@
 ;;------------------------------------------------------------------------------
 ;; BEGIN: Специфичный для postgresql код
 ;; tag: <postgresql sql specific>
-;; description: 
+;; description:
 ;;------------------------------------------------------------------------------
 
 
 ;;----------------------------------------------------------
 ;; BEGIN: Полнотекстовый поиск
 ;; tag: <postgresql sql specific fts>
-;; description: 
+;; description:
 ;;----------------------------------------------------------
 
 (def spec-word-or #"\|")
@@ -358,18 +358,25 @@
 (def spec-query-prefix "tsquery//")
 (def spec-query-prefix-count (count spec-query-prefix))
 
+
+(defn- fts-simpl-query-prep [fts-query]
+  (->> (clojure.string/split (str fts-query) spec-word-or)
+       (map (fn [s]
+              (->> (clojure.string/split (clojure.string/trim s) #"\s+")
+                   (map #(str % ":*"))
+                   (reduce #(str %1 " & " %2))
+                   (#(str "(" % ")")))))
+       (clojure.string/join " | ")))
+
 (defn com-pred-full-text-search* [query* fts-field fts-query]
   (let [fts-query (clojure.string/trim fts-query)
         fts-query (if (.startsWith fts-query spec-query-prefix)
                     (-> fts-query (subs spec-query-prefix-count) clojure.string/trim)
-                    (->> (clojure.string/split (str fts-query) spec-word-or)
-                         (map (fn [s]
-                                (->> (clojure.string/split (clojure.string/trim s) #"\s+")
-                                     (map #(str % ":*"))
-                                     (reduce #(str %1 " & " %2))
-                                     (#(str "(" % ")")))))
-                         (clojure.string/join " | ")))]
+                    (fts-simpl-query-prep fts-query))]
     (kc/where query* (kc/raw (str " " (name fts-field) " @@ to_tsquery('" fts-query "')")))))
+
+
+(defn com-pred-full-text-search*-join [query*])
 
 ;; END Полнотекстовый поиск
 ;;..........................................................
@@ -377,7 +384,7 @@
 ;;----------------------------------------------------------
 ;; BEGIN: Функционал для работы с деревьями
 ;; tag: <postgresql sql specific tree>
-;; description: 
+;; description:
 ;;----------------------------------------------------------
 
 (defn pg--raw-make-fields-str
@@ -416,8 +423,8 @@ SELECT * FROM r;
 
 
 (defn pg--raw--select-tree-parents
-  "Выбрать всех предков конкретного узла дерева, включая его самого 
-(формирует порядок от младшего к старшему)"
+  "Выбрать всех предков конкретного узла дерева, включая его самого
+  (формирует порядок от младшего к старшему)"
   ([row table]
    (pg--raw--select-tree-parents row table [:id :parent_id :keyname]))
   ([{:keys [id]} table fields]
@@ -546,9 +553,9 @@ SELECT * FROM r;
   [field-id-1 field-id-2 rel-entity field-fk-id-1 field-fk-id-2 entity-2 row-selected-field]
   (fn [{entity-1-id field-id-1}]
     (let [s-selected (->> (kc/select rel-entity
-                                      (kc/where (=  field-fk-id-1 entity-1-id)))
+                                     (kc/where (=  field-fk-id-1 entity-1-id)))
                           (reduce (fn [a {id field-fk-id-2}] (conj a id)) #{}))]
-      
+
       (->> (kc/select entity-2)
            (map (fn [{id field-id-2 :as row}]
                   (assoc row row-selected-field (contains? s-selected id))))))))
@@ -785,7 +792,7 @@ SELECT * FROM r;
 (def webuser-select* (kc/select* webuser))
 
 (defn webuser-find-by-username [username]
-  (-> webuser-select* 
+  (-> webuser-select*
       (kc/where (= :username username))
       com-exec-1))
 
@@ -926,8 +933,8 @@ SELECT * FROM r;
 
 (defn throw-when-no-role-from-request [request webrole-row]
   (throw-when-no-role
-   (webuserwebrole-get-rels-set-from-request request)
-   webrole-row))
+      (webuserwebrole-get-rels-set-from-request request)
+    webrole-row))
 
 
 
@@ -1116,8 +1123,9 @@ SELECT * FROM r;
                                       (= files-rel-field rel-id)))))
 
 (defn files_rel-select-files-by-* [row files-rel-field]
-  ((com-defn-pred-rows-by-rel? :id :id files_rel :files_id files-rel-field)
-   files-select* row))
+  (-> ((com-defn-pred-rows-by-rel? :id :id files_rel :files_id files-rel-field)
+       files-select* row)
+      (kc/order :id)))
 
 
 (defn web-file-upload [service-upload-fn uploader-params]
@@ -1637,6 +1645,3 @@ SELECT * FROM r;
 ;;;..................................................................................................
 
 ;;;<<hydra-areal
-
-
-

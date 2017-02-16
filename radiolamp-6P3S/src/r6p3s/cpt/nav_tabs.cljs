@@ -62,7 +62,9 @@
 (defn component [app _ {:keys [justified?
                                type
                                chan-update
-                               on-select-fn]
+                               on-select-fn
+                               stacked?
+                               class+]
                         :or   {type "nav-pills"}}]
   (letfn [(on-click [i]
             (c/on-click-com-fn
@@ -79,7 +81,9 @@
                                              :tabs  " nav-tabs"
                                              :pills " nav-pills"
                                              " nav-pills")
-                                           (if justified? " nav-justified" ""))}
+                                           (if justified? " nav-justified" "")
+                                           (if stacked? " nav-stacked" "")
+                                           (if class+ (str " " class+) ""))}
 
                (map
 
@@ -100,4 +104,5 @@
                                  (when icon " ")                                 
                                  text)))
 
+                
                 (:tabs @app) (range)) )))))
