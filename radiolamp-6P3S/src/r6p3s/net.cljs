@@ -12,6 +12,11 @@
 
 (def progress-element-id "net-in-progress")
 
+(defn progress-element-hide []
+  (when-let [progress-element (.getElementById js/document progress-element-id)]
+    (set! (-> progress-element .-style .-display) "none")))
+
+
 (def r (t/reader :json
                  {:handlers
                   {"f" (fn [v] (new js/Number v))

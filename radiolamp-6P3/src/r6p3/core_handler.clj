@@ -48,24 +48,12 @@
                    :or {page-ixcms-main-params {}
                         }
                    :as spec}]
+  
   (println "routes-ix* - spec>" spec)
 
   (routes
-
    (ANY "/ix/set" request
-        (cw/ix-accoc-parametr request))
-
-   (GET "/ixinfestor" request
-        (friend/authorize
-         cms-roles-set
-         (-> request
-             (cwb/page-ixcms-main page-ixcms-main-params)
-             ring.util.response/response
-             (ring.util.response/header "Content-Type" "text/html; charset=utf-8"))
-         )
-        )
-
-   ))
+        (cw/ix-accoc-parametr request))))
 
 ;; END
 ;;..................................................................................................

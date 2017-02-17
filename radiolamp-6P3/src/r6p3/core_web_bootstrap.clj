@@ -19,14 +19,14 @@
 
 (defn template-main
   ([body] (template-main {} body))
-  ([page-params body]
+  ([opts body]
    (html5 {:lang "ru"}
           [:head
            [:meta {:charset "UTF-8"}]
            [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
            [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
            
-           [:title (:title page-params "Page Title")]
+           [:title (:title opts "Page Title")]
 
            "<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->"
            "<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->"
@@ -35,20 +35,18 @@
            "<script src=\"https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js\"></script>"
            "<![endif]-->"
            
-           (include-css (or (:bootstrap.min.css page-params) "/bootstrap/css/bootstrap.min.css"))
-           
-           ;;(include-css "/bootstrap/css/bootswatch.min.css")
-           
-           (include-css "/bootstrap/css/sonis.css")
+           (include-css (get opts :bootstrap.min.css "/bootstrap/css/bootstrap.min.css"))
+           (include-css (get opts :bootstrap.sonis "/bootstrap/css/sonis.css"))
            (include-js "/js/jquery.min.js")
 
 
-           (:header-additions page-params nil)
+           (:header-additions opts nil)
            
            ]
           [:body {:data-spy "scroll" :data-target "#body-scroll-spy"}
            body           
-           (include-js "/bootstrap/js/bootstrap.min.js")
+           (include-js (get opts :bootstrap.min.js "/bootstrap/js/bootstrap.min.js"))
+           
            ;;(include-js "/bootstrap/js/bootswatch.js")
            
            ;;(reduce conj [:div {:id "root"}] body)
@@ -200,7 +198,7 @@
   (template-main
    opts
    (list
-    (include-css "/bootstrap/css/signin.css")
+    (include-css (get opts :signin.css "/bootstrap/css/signin.css"))
     [:div {:class "container"}
      [:form {:method "POST" :action "login" :class "form-signin" :role "form"}
       [:h2 {:class "form-signin-heading" :style "text-align: center"}
@@ -217,75 +215,6 @@
 ;; END AUTH
 ;;..................................................................................................
 
-
-(defn page-ixcms-main [request
-                       {:keys [title navbar-class+]
-                        :or {title "CMS"
-                             navbar-class+ ""}}]
-  (template-main
-   {:title title
-    :header-additions
-    (list
-     ;; Отключить, если как решил исползовать MARKDOWN
-     (include-js "/js/ckeditor/ckeditor.js")
-
-     (include-css "/js/codemirror/codemirror.css")
-     (include-js "/js/codemirror/codemirror.js")
-          
-     (include-js "/js/codemirror/selection-pointer.js")
-     (include-js "/js/codemirror/xml.js")
-     (include-js "/js/codemirror/javascript.js")
-     (include-js "/js/codemirror/css.js")
-     (include-js "/js/codemirror/vbscript.js")
-     (include-js "/js/codemirror/htmlmixed.js")
-
-
-     ;;(include-js  "/js/toopay-bootstrap-markdown/markdown.js")
-     ;;(include-js  "/js/toopay-bootstrap-markdown/marked.min.js") ;; Этот немного лучше
-
-     ;;(include-js  "/js/toopay-bootstrap-markdown/to-markdown.js")
-     ;;(include-js  "/js/toopay-bootstrap-markdown/bootstrap-markdown.js")
-     ;;(include-css "/js/toopay-bootstrap-markdown/bootstrap-markdown.min.css")
-
-     (include-css "/css/dashboard.css")
-     (include-js "/js/c/ix/main.js")
-     )}
-   (list
-        
-    (navbar
-     [navbar-class-default navbar-class-static-top (str "navbar-fixed-top " navbar-class+) ]
-     (list
-      (container-fluid
-       {:id :navbar-container}
-       (list
-        (navbar-header
-         "#" [:div {:style "line-height: 15px;"}
-              [:div title]
-              [:small {:id :page-caption :style "font-size: small"
-                       :class "text-primary"} ""]
-              ])
-
-        ;;[:p {:class "navbar-text"} "Signed in as Mark Otto"]
-
-        [:div {:id :navbar :class "collapse navbar-collapse"}]
-        ))
-
-      (container-fluid {:id :toolbars-container}  (list))
-      ;;nv-part
-      ))
-
-    [:div#modal-error]
-    [:div#main]
-
-    [:input {:type "hidden" :id "username" :value (-> request :session :cemerick.friend/identity :current)}]
-    (javascript-tag (str "ixinfestor.page_main.init();")))))
-
-
-
-
-
-(defn page-header [text]
-  [:div {:class "page-header"} text])
 
 
 

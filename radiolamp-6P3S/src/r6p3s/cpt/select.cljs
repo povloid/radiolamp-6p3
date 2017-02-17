@@ -76,8 +76,11 @@
                          (or (nil? v)
                              (= v no-select-v)
                              (empty? v)))
-                  (om/transact! app #(assoc % :has-warning? true :text-warning "Невыбрано значение"))
-                  (do (helper-p/clean app) (common-input/input-css-string-has?-clean app)))
+                  (om/transact! app #(assoc % :has-warning? true
+                                            :text-warning "Невыбрано значение"))
+                  (do (helper-p/clean app)
+                      (common-input/input-css-string-has?-clean app)
+                      (om/update! app :has-success? true)))
                 ;;Дальнейшая отработка действия
                 (om/update! app :selected v)
                 (when on-change-fn (on-change-fn v))))}
