@@ -2,9 +2,11 @@
 
   (:use clojure.pprint)
 
+
   (:import [org.imgscalr Scalr])
 
-  (:require [korma.db :as kdb]
+  (:require [clojure.data :as clojure-data]
+            [korma.db :as kdb]
             [korma.core :as kc]
 
             [clj-time.core :as tco]
@@ -629,13 +631,7 @@ SELECT * FROM r;
      (cheshire-c/parse-string (str v) keywordize?))
    row))
 
-
 ;; ---------------------------------------
-
-
-
-
-
 
 
 (defn check-row [is-error-fn? message row]
@@ -648,6 +644,33 @@ SELECT * FROM r;
     row))
 
 (defn print-row [row] (println "print=> " row) row)
+
+
+
+;;------------------------------------------------------------------------------
+;; BEGIN: entity json state
+;; tag: <entity json state>
+;; description: Состояние сущности в cljs-json
+;;------------------------------------------------------------------------------
+
+
+(defn entity-state-to-json [row]
+  (cheshire-c/generate-string row))
+
+(defn entity-state-from-json [text]
+  (cheshire-c/parse-string (str text) true))
+
+
+(defn entity-states-diff [new-row old-row prep-fn]
+  (clojure-data/diff (prep-fn new-row) (prep-fn old-row)))
+
+(defn entity-states-diff-to-json [new-row old-row prep-fn]
+  (cheshire-c/generate-string (entity-states-diff new-row old-row prep-fn)))
+
+
+;; END entity json state
+;;..............................................................................
+
 
 ;; END Entity utilites
 ;;..................................................................................................
