@@ -21,7 +21,7 @@
 
 
 (defn- set-input-datetime-value [app k d]
-  (assoc-in app [k :value] (c/format-date input-datetime/date-str-format d)))
+  (update-in app [k] input-datetime/set-date! d))
 
 (defn- get-input-datetime-value [app k]
   (-> app k input/value input-datetime/parse-str-to-date))
@@ -154,7 +154,7 @@
 
                                        :body
                                        (dom/div
-                                        #js{:className "row"}
+                                        #js{:className "form-horizontal"}
                                         (om/build input-datetime/component-form-group (app-modal :from-date)
                                                   {:opts {:label      "От"
                                                           :spec-input {:type               "datetime-local" :placeholder "yyyy-MM-ddTHH:mm"
@@ -165,8 +165,8 @@
                                                                        :onChange-valid?-fn common-input/vldfn-not-empty-date}}})
 
                                         (form-group/render
-                                         {:label "продолжитльность"
-                                          :body  (dom/b #js {:className "text-primary"}
+                                         {:label "Длительность: "
+                                          :body  (dom/h5 #js {:className "text-primary"}
                                                         (c/the-time-has-passed-from-the-date-to-date
                                                          from-date to-date))}))
 
