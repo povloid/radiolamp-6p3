@@ -45,11 +45,17 @@
       (render [this]
         (dom/div
          nil
-         (om/build input/component (:password-1 app) {:opts {:type                "password"
-                                                             :onChange-updated-fn onChange-updated-fn}})
-         (om/build input/component (:password-2 app) {:opts {:type                "password"
-                                                             :onChange-updated-fn onChange-updated-fn}})
+         (om/build input/component (:password-1 app)
+                   {:opts {:type                "password"
+                           :onChange-updated-fn onChange-updated-fn
+                           :style               #js {:marginBottom 5}
+                           :autocomplete        "off"}})
+         (om/build input/component (:password-2 app)
+                   {:opts {:type                "password"
+                           :onChange-updated-fn onChange-updated-fn
+                           :autocomplete        "off"}})
          (om/build helper-p/component app {}) )))))
+
 
 
 

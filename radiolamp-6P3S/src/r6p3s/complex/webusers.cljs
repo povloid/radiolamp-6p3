@@ -52,8 +52,8 @@
                                          nav-tabs-items-map
                                          abody-fn]
                                   :or   {nav-tabs-items-map {0 {:text "Логин"}
-                                                             1   {:text "Роли"}}}} :specific
-                                 :as                                           opts}]
+                                                             1 {:text "Роли"}}}} :specific
+                                 :as                                             opts}]
 
   (reify
     om/IWillMount
@@ -66,7 +66,7 @@
        edit-form-for-id/component app
        {:opts
         (merge opts
-               {:uri      "/tc/rb/webusers/find/transit"
+               {:uri "/tc/rb/webusers/find/transit"
                 :fill-app-fn
                 (fn [row]
                   (om/transact!
@@ -174,9 +174,12 @@
                                        roles
                                        (map
                                         (fn [i {:keys [title]}]
-                                          (dom/div nil
-                                                   (om/build toggle-button/component (get-in app [:troles :roles g-id i :user-role?]))
-                                                   title))
+                                          (let [user-role?-app (get-in app [:troles :roles g-id i :user-role?])
+                                                user-role?     (toggle-button/value @user-role?-app)]
+                                            (dom/div #js {:style #js {:marginBottom 5}}
+                                                     (om/build toggle-button/component user-role?-app)                                                     
+                                                     (dom/span #js {:className (when user-role? "text-primary")}
+                                                               " " title))))
                                         (range))
                                        (apply dom/div nil)) ))
                                (seq groups)) ))))

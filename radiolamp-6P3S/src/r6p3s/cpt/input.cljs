@@ -46,8 +46,10 @@
                      onKeyDown-fn
                      onKeyUp-fn
                      placeholder
+                     autocomplete
                      readonly?
-                     min max step]
+                     min max step
+                     style]
               :or   {class+             ""
                      type               "text"
                      onChange-valid?-fn (fn [_ _] true)
@@ -70,14 +72,16 @@
                                       
                                       (when onChange-updated-fn
                                         (onChange-updated-fn))))
-                        :onKeyPress  onKeyPress-fn
-                        :onKeyDown   onKeyDown-fn
-                        :onKeyUp     onKeyUp-fn
-                        :type        type
-                        :min         min :max max :step step
-                        :placeholder placeholder
-                        :disabled    (@app :disabled?)
-                        :className   (str "form-control " class+)})))))
+                        :onKeyPress   onKeyPress-fn
+                        :onKeyDown    onKeyDown-fn
+                        :onKeyUp      onKeyUp-fn
+                        :type         type
+                        :min          min :max max :step step
+                        :placeholder  placeholder
+                        :disabled     (@app :disabled?)
+                        :className    (str "form-control " class+)
+                        :autocomplete autocomplete
+                        :style        style})))))
 
 (defn component-form-group  [app owner {:keys [label
                                                type
