@@ -106,7 +106,7 @@
                                           :onKeyUp     onKeyUp-fn
                                           :style       #js {:marginBottom 4}
                                           :type        "date"                                          
-                                          :placeholder "yyyy-MM-dd"
+                                          :placeholder date-str-format
                                           :disabled    (@app :disabled?)
                                           :className   "form-control"}))
 

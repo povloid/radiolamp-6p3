@@ -169,7 +169,8 @@
                               (map
                                (fn [[g-id title]]
                                  (dom/div
-                                  nil (dom/hr nil) (dom/h5 nil title)
+                                  nil
+                                  (dom/h3 nil title)
                                   (->> g-id
                                        roles
                                        (map
