@@ -28,7 +28,7 @@
 (defn component [app own
                  {:keys [selected-fn
                          class-name style]
-                  :as opts}]
+                  :as   opts}]
   (reify
     om/IInitState
     (init-state [_]
@@ -64,12 +64,14 @@
                                         :style     #js {:paddingRight 0 :paddingLeft 0}}
                                    (om/build input-date/component-form-group (app :from-date)
                                              {:opts {:label       "с даты"
-                                                     :label-style #js {:textAlign "right"}}}))
+                                                     :label-style #js {:textAlign "right"}
+                                                     :spec-input  {:onChange-updated-valid-fn selected-fn}}}))
                           (dom/div #js {:className "col-xs-12 col-sm-6 col-md-6 col-lg-6"
                                         :style     #js {:paddingRight 0 :paddingLeft 0}}
                                    (om/build input-date/component-form-group (app :to-date)
                                              {:opts {:label       "по дату"
-                                                     :label-style #js {:textAlign "right"}}})))
+                                                     :label-style #js {:textAlign "right"}
+                                                     :spec-input  {:onChange-updated-valid-fn selected-fn}}})))
 
                  (when (or
                         (get-in app-v [:from-date :text-warning])
