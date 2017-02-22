@@ -156,19 +156,15 @@
                                        (dom/div
                                         #js{:className "form-horizontal"}
                                         (om/build input-datetime/component-form-group (app-modal :from-date)
-                                                  {:opts {:label      "От"
-                                                          :spec-input {:type               "datetime-local" :placeholder "yyyy-MM-ddTHH:mm"
-                                                                       :onChange-valid?-fn common-input/vldfn-not-empty-date}}})
+                                                  {:opts {:label "От"}})
                                         (om/build input-datetime/component-form-group (app-modal :to-date)
-                                                  {:opts {:label      "До "
-                                                          :spec-input {:type               "datetime-local" :placeholder "yyyy-MM-ddTHH:mm"
-                                                                       :onChange-valid?-fn common-input/vldfn-not-empty-date}}})
+                                                  {:opts {:label "До "}})
 
                                         (form-group/render
                                          {:label "Длительность: "
                                           :body  (dom/h5 #js {:className "text-primary"}
-                                                        (c/the-time-has-passed-from-the-date-to-date
-                                                         from-date to-date))}))
+                                                         (c/the-time-has-passed-from-the-date-to-date
+                                                          from-date to-date))}))
 
                                        :act-yes-fn
                                        (fn []

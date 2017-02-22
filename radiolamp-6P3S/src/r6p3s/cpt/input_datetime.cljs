@@ -13,26 +13,33 @@
             [goog.i18n.DateTimeParse :as dtp]))
 
 
-(def date-str-format     "yyyy-MM-dd")
+(def date-str-format       "yyyy-MM-dd")
+(def date-str-format-count (count date-str-format))
+
 (def datetime-str-format "yyyy-MM-ddTHH:mmZ")
 
 
-(defn parse-str-to-date [s]
+(defn- parse-str-to-date [s]
   (let [parser (new goog.i18n.DateTimeParse datetime-str-format)
         d (new js/Date)]
     (.parse parser s d)
     d))
 
 
-(defn vldfn-not-empty-datetime [app v]
+(defn- vldfn-not-empty-date [app s]
   (helper-p/clean app)
   (common-input/input-css-string-has?-clean app)
-  (when-not (parse-str-to-date v)
-    (om/transact! app #(assoc % :has-warning? true :text-warning "Неправильная дата")))
-  true)
 
-(defn date [app]
-  (parse-str-to-date (app :value)))
+  (if (and (c/str-to-date s) (= (count s) date-str-format-count))
+    (do
+      (om/transact! app #(assoc % :has-success? true))
+      true)
+    (do
+      (om/transact! app #(assoc %
+                                :has-warning? true
+                                :text-warning (str "Неправильная дата в формате "
+                                                   date-str-format)))
+      false)))
 
 
 
@@ -43,8 +50,8 @@
   {:value          ""
    :calendar-value ""})
 
-(defn set-value! [app value]
-  (assoc app :value value :calendar-value (subs value 0 10)))
+(defn date [app]
+  (parse-str-to-date (app :value)))
 
 (defn set-date! [app d]
   (let [d (or d (new js/Date))]
@@ -52,12 +59,17 @@
            :value          (c/format-date datetime-str-format d)
            :calendar-value (c/format-date date-str-format     d))))
 
+
 (defn value [app] (get app :value))
+
+(defn set-value! [app value]
+  (assoc app :value value :calendar-value (subs value 0 10)))
+
+
 
 (defn component
   [app owner {:keys [class+
                      type
-                     onChange-valid?-fn
                      onChange-updated-valid-fn
                      onChange-updated-fn
                      onKeyPress-fn
@@ -68,7 +80,6 @@
                      min max step]
               :or   {class+             ""
                      type               "text"
-                     onChange-valid?-fn (fn [_ _] true)
                      ;;onKeyPress-fn      (fn [_] nil)
                      ;;onKeyUp-fn         (fn [_] nil)
                      placeholder        ""
@@ -86,16 +97,15 @@
                           (dom/input #js {:value    (@app :calendar-value)
                                           :onChange (fn [e]
                                                       (let [new-value (.. e -target -value)]
-                                                        (when (onChange-valid?-fn app new-value)
-                                                          (when onChange-updated-valid-fn
-                                                            (onChange-updated-valid-fn)))
-
-                                                        (when (= (count new-value)
-                                                                 (count date-str-format))
-                                                          (om/transact!
-                                                           app :value
-                                                           (fn [old-value]
-                                                             (str new-value (subs old-value 10)))))
+                                                        (when (vldfn-not-empty-date app new-value)
+                                                          (do
+                                                            (om/transact!
+                                                             app :value
+                                                             (fn [old-value]
+                                                               (str new-value (subs old-value 10))))
+                                                            
+                                                            (when onChange-updated-valid-fn
+                                                              (onChange-updated-valid-fn))))                                                        
 
                                                         (om/update! app :calendar-value new-value)
 
@@ -118,7 +128,7 @@
                           (->> (range 24)
                                (map (fn [i]
                                       (let [is (gstring/format "%02d" i)]
-                                        (dom/option #js {:value is} is))))
+                                        (dom/option #js {:value is} (str is " чac.")))))
                                (apply dom/select
                                       #js {:value     (subs value 11 13)
                                            :className "form-control"
@@ -141,7 +151,7 @@
                           (->> (range 60)
                                (map (fn [i]
                                       (let [is (gstring/format "%02d" i)]
-                                        (dom/option #js {:value is} is))))
+                                        (dom/option #js {:value is} (str is " мин.")))))
                                (apply dom/select
                                       #js {:value     (subs value 14 16)
                                            :className "form-control"
