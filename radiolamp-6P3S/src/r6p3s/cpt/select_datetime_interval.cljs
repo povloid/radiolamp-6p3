@@ -13,26 +13,20 @@
    [r6p3s.ui.datetime :as datetime]
 
    [r6p3s.cpt.modal :as modal]
-   [r6p3s.cpt.input :as input]
-   [r6p3s.cpt.helper-p :as helper-p]
    [r6p3s.cpt.input-datetime :as input-datetime]
+   [r6p3s.cpt.helper-p :as helper-p]
    [r6p3s.cpt.modal-yes-no :as modal-yes-no]))
 
 
-
-(defn- set-input-datetime-value [app k d]
-  (update-in app [k] input-datetime/set-date! d))
-
-(defn- get-input-datetime-value [app k]
-  (-> app k input/value input-datetime/parse-str-to-date))
 
 
 (defn app-init-fn [from-date to-date]
   {:interval {:from-date from-date
               :to-date   to-date}
-   :modal    (-> modal-yes-no/app-init
-                 (set-input-datetime-value :from-date from-date)
-                 (set-input-datetime-value :to-date   to-date))})
+   :modal    (merge modal-yes-no/app-init
+                    {:from-date input-datetime/app-init
+                     :to-date   input-datetime/app-init})})
+
 
 
 (defn get-selected [app]
@@ -58,11 +52,6 @@
         (assoc-in [:interval :from-date]
                   (-> now .getTime (- int) (js/Date.)))
         (assoc-in [:interval :to-date] now))))
-
-
-
-
-
 
 
 
@@ -103,8 +92,8 @@
                                                   app-modal
                                                   (fn [app-modal]
                                                     (-> app-modal
-                                                        (set-input-datetime-value :from-date from-date)
-                                                        (set-input-datetime-value :to-date   to-date))))
+                                                        (update-in [:from-date] input-datetime/set-date! from-date)
+                                                        (update-in [:to-date]   input-datetime/set-date! to-date))))
                                                  (modal/show app-modal))})
                      (button/render {:type     :default
                                      :text     (glyphicon/render "time")
@@ -138,42 +127,43 @@
                                      :title    "сдвинуть интервал на неделю вперед"
                                      :on-click (fn []
                                                  (om/transact! app (partial move-interval (* 1000 60 60 24  7)))
-                                                 (on-selected-fn-2))})
-                     ))
+                                                 (on-selected-fn-2))})))
 
 
+                   (om/build modal-yes-no/component app-modal
+                             {:opts {:label (dom/span nil
+                                                      (glyphicon/render "chevron-left")
+                                                      (glyphicon/render "time")
+                                                      (glyphicon/render "chevron-right")
+                                                      " Указать интервал времени")
 
-                   (let [from-date (get-input-datetime-value @app-modal :from-date)
-                         to-date   (get-input-datetime-value @app-modal :to-date)]
-                     (om/build modal-yes-no/component app-modal
-                               {:opts {:label (dom/span nil
-                                                        (glyphicon/render "chevron-left")
-                                                        (glyphicon/render "time")
-                                                        (glyphicon/render "chevron-right")
-                                                        " Указать интервал времени")
+                                     
+                                     :body
+                                     (dom/div
+                                      #js{:className "form-horizontal"}
+                                      (println  (@app-modal :from-date))
+                                      (om/build input-datetime/component-form-group (app-modal :from-date)
+                                                {:opts {:label "От"}})
+                                      (om/build input-datetime/component-form-group (app-modal :to-date)
+                                                {:opts {:label "До "}})
 
-                                       :body
-                                       (dom/div
-                                        #js{:className "form-horizontal"}
-                                        (om/build input-datetime/component-form-group (app-modal :from-date)
-                                                  {:opts {:label "От"}})
-                                        (om/build input-datetime/component-form-group (app-modal :to-date)
-                                                  {:opts {:label "До "}})
-
-                                        (form-group/render
-                                         {:label "Длительность: "
-                                          :body  (dom/h5 #js {:className "text-primary"}
+                                      (form-group/render
+                                       {:label "Длительность: "
+                                        :body  (dom/h5 #js {:className "text-primary"}
+                                                       (let [app-modal-v @app-modal]
                                                          (c/the-time-has-passed-from-the-date-to-date
-                                                          from-date to-date))}))
+                                                          (-> app-modal-v :from-date input-datetime/date)
+                                                          (-> app-modal-v :to-date   input-datetime/date))))}))
 
-                                       :act-yes-fn
-                                       (fn []
+                                     :act-yes-fn
+                                     (fn []
+                                       (let [app-modal-v @app-modal]
                                          (om/update!
                                           app :interval
-                                          {:from-date from-date
-                                           :to-date   to-date})
+                                          {:from-date (-> app-modal-v :from-date input-datetime/date)
+                                           :to-date   (-> app-modal-v :to-date   input-datetime/date)})
                                          (modal/hide app-modal)
-                                         (on-selected-fn-2))}}))))))))
+                                         (on-selected-fn-2)))}})))))))
 
 
 
