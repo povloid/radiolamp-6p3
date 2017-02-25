@@ -8,4 +8,4 @@
                  [org.omcljs/om "0.9.0"]
                  [secretary "1.2.3"]
                  [cljsjs/d3 "3.5.16-0"]
-                 [markdown-clj "0.9.91"]])
+                 [markdown-clj "0.9.95"]])

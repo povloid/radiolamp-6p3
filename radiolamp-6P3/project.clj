@@ -4,16 +4,16 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/core.async "0.2.395"]
+                 [org.clojure/core.async "0.3.441"]
 
-                 [ring "1.5.0"]
+                 [ring "1.5.1"]
                  [ring/ring-json "0.4.0"]
 
                  ;;[ring-transit "0.1.3"]
                  [prismatic/plumbing "0.5.3"] ;; Просит транзит
                  [com.cognitect/transit-clj "0.8.297"]
 
-                 [compojure "1.5.1"]
+                 [compojure "1.5.2"]
                  [hiccup "1.0.5"]
                  [com.cemerick/friend "0.2.3"]
 
@@ -24,7 +24,7 @@
                  [korma "0.4.2"]
                  
 
-                 [net.sourceforge.htmlcleaner/htmlcleaner "2.18"]
+                 [net.sourceforge.htmlcleaner/htmlcleaner "2.19"]
 
                  [com.draines/postal "2.0.2"]
                  [image-resizer "0.1.9"]
