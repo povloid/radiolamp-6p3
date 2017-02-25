@@ -3,8 +3,7 @@
 
 
 
-(defn render [type text & [{:keys [style]
-                             :or   {style #js {:whiteSpace "normal"}}}]]
+(defn render [type text & [{:keys [style]}]]
   (dom/span #js {:className (str "label label-"
                                  (get {:default "default"
                                        :primary "primary"
@@ -13,4 +12,5 @@
                                        :warning "warning"
                                        :danger  "danger"
                                        } type "default"))
-                 :style     style} text))
+                 :style     (or style #js {:whiteSpace "normal"})} text))
+
