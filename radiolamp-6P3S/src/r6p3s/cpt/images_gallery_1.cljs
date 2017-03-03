@@ -62,7 +62,7 @@
                   image-loader (new goog.net.ImageLoader)]            
               (println "update image:" src)
               ;; Сначала ставим гифку прогресса
-              (om/set-state! own :src "/images/preloader_1_128.gif")
+              (om/set-state! own :src "/images/loader_media.svg")
               ;; Теперь по загрузчику
               (events/listen image-loader goog.net.EventType.COMPLETE
                              (fn []
