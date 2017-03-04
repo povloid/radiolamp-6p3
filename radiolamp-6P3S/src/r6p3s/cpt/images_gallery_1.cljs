@@ -47,7 +47,7 @@
          :div-id        (c/uniq-id "div") :img-id         (c/uniq-id "img")
          :div-height    nil               :img-margin-top nil
          :img-height    nil
-         :src           "/images/preloader_1_128.gif"
+         :src           "/images/loader_media.gif"
          :chan-img-load (chan)})
 
 
@@ -62,7 +62,7 @@
                   image-loader (new goog.net.ImageLoader)]            
               (println "update image:" src)
               ;; Сначала ставим гифку прогресса
-              (om/set-state! own :src "/images/loader_media.svg")
+              (om/set-state! own :src "/images/loader_media.gif")
               ;; Теперь по загрузчику
               (events/listen image-loader goog.net.EventType.COMPLETE
                              (fn []
