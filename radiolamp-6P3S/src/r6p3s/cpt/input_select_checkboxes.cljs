@@ -22,8 +22,11 @@
                         vec)))
 
 
-(defn get-selected [key-value app]
-  (->> app :data (filter key-value)))
+(defn get-selected
+  ([app]
+   (get-selected :value app))
+  ([key-value app]
+   (->> app :data (filter key-value))))
 
 
 
