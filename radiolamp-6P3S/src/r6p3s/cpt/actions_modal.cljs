@@ -30,15 +30,14 @@
       (om/build modal/component app
                 {:opts {:label      label
                         :modal-size :sm
-                        :body       (let [buttons (map
-                                                   (fn [opts]
-                                                     (om/build actions-modal-button/component
-                                                               app {:opts opts}))
-                                                   acts)]
+                        :body       (let [buttons (->> acts
+                                                       (filterv (comp not nil?))
+                                                       (map
+                                                        (fn [opts]
+                                                          (om/build actions-modal-button/component
+                                                                    app {:opts opts}))))]
                                       (if (empty? buttons)
                                         (dom/h2 nil "Действий нет")
                                         (apply dom/div nil buttons)))
                         }}
                 ))))
-
-
