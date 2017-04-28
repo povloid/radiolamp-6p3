@@ -380,7 +380,10 @@
                      (fts-simpl-query-prep fts-query opts))]
      (kc/raw (str " "
                   (if (coll? fts-field-ds)
-                    (str "(" (->> fts-field-ds (map name) (clojure.string/join " || ")) ")")
+                    (str "concat_ws(' ', " ;; Нужно делать через функцию concat_ws потому что если попадает null то все будет null
+                         ;; при конкатенации через ||
+                         (->> fts-field-ds (map name)
+                              (clojure.string/join ",")) ")")
                     (name fts-field-ds))
                   " @@ to_tsquery('" fts-query "')")))))
 
