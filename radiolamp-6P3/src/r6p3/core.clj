@@ -361,24 +361,33 @@
 (def spec-query-prefix-count (count spec-query-prefix))
 
 
-(defn- fts-simpl-query-prep [fts-query]
+(defn- fts-simpl-query-prep [fts-query {:keys [term-cond] :or {term-cond \&}}]
   (->> (clojure.string/split (str fts-query) spec-word-or)
        (map (fn [s]
               (->> (clojure.string/split (clojure.string/trim s) #"\s+")
                    (map #(str % ":*"))
-                   (reduce #(str %1 " & " %2))
+                   (reduce #(str %1 \space term-cond \space %2))
                    (#(str "(" % ")")))))
        (clojure.string/join " | ")))
 
+(defn com-pred-full-text-search*-term
+  ([fts-field-ds fts-query]
+   (com-pred-full-text-search*-term fts-field-ds fts-query {}))
+  ([fts-field-ds fts-query opts]
+   (let [fts-query (clojure.string/trim fts-query)
+         fts-query (if (.startsWith fts-query spec-query-prefix)
+                     (-> fts-query (subs spec-query-prefix-count) clojure.string/trim)
+                     (fts-simpl-query-prep fts-query opts))]
+     (kc/raw (str " "
+                  (if (coll? fts-field-ds)
+                    (str "(" (->> fts-field-ds (map name) (clojure.string/join " || ")) ")")
+                    (name fts-field-ds))
+                  " @@ to_tsquery('" fts-query "')")))))
+
 (defn com-pred-full-text-search* [query* fts-field fts-query]
-  (let [fts-query (clojure.string/trim fts-query)
-        fts-query (if (.startsWith fts-query spec-query-prefix)
-                    (-> fts-query (subs spec-query-prefix-count) clojure.string/trim)
-                    (fts-simpl-query-prep fts-query))]
-    (kc/where query* (kc/raw (str " " (name fts-field) " @@ to_tsquery('" fts-query "')")))))
+  (kc/where query* (com-pred-full-text-search*-term fts-field fts-query)))
 
 
-(defn com-pred-full-text-search*-join [query*])
 
 ;; END Полнотекстовый поиск
 ;;..........................................................
