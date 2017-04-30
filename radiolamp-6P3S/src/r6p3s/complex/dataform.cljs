@@ -4,8 +4,7 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [r6p3s.common-input :as common-input]
-            [r6p3s.core :as rc]
-            [r6p3s.ui.panel-with-table :as panel-with-table]
+            [r6p3s.core :as rc]          
             [r6p3s.cpt.input :as input]
             [r6p3s.cpt.toggle-button :as toggle-button]
             [r6p3s.cpt.select :as select]
@@ -13,7 +12,9 @@
 
 
 
-(defn make-app-init [rbs-scheme]
+(defn make-app-init
+  "Инициализация данных"
+  [rbs-scheme]
   {:rbtype (->> rbs-scheme
                 :realtype seq
                 (map (fn [[id {keyname :text}]]
@@ -36,7 +37,9 @@
                  {}))})
 
 
-(defn fill [app row rb-ks {:keys [realtype-field] :as rbs-scheme}]
+(defn fill
+  "Заполнение формы при поднятии записи из базы"
+  [app row rb-ks {:keys [realtype-field] :as rbs-scheme}]
   (-> app
       (update-in [:fields]
                  (fn [app]
@@ -65,7 +68,9 @@
 
 
 
-(defn save [row app {:keys [realtype-field] :as rbs-scheme}]
+(defn save
+  "Формирование данных из формы и сохранение их в базу"
+  [row app {:keys [realtype-field] :as rbs-scheme}]
   (let [rbtype-key :realtype
         {:keys [rbtype fields]} app]
     (-> (->> rbs-scheme
@@ -89,7 +94,9 @@
 
 
 
-(defn component [app own {:keys [rbs-scheme]}]
+(defn component
+  "Визуальный компонент датаформы - форма редактирования"
+  [app own {:keys [rbs-scheme]}]
   (reify
     om/IInitState
     (init-state [_]
@@ -152,47 +159,11 @@
 
 
 
-(defn render-panel-with-table
-  [{:keys [realtype]
-    :as   row}
-   rbs-scheme]
-  (let [rbs-scheme  rbs-scheme
-        show        (into
-                     (get-in rbs-scheme [:common :fields] #{})
-                     (get-in rbs-scheme [:realtype realtype :fields] #{}))]
 
-    (->> rbs-scheme
-         :fields
-         seq
-         (filter (comp show first))
-         (group-by (comp :field-group second))
-         seq
-         (map
-          (fn [[field-group fields]]
-            (let [{:keys [ord text
-                          icon type]} (get-in rbs-scheme
-                                              [:fields-groups field-group])]
-              [ord
-               (panel-with-table/render
-                {:heading-font-icon icon
-                 :heading           text
-                 :type              type
-                 ;;:body (dom/p nil "")
-                 ;;:cols ["параметр" "значение"]
-                 :rows
-                 (map
-                  (fn [[field-k {:keys [in-row type text]}]]
-                    (let [v (row field-k)]
-                      [text
-                       (condp = type
-                         :money   (str v)
-                         :integer (str v)
-                         :string  (str v)
-                         :text    (str v)
-                         :boolean (str (when v (if v "да" "нет")))
-                         :rbs     (str (get-in row [in-row :keyname]))
-                         (str v))]))
-                  fields)})])))
-         (sort-by first)
-         (map second)
-         (apply dom/div nil))))
+
+
+
+
+
+
+
