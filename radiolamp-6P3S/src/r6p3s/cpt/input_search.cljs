@@ -14,12 +14,13 @@
 (def app-init input/app-init)
 
 
-(defn component [app own {:keys [input-placeholder chan-update clear-fn enter-fn add-fn class+]
+(defn component [app own {:keys [input-placeholder chan-update clear-fn enter-fn add-fn class+ style]
                           :or {input-placeholder  "введите сюда поисковый запрос"}}]
   (reify
     om/IRenderState
     (render-state [_ _]
-      (dom/div #js {:className (str "input-group " class+) :style #js {:marginBottom 6}}
+      (dom/div #js {:className (str "input-group " class+)
+                    :style (or style  #js {:marginBottom 6})}
                (dom/span #js {:className "input-group-btn"}
                          (button/render {:type     :default
                                          :on-click (fn [_]

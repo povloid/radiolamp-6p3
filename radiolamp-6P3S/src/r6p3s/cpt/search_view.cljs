@@ -92,13 +92,15 @@
         
         (when show-search-input?
           ;; новый вариант
-          (om/build input-search/component (app :fts-query)
-                    {:opts {:class+            "col-xs-12 col-sm-12 col-md-12 col-lg-12"
-                            :chan-update       chan-update
-                            :clear-fn          #(om/update! app :page 1)
-                            :add-fn            add-button-fn
-                            :input-placeholder input-placeholder
-                            :enter-fn          #(om/update! app :page 1)}})
+          (dom/div #js {:style #js {:padding 4}}
+                   (om/build input-search/component (app :fts-query)
+                             {:opts {:class+            "col-xs-12 col-sm-12 col-md-12 col-lg-12"
+                                     :style             #js {:marginBottom 6}
+                                     :chan-update       chan-update
+                                     :clear-fn          #(om/update! app :page 1)
+                                     :add-fn            add-button-fn
+                                     :input-placeholder input-placeholder
+                                     :enter-fn          #(om/update! app :page 1)}}))
           ;; старый вариант - теперь вынесен в компонент input-search
                                         ;TODO: в будущем надо стереть
           #_(dom/div #js {:className "input-group col-xs-12 col-sm-12 col-md-12 col-lg-12" :style #js {:marginBottom 6}}

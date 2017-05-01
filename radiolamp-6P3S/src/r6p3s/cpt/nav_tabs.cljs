@@ -3,7 +3,8 @@
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]            
             [r6p3s.core :as c]
-            [r6p3s.ui.glyphicon :as glyphicon]))
+            [r6p3s.ui.glyphicon :as glyphicon]
+            [r6p3s.ui.font-icon :as font-icon]))
 
 
 
@@ -100,7 +101,7 @@
                                    (dom/span #js {:style       #js {:paddingRight 4}
                                                   :className   (str "glyphicon " glyphicon)
                                                   :aria-hidden "true"}))
-                                 (when icon (glyphicon/render icon))
+                                 (when icon (font-icon/render icon))
                                  (when icon " ")                                 
                                  text)))
 
