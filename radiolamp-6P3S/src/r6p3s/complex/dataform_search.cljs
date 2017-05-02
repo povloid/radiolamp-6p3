@@ -18,7 +18,7 @@
 
 (def ^:const padding 4)
 
-(declare selector-app-init selector)
+(declare selector-app-init selector-fill-rbs selector)
 
 
 (defn make-app-init
@@ -44,7 +44,7 @@
 
 (defn component
   "Визуальный компонент для формирвоания окна поиска по форме"
-  [app own {:keys [rbs-scheme uri-rbs]}]
+  [app own {:keys [uri-rbs rbs-scheme]}]
   (reify
     om/IInitState
     (init-state [_]
@@ -60,7 +60,16 @@
                uri-rbs
                {}
                (fn [rbs-list]
-                 (println rbs-list))))))
+                 (println rbs-list)                
+                 (om/transact!
+                  app :selectors
+                  (fn [app]
+                    (->> rbs-scheme
+                         :fields seq
+                         (reduce
+                          (fn [app [k {:keys [rbentity rbtype] :as m}]]
+                            (update-in app [k] selector-fill-rbs m (get-in rbs-list [rbentity rbtype] (list))))
+                          app)))))))))
         
         (put! chan-update 1)))
 
@@ -128,14 +137,18 @@
 
 
 (defmulti selector-app-init (fn [_ {{stype :type} :search}] stype))
+(defmulti selector-fill-rbs (fn [_ {{stype :type} :search} _] stype))
 (defmulti selector          (fn [_ {{stype :type} :search}] stype))
 
 
 
 ;; Если селектор не реализован
 (defmethod selector-app-init :default
-  [_]
+  [_ _]
   {})
+(defmethod selector-fill-rbs :default
+  [app _ _]
+  app)
 (defmethod selector :default
   [_ {:keys [text search] :as v}]
   (cell text (str search)))
@@ -227,9 +240,13 @@
 
 (defmethod selector-app-init :rbs-multi-select
   [k {{:keys [buttons]} :search}]
-  {})
+  {:data []})
+
+(defmethod selector-fill-rbs :rbs-multi-select
+  [app m data]
+  (assoc app :data (vec data)))
 
 (defmethod selector :rbs-multi-select
   [app {:keys [text]}]
   (cell text
-        (dom/div nil)))
+        (dom/div nil (str @app))))

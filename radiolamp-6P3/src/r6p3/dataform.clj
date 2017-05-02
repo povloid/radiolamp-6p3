@@ -216,58 +216,25 @@
 
 
 
-(defmulti transform (fn [_ {:keys [type]}] type))
-
-(defn transform-row [data dataform]
-  (reduce transform (assoc app-init :row data) dataform))
-
-
-(defmulti prepare (fn [_ {:keys [type]}] type))
-
-(defn prepare-row [data dataform]
-  (reduce prepare (assoc app-init :row data) dataform))
-
-;;; END base functional
-;;;..................................................................................................
+#_(defn datafom-search--select-rbs-data
+  "Получить данняе для заполнения списков формы поиска"
+  [{{:keys [entitys]}      :main-map
+    {:keys [fields] :as a} :rbs-scheme}]
 
 
-;;------------------------------------------------------------------------------
-;; BEGIN: default behavior
-;; tag: <dataform default behavior>
-;; description: По умолчанию
-;;------------------------------------------------------------------------------
 
-(defmethod transform :default
-  [data _]
-  data)
-
-(defmethod prepare :default
-  [data _]
-  data)
-
-;; END default behavior
-;;..............................................................................
+  
+  )
 
 
-(defmethod transform :string
-  [data _]
-  data)
-(defmethod prepare :string
-  [data _]
-  data)
 
 
-(defmethod transform :number
-  [data _]
-  data)
-(defmethod prepare :number
-  [data _]
-  data)
 
 
-(defmethod transform :select
-  [data params]
-  (add-rb data params))
-(defmethod prepare :select
-  [data _]
-  data)
+
+
+
+
+
+
+
