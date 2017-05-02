@@ -56,7 +56,7 @@
 
     om/IWillMount
     (will-mount [this]
-      (let [{:keys [chan-update-rb]} (om/get-state own)]
+      (let [{:keys [chan-update chan-update-rb]} (om/get-state own)]
         (go
           (while true
             (let [_ (<! chan-update-rb)]
