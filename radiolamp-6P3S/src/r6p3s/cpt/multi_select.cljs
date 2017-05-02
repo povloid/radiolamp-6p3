@@ -21,7 +21,7 @@
   (filter (comp :selected :omut-row)))
 
 
-(defn component [app own {:keys [on-change-fn title-field-key]
+(defn component [app own {:keys [on-change-fn title-field-key on-select-fn]
                           :or   {title-field-key :keyname}}]
   (reify
     om/IInitState
@@ -38,7 +38,10 @@
         (dom/div nil
                  (button/render {:text     "..."
                                  :active?  show-popup?
-                                 :on-click open
+                                 :on-click (fn []
+                                             (if show-popup?
+                                               (close)
+                                               (open)))
                                  :style    #js {:float "right"}})
 
                  (let [data (->> @app
@@ -59,31 +62,33 @@
                                    :zIndex     10
                                    :boxShadow  "0px 2px 8px"
                                    :background "white"}}
-                  
+
                   (table/render {:hover?      true
                                  :bordered?   true
                                  :striped?    true
                                  :responsive? false
                                  :tbody
                                  (om/build tbody-trs-sel/component (:data app)
-                                           {:opts {:selection-type    :multi
+                                           {:opts {:selection-type :multi
                                                    :app-to-tds-seq-fn
                                                    (fn [row]
                                                      [(dom/td nil (row title-field-key))])
-                                                   ;;:on-select-fn
-                                                   ;;(fn [{:keys [] :as row}])
+                                                   :on-select-fn
+                                                   (fn [row]
+                                                     (when on-select-fn
+                                                       (on-select-fn row)))
                                                    }})
                                  })
 
-                  (dom/div #js {:className "btn-group"
-                                :style     #js {:float  "right"
-                                                :margin 4}}
-                           (button/render
-                            {:type     :default
-                             :on-click close
-                             :text     (dom/span nil
-                                                 (glyphicon/render "remove")
-                                                 " Закрыть")}))))))))
+                  #_(dom/div #js {:className "btn-group"
+                                  :style     #js {:float  "right"
+                                                  :margin 4}}
+                             (button/render
+                              {:type     :default
+                               :on-click close
+                               :text     (dom/span nil
+                                                   (glyphicon/render "remove")
+                                                   " Закрыть")}))))))))
 
 
 

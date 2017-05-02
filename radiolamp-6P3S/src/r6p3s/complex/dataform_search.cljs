@@ -103,7 +103,10 @@
 
                           (om/build nav-tabs/component (app :rbtype))
 
-                          ;;(str fields)
+                          (dom/hr #js {:style #js {:marginTop    4
+                                                   :marginBottom 2
+                                                   :border       1
+                                                   :borderStyle  "solid"}})
 
                           (->> rbs-scheme
                                :fields seq
@@ -152,8 +155,8 @@
   [app _ _]
   app)
 (defmethod selector :default
-  [_ {:keys [text search] :as v}]
-  (cell text (str search)))
+  [_ {:keys [text] :as v}]
+  (cell text (dom/div #js {:className "text-danger"} "компонент не определен")))
 
 
 
@@ -180,12 +183,32 @@
 
 
 
-(defmethod selector-app-init :band-integer
+(defmethod selector-app-init :band-integer-from
+  [k {{:keys [buttons]} :search}]
+  input/app-init)
+
+(defmethod selector :band-integer-from
+  [app {:keys [text]}]
+  (cell text
+        (dom/div #js {:className ""}
+                 (om/build input/component app
+                           {:opts {:style       #js {:width "47%" :float "left"}
+                                   :type        "number"
+                                   :min         0
+                                   :placeholder "от"}}))))
+
+
+
+
+
+
+
+(defmethod selector-app-init :band-integer-from-to
   [k {{:keys [buttons]} :search}]
   {:from input/app-init
    :to   input/app-init})
 
-(defmethod selector :band-integer
+(defmethod selector :band-integer-from-to
   [app {:keys [text]}]
   (cell text
         (dom/div #js {:className ""}
@@ -199,6 +222,7 @@
                                    :type        "number"
                                    :min         0
                                    :placeholder "до"}}))))
+
 
 
 
