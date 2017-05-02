@@ -21,7 +21,7 @@
   (filter (comp :selected :omut-row)))
 
 
-(defn component [app own {:keys [on-change-fn title-field-key on-select-fn]
+(defn component [app own {:keys [title-field-key on-select-fn]
                           :or   {title-field-key :keyname}}]
   (reify
     om/IInitState
