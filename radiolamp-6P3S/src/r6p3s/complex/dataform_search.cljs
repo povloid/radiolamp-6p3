@@ -14,7 +14,9 @@
             [r6p3s.cpt.nav-tabs :as nav-tabs]
             [r6p3s.cpt.select :as select]
             [r6p3s.cpt.textarea :as textarea]
+            [r6p3s.cpt.multi-select :as multi-select]
             [r6p3s.cpt.toggle-button :as toggle-button]))
+
 
 (def ^:const padding 4)
 
@@ -239,8 +241,8 @@
 
 
 (defmethod selector-app-init :rbs-multi-select
-  [k {{:keys [buttons]} :search}]
-  {:data []})
+  [k _]
+  multi-select/app-init)
 
 (defmethod selector-fill-rbs :rbs-multi-select
   [app m data]
@@ -249,4 +251,4 @@
 (defmethod selector :rbs-multi-select
   [app {:keys [text]}]
   (cell text
-        (dom/div nil (str @app))))
+        (om/build multi-select/component app)))
