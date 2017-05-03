@@ -108,10 +108,11 @@
     " ADD COLUMN " (name realtype-field)
     " character varying(50);"))
 
-  (map
-   (fn [[field-k params]]
-     (make-sql main-map field-k params))
-   (seq fields)))
+  (doall
+   (map
+    (fn [[field-k params]]
+      (make-sql main-map field-k params))
+    (seq fields))))
 
 ;;; END define
 ;;;..................................................................................................
