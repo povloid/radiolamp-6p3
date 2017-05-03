@@ -21,7 +21,7 @@
 
 (def ^:const padding 4)
 
-(declare selector-app-init selector-fill-rbs selector)
+(declare selector-app-init selector-fill-rbs selector selector-selected)
 
 
 (defn make-app-init
@@ -30,9 +30,10 @@
   {:on        toggle-button/app-init
    :rbtype    (->> rbs-scheme
                    :realtype
-                   vals
-                   (sort-by :ord)
-                   (map-indexed vector)
+                   seq
+                   (sort-by (comp :ord second))                   
+                   (map-indexed (fn [i [k r]]
+                                  [i (assoc r :realtype k)]))
                    (nav-tabs/app-state-i-maker)
                    (assoc nav-tabs/app-state :tabs))
    :selectors (->> rbs-scheme
@@ -41,6 +42,19 @@
                     (fn [a [k v]]
                       (assoc a k (selector-app-init k v)))
                     {}))})
+
+
+
+(defn selected [{:keys [on rbtype selectors] :as app} rbs-scheme]
+  (let [realtype (-> rbtype nav-tabs/active-tab-row :realtype)
+        fields   (get-in rbs-scheme [:realtype realtype :fields] #{})]
+    {:on?       (toggle-button/value on)
+     :realtype  realtype
+     :selectors (->> selectors seq
+                     (filter (comp fields first))
+                     (map (fn [[field row]]
+                            {:field    field                             
+                             :selected (selector-selected row)})))}))
 
 
 
@@ -163,9 +177,10 @@
 
 
 
-(defmulti selector-app-init (fn [_ {{stype :type} :search}] stype))
-(defmulti selector-fill-rbs (fn [_ {{stype :type} :search} _] stype))
-(defmulti selector          (fn [_ {{stype :type} :search} _] stype))
+(defmulti selector-app-init (fn [_ {{type :type} :search}] type))
+(defmulti selector-fill-rbs (fn [_ {{type :type} :search} _] type))
+(defmulti selector          (fn [_ {{type :type} :search} _] type))
+(defmulti selector-selected (fn [{:keys [type]}] type))
 
 
 
@@ -179,6 +194,10 @@
 (defmethod selector :default
   [_ {:keys [text] :as v} _]
   (cell text (dom/div #js {:className "text-danger"} "компонент не определен")))
+
+(defmethod selector-selected :default
+  [_]
+  nil)
 
 
 
@@ -209,7 +228,7 @@
 
 
 (defmethod selector-app-init :band-integer-from
-  [k {{:keys [buttons]} :search}]
+  [k _]
   input/app-init)
 
 (defmethod selector :band-integer-from
@@ -265,7 +284,7 @@
 
 
 (defmethod selector-app-init :boolean
-  [k {{:keys [buttons]} :search}]
+  [k _]
   toggle-button/app-init)
 
 (defmethod selector :boolean
@@ -281,15 +300,15 @@
 
 
 (defmethod selector-app-init :boolean-nm
-  [k {{:keys [buttons]} :search}]
+  [k _]
   (toggle-buttons-selector/app-init
-   [{:key  :nm
-     :text "неважно"
-     :value true}
-    {:key  :y
-     :text "да"}
-    {:key  :n
-     :text "нет"}]))
+            [{:key   :nm
+              :text  "неважно"
+              :value true}
+             {:key  :y
+              :text "да"}
+             {:key  :n
+              :text "нет"}]))
 
 (defmethod selector :boolean-nm
   [app {:keys [text]} chan-update]
@@ -309,7 +328,7 @@
   multi-select/app-init)
 
 (defmethod selector-fill-rbs :rbs-multi-select
-  [app m data]
+  [app _ data]
   (assoc app :data (vec data)))
 
 (defmethod selector :rbs-multi-select
