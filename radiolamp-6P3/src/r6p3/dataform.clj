@@ -1,8 +1,7 @@
 (ns r6p3.dataform
   (:use clojure.pprint)
   (:require [korma.db :as kdb]
-            [korma.core :as kc]
-            [cheshire.core :as cheshire-c]))
+            [korma.core :as kc]))
 
 
 ;;;**************************************************************************************************
@@ -213,19 +212,6 @@
 
 
 
-
-
-
-
-#_(defn datafom-search--select-rbs-data
-  "Получить данняе для заполнения списков формы поиска"
-  [{{:keys [entitys]}      :main-map
-    {:keys [fields] :as a} :rbs-scheme}]
-
-
-
-  
-  )
 
 
 

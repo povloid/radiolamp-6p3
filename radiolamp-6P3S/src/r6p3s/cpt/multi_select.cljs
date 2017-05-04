@@ -18,7 +18,7 @@
   {:data []})
 
 (defn selected [app]
-  (filter (comp :selected :omut-row)))
+  (filter (comp :selected :omut-row) (app :data)))
 
 
 (defn component [app own {:keys [title-field-key on-select-fn]

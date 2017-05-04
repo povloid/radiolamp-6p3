@@ -31,7 +31,7 @@
    :rbtype    (->> rbs-scheme
                    :realtype
                    seq
-                   (sort-by (comp :ord second))                   
+                   (sort-by (comp :ord second))
                    (map-indexed (fn [i [k r]]
                                   [i (assoc r :realtype k)]))
                    (nav-tabs/app-state-i-maker)
@@ -45,16 +45,21 @@
 
 
 
-(defn selected [{:keys [on rbtype selectors] :as app} rbs-scheme]
-  (let [realtype (-> rbtype nav-tabs/active-tab-row :realtype)
-        fields   (get-in rbs-scheme [:realtype realtype :fields] #{})]
-    {:on?       (toggle-button/value on)
-     :realtype  realtype
-     :selectors (->> selectors seq
-                     (filter (comp fields first))
-                     (map (fn [[field row]]
-                            {:field    field                             
-                             :selected (selector-selected row)})))}))
+(defn selected [{:keys [on rbtype selectors] :as app} {:keys [fields] :as rbs-scheme}]
+  (let [on?           (toggle-button/value on)
+        realtype      (-> rbtype nav-tabs/active-tab-row :realtype)
+        common-fields (get-in rbs-scheme [:common :fields] #{})
+        group-fields  (get-in rbs-scheme [:realtype realtype :fields] #{})]
+    {:on?       on?
+     :realtype  (when on? realtype)
+     :selectors (when on?
+                  (->> selectors seq
+                       (filter (fn [[k _]]
+                                 (or (common-fields k)
+                                     (group-fields k))))
+                       (map (fn [[field app]]
+                              {:field    field
+                               :selected (selector-selected app (fields field))}))))}))
 
 
 
@@ -180,7 +185,7 @@
 (defmulti selector-app-init (fn [_ {{type :type} :search}] type))
 (defmulti selector-fill-rbs (fn [_ {{type :type} :search} _] type))
 (defmulti selector          (fn [_ {{type :type} :search} _] type))
-(defmulti selector-selected (fn [{:keys [type]}] type))
+(defmulti selector-selected (fn [_ {{type :type} :search}] type))
 
 
 
@@ -196,7 +201,8 @@
   (cell text (dom/div #js {:className "text-danger"} "компонент не определен")))
 
 (defmethod selector-selected :default
-  [_]
+  [_ row]
+  (println ">>>" row)
   nil)
 
 
@@ -223,6 +229,14 @@
        (apply dom/div #js {:className "btn-group"})
        (cell text)))
 
+(defmethod selector-selected :multi-buttons
+  [app _]
+  (->> app
+       (filter toggle-button/value)
+       (map #(select-keys % [:cmp :val]))))
+
+
+
 
 
 
@@ -243,6 +257,34 @@
                                    :onChange-updated-fn
                                    (fn []
                                      (put! chan-update 1))}}))))
+
+(defmethod selector-selected :band-integer-from
+  [app _]
+  (-> app input/value rc/parse-int-or-nil))
+
+
+
+
+(defmethod selector-app-init :band-integer-to
+  [k _]
+  input/app-init)
+
+(defmethod selector :band-integer-to
+  [app {:keys [text]} chan-update]
+  (cell text
+        (dom/div #js {:className ""}
+                 (om/build input/component app
+                           {:opts {:style       #js {:width "47%" :float "left"}
+                                   :type        "number"
+                                   :min         0
+                                   :placeholder "до"
+                                   :onChange-updated-fn
+                                   (fn []
+                                     (put! chan-update 1))}}))))
+
+(defmethod selector-selected :band-integer-to
+  [app _]
+  (-> app input/value rc/parse-int-or-nil))
 
 
 
@@ -277,6 +319,12 @@
                                      (put! chan-update 1))}}))))
 
 
+(defmethod selector-selected :band-integer-from-to
+  [{:keys [from to]} _]
+  {:from (-> from input/value rc/parse-int-or-nil)
+   :to   (-> to   input/value rc/parse-int-or-nil)})
+
+
 
 
 
@@ -295,6 +343,10 @@
                           (fn []
                             (put! chan-update 1))}})))
 
+(defmethod selector-selected :boolean
+  [app _]
+  (toggle-button/value app))
+
 
 
 
@@ -302,13 +354,13 @@
 (defmethod selector-app-init :boolean-nm
   [k _]
   (toggle-buttons-selector/app-init
-            [{:key   :nm
-              :text  "неважно"
-              :value true}
-             {:key  :y
-              :text "да"}
-             {:key  :n
-              :text "нет"}]))
+   [{:key   :nm
+     :text  "неважно"
+     :value true}
+    {:key  :y
+     :text "да"}
+    {:key  :n
+     :text "нет"}]))
 
 (defmethod selector :boolean-nm
   [app {:keys [text]} chan-update]
@@ -318,6 +370,10 @@
                           :onClick-fn
                           (fn [_]
                             (put! chan-update 1))}})))
+
+(defmethod selector-selected :boolean-nm
+  [app _]  
+  (toggle-buttons-selector/get-selected-one app))
 
 
 
@@ -338,3 +394,10 @@
                   {:opts {:on-select-fn
                           (fn [_]
                             (put! chan-update 1))}})))
+
+
+(defmethod selector-selected :rbs-multi-select
+  [app _]
+  (->> app
+       multi-select/selected
+       (map :id)))
