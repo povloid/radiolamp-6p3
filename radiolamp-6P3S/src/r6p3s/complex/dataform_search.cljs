@@ -202,7 +202,6 @@
 
 (defmethod selector-selected :default
   [_ row]
-  (println ">>>" row)
   nil)
 
 

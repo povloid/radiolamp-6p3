@@ -48,7 +48,6 @@
 
 (defmethod make-pred :band-integer-to
   [query _ field selected]
-  (println selected)
   (if selected
     (kc/where query (<= field selected))
     query))
