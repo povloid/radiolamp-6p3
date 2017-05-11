@@ -61,7 +61,9 @@
                                    :top        42
                                    :zIndex     10
                                    :boxShadow  "0px 2px 8px"
-                                   :background "white"}}
+                                   :background "white"
+                                   :maxHeight  200
+                                   :overflowY  "auto"}}
 
                   (table/render {:hover?      true
                                  :bordered?   true

@@ -14,6 +14,15 @@
    :page-size 10
    :count-all nil})
 
+(defn page [app]
+  (:page app))
+
+(defn set-page [app page]
+  (assoc app :page page))
+
+(defn set-page-1 [app]
+  (set-page app 1))
+
 (defn component [app owner {:keys [chan-update class+ on-click-fn]}]
   (reify
     om/IRender

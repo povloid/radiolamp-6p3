@@ -35,19 +35,20 @@
                  ;;:body (dom/p nil "")
                  ;;:cols ["параметр" "значение"]
                  :rows
-                 (map
-                  (fn [[field-k {:keys [in-row type text]}]]
-                    (let [v (row field-k)]
-                      [text
-                       (condp = type
-                         :money   (str v)
-                         :integer (str v)
-                         :string  (str v)
-                         :text    (str v)
-                         :boolean (str (when v (if v "да" "нет")))
-                         :rbs     (str (get-in row [in-row :keyname]))
-                         (str v))]))
-                  fields)})])))
+                 (->> fields
+                      (sort-by (comp :ord second))
+                      (map
+                       (fn [[field-k {:keys [in-row type text]}]]
+                         (let [v (row field-k)]
+                           [text
+                            (condp = type
+                              :money   (str v)
+                              :integer (str v)
+                              :string  (str v)
+                              :text    (str v)
+                              :boolean (str (when v (if v "да" "нет")))
+                              :rbs     (str (get-in row [in-row :keyname]))
+                              (str v))]))))})])))
          (sort-by first)
          (map second)
          (apply dom/div nil))))

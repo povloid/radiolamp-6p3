@@ -119,11 +119,11 @@
                                  (get-in rbs-scheme [:common :fields] #{})
                                  (get-in rbs-scheme [:realtype realtype-k :fields] #{}))]
 
-                 (println realtype-k show)
 
                  (->> rbs-scheme
                       :fields seq
                       (filter (comp show first))
+                      (sort-by (comp :ord second))
                       (map
                        (fn [[rbtype {:keys [type text min max]}]]
                          (condp = type

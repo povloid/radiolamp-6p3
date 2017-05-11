@@ -154,6 +154,7 @@
                                (filter (fn [[k _]]
                                          (or (common-fields k)
                                              (fields k))))
+                               (sort-by (comp :ord second))
                                (map (fn [[k m]]
                                       (selector (get-in app [:selectors k]) m chan-update)))
                                (apply dom/div #js {:className "row"
