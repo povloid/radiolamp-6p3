@@ -21,7 +21,7 @@
       (as-> query
           (if all
             query
-            (rc/com-pred-page* (dec page) page-size)))
+            (rc/com-pred-page* query (dec page) page-size)))
 
       (as-> query
           (let [fts-query (clojure.string/trim fts-query)]
