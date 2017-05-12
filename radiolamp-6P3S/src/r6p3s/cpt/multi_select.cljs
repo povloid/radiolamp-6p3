@@ -17,12 +17,16 @@
 (def app-init
   {:data []})
 
+
+(defn data-set [app data]
+  (assoc app :data data))
+
 (defn selected [app]
   (filter (comp :selected :omut-row) (app :data)))
 
 
-(defn component [app own {:keys [title-field-key on-select-fn]
-                          :or   {title-field-key :keyname}}]
+(defn component [app own {:keys [selected-row-render-fn title-field-key on-select-fn]
+                          :or   {selected-row-render-fn :keyname title-field-key :keyname}}]
   (reify
     om/IInitState
     (init-state [_]
@@ -50,14 +54,17 @@
                    (if (empty? data)
                      (dom/div #js {:className "text-muted"} "ничего не выбрано")
                      (->> data
-                          (map title-field-key)
-                          (clojure.string/join ", ")
-                          (apply dom/div #js {:className "text-primary"}))))
+                          (map (fn [row]
+                                 (dom/span #js {:style #js {:whiteSpace "nowrap"}}
+                                           (glyphicon/render "check text-success") 
+                                           (selected-row-render-fn row))))
+                          (interpose ", ")
+                          (apply dom/div #js {:className "text-warning"}))))
 
                  (dom/div
                   #js {:style #js {:display    (if show-popup? "" "none")
                                    :position   "absolute"
-                                   :width      "100%"
+                                   :width      "98%"
                                    :top        42
                                    :zIndex     10
                                    :boxShadow  "0px 2px 8px"
@@ -74,7 +81,7 @@
                                            {:opts {:selection-type :multi
                                                    :app-to-tds-seq-fn
                                                    (fn [row]
-                                                     [(dom/td nil (row title-field-key))])
+                                                     [(dom/td nil (title-field-key row))])
                                                    :on-select-fn
                                                    (fn [row]
                                                      (when on-select-fn
@@ -100,7 +107,10 @@
                                            type
                                            label-class+
                                            input-class+
-                                           spec-select]
+                                           spec-select
+                                           style
+                                           label-style
+                                           input-style]
                                     :or   {label        "Метка"
                                            label-class+ common-form/label-class
                                            input-class+ common-form/input-class
@@ -108,9 +118,12 @@
   (reify
     om/IRender
     (render [_]
-      (dom/div #js {:className (str "form-group " (common-input/input-css-string-has? app))}
-               (dom/label #js {:className (str "control-label " label-class+) } label)
-               (dom/div #js {:className input-class+ :style #js {}}
+      (dom/div #js {:className (str "form-group " (common-input/input-css-string-has? app))
+                    :style     style}
+               (dom/label #js {:className (str "control-label " label-class+)
+                               :style     label-style} label)
+               (dom/div #js {:className input-class+
+                             :style     input-style}
                         (om/build component app {:opts spec-select})
 
                         (om/build helper-p/component app {}))))))

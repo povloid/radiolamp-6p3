@@ -13,11 +13,15 @@
             [r6p3.core :as c]))
 
 
-(defn rest-areal-list [{{:keys [page page-size fts-query]
+(defn rest-areal-list [{{:keys [page page-size fts-query all]
                          :or {page 1 page-size 10 fts-query ""}} :params}
                        _]
   (-> c/areal-select*
-      (rc/com-pred-page* (dec page) page-size)
+
+      (as-> query
+          (if all
+            query
+            (rc/com-pred-page* (dec page) page-size)))
 
       (as-> query
           (let [fts-query (clojure.string/trim fts-query)]
