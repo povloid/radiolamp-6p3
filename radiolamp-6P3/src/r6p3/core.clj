@@ -206,10 +206,7 @@
         (clojure.string/replace #"&rdquo;" "”")
         (clojure.string/replace #"&bdquo;" "„")
         (clojure.string/replace #"&laquo;" "«")
-        (clojure.string/replace #"&raquo;" "»")
-
-
-        )))
+        (clojure.string/replace #"&raquo;" "»"))))
 
 
 ;; END html to text tools
@@ -629,6 +626,23 @@ SELECT * FROM r;
    field #(->> % .getTime (new java.util.Date)) row))
 
 ;; ---------------------------------------
+;; cdate and udate - maker
+
+(defn prepare-cdate-udate [{id :id :as row}]
+  (let [date (new java.util.Date)]
+    (->> (-> (if id
+               row
+               (prepare-date-to-sql-timestamp :cdate (assoc row :cdate date)))
+             (assoc :udate date))
+         (prepare-date-to-sql-timestamp :udate))))
+
+
+(defn transform-cdate-udate [row]
+  (->> row
+       (transform-sql-date-to-date :cdate)
+       (transform-sql-date-to-date :udate)))
+
+;; ---------------------------------------
 ;; JSON transformations
 
 
@@ -642,6 +656,7 @@ SELECT * FROM r;
    (fn [v]
      (cheshire-c/parse-string (str v) keywordize?))
    row))
+
 
 ;; ---------------------------------------
 
@@ -1787,7 +1802,7 @@ SELECT * FROM r;
                   (-> row
                       (dissoc :fts)
                       )))
-  
+
   (kc/many-to-many content_type :page_content_type))
 
 (kc/defentity page_content_type
@@ -1815,27 +1830,3 @@ SELECT * FROM r;
 ;;;..................................................................................................
 
 ;;;<<hydra-page
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

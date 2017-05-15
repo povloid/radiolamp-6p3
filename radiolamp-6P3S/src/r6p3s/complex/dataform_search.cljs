@@ -66,7 +66,7 @@
 
 (defn component
   "Визуальный компонент для формирвоания окна поиска по форме"
-  [app own {:keys [uri-rbs rbs-scheme chan-update]}]
+  [app own {:keys [uri-rbs rbs-scheme chan-update cell-opts show-mast-go-on?]}]
   (reify
     om/IInitState
     (init-state [_]
@@ -100,7 +100,7 @@
     om/IRenderState
     (render-state [_ {:keys [chan-update chan-update-rb]}]
       (let [{:keys [on rbtype]}     @app
-            on?                     (toggle-button/value on)
+            on?                     (or show-mast-go-on? (toggle-button/value on))
             common-fields           (get-in rbs-scheme [:common :fields] #{})
             {:keys [fields] :as rb} (nav-tabs/active-tab-row rbtype)]
         (dom/div #js {:className "col-xs-12 col-sm-12 col-md-12 col-lg-12"
@@ -109,12 +109,15 @@
                  (dom/div #js {:style #js {:backgroundColor "#eee"
                                            :padding         padding
                                            :borderRadius    (if on? "5px 5px 0px 0px" "5px")}}
-                          (om/build toggle-button/component (app :on)
-                                    {:opts {:text-on  (glyphicon/render "filter")
-                                            :text-off (glyphicon/render "filter")
-                                            :onClick-fn
-                                            (fn [_]
-                                              (put! chan-update 1))}})
+                          
+                          (if show-mast-go-on?
+                            (glyphicon/render "filter")
+                            (om/build toggle-button/component (app :on)
+                                      {:opts {:text-on  (glyphicon/render "filter")
+                                              :text-off (glyphicon/render "filter")
+                                              :onClick-fn
+                                              (fn [_]
+                                                (put! chan-update 1))}}))
 
                           (if on?
                             (dom/span #js {:className "text-warning"} " Фильтрация по параметрам")
@@ -149,6 +152,7 @@
                                                    :border       1
                                                    :borderStyle  "solid"}})
 
+                          (println '>>> cell-opts)
                           (->> rbs-scheme
                                :fields seq
                                (filter (fn [[k _]]
@@ -156,7 +160,7 @@
                                              (fields k))))
                                (sort-by (comp :ord second))
                                (map (fn [[k m]]
-                                      (selector (get-in app [:selectors k]) m chan-update)))
+                                      (selector (get-in app [:selectors k]) m chan-update cell-opts)))
                                (apply dom/div #js {:className "row"
                                                    :style     #js {:marginRight 0
                                                                    :marginLeft  0}}))))))))
@@ -164,14 +168,18 @@
 
 
 
-(defn- cell [t e]
-  (dom/div #js {:className "col-xs-12 col-sm-6 col-md-4 col-lg-4"
+(defn- cell [{:keys [class label-class input-class]
+              :or   {class       "col-xs-12 col-sm-6 col-md-4 col-lg-4"
+                     label-class "col-xs-12 col-sm-5 col-md-5 col-lg-5"
+                     input-class "col-xs-12 col-sm-7 col-md-7 col-lg-7"}}
+             t e]
+  (dom/div #js {:className class
                 :style     #js {:padding 4 :marginLeft 0 :marginRight 0}}
-           (dom/div #js {:className "col-xs-12 col-sm-5 col-md-5 col-lg-5"
+           (dom/div #js {:className label-class
                          :style     #js {:textAlign "right"
                                          :padding   4}}
                     t)
-           (dom/div #js {:className "col-xs-12 col-sm-7 col-md-7 col-lg-7"
+           (dom/div #js {:className input-class
                          :style     #js {:textAlign "left"
                                          :padding   4}}
                     e)))
@@ -185,7 +193,7 @@
 
 (defmulti selector-app-init (fn [_ {{type :type} :search}] type))
 (defmulti selector-fill-rbs (fn [_ {{type :type} :search} _] type))
-(defmulti selector          (fn [_ {{type :type} :search} _] type))
+(defmulti selector          (fn [_ {{type :type} :search} _ opts] type))
 (defmulti selector-selected (fn [_ {{type :type} :search}] type))
 
 
@@ -198,8 +206,8 @@
   [app _ _]
   app)
 (defmethod selector :default
-  [_ {:keys [text] :as v} _]
-  (cell text (dom/div #js {:className "text-danger"} "компонент не определен")))
+  [_ {:keys [text] :as v} _ opts]
+  (cell opts text (dom/div #js {:className "text-danger"} "компонент не определен")))
 
 (defmethod selector-selected :default
   [_ row]
@@ -217,7 +225,7 @@
    buttons))
 
 (defmethod selector :multi-buttons
-  [app {:keys [text] {:keys [buttons]} :search} chan-update]
+  [app {:keys [text] {:keys [buttons]} :search} chan-update opts]
   (->> buttons
        (map-indexed
         (fn [i {:keys [text]}]
@@ -227,7 +235,7 @@
                             (fn []
                               (put! chan-update 1))}})))
        (apply dom/div #js {:className "btn-group"})
-       (cell text)))
+       (cell opts text)))
 
 (defmethod selector-selected :multi-buttons
   [app _]
@@ -246,8 +254,8 @@
   input/app-init)
 
 (defmethod selector :band-integer-from
-  [app {:keys [text]} chan-update]
-  (cell text
+  [app {:keys [text]} chan-update opts]
+  (cell opts text
         (dom/div #js {:className ""}
                  (om/build input/component app
                            {:opts {:style       #js {:width "47%" :float "left"}
@@ -270,8 +278,8 @@
   input/app-init)
 
 (defmethod selector :band-integer-to
-  [app {:keys [text]} chan-update]
-  (cell text
+  [app {:keys [text]} chan-update opts]
+  (cell opts text
         (dom/div #js {:className ""}
                  (om/build input/component app
                            {:opts {:style       #js {:width "47%" :float "left"}
@@ -298,8 +306,8 @@
    :to   input/app-init})
 
 (defmethod selector :band-integer-from-to
-  [app {:keys [text]} chan-update]
-  (cell text
+  [app {:keys [text]} chan-update opts]
+  (cell opts text
         (dom/div #js {:className ""}
                  (om/build input/component (app :from)
                            {:opts {:style       #js {:width "47%" :float "left"}
@@ -336,8 +344,8 @@
   toggle-button/app-init)
 
 (defmethod selector :boolean
-  [app {:keys [text]} chan-update]
-  (cell text
+  [app {:keys [text]} chan-update opts]
+  (cell opts text
         (om/build toggle-button/component app
                   {:opts {:onClick-fn
                           (fn []
@@ -363,8 +371,8 @@
      :text "нет"}]))
 
 (defmethod selector :boolean-nm
-  [app {:keys [text]} chan-update]
-  (cell text
+  [app {:keys [text]} chan-update opts]
+  (cell opts text
         (om/build toggle-buttons-selector/component app
                   {:opts {:selection-type :one
                           :onClick-fn
@@ -372,7 +380,7 @@
                             (put! chan-update 1))}})))
 
 (defmethod selector-selected :boolean-nm
-  [app _]  
+  [app _]
   (toggle-buttons-selector/get-selected-one app))
 
 
@@ -388,8 +396,8 @@
   (assoc app :data (vec data)))
 
 (defmethod selector :rbs-multi-select
-  [app {:keys [text]} chan-update]
-  (cell text
+  [app {:keys [text]} chan-update opts]
+  (cell opts text
         (om/build multi-select/component app
                   {:opts {:on-select-fn
                           (fn [_]
