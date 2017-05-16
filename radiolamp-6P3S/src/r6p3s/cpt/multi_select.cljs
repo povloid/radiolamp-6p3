@@ -34,6 +34,15 @@
           (assoc-in row [:omut-row :selected] (contains? vals (k row))))
         data)))))
 
+(defn selected-clean [app]
+  (update-in
+     app [:data]
+     (fn [data]
+       (mapv
+        (fn [row]
+          (assoc-in row [:omut-row :selected] false))
+        data))))
+
 
 (defn component [app own {:keys [selected-row-render-fn title-field-key on-select-fn]
                           :or   {selected-row-render-fn :keyname title-field-key :keyname}}]

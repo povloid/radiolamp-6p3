@@ -21,7 +21,12 @@
 
 (def ^:const padding 4)
 
-(declare selector-app-init selector-fill-rbs selector selector-selected selector-selected-set)
+(declare selector-app-init
+         selector-fill-rbs
+         selector
+         selector-selected
+         selector-selected-set
+         selector-selected-clean)
 
 
 (defn make-app-init
@@ -42,6 +47,18 @@
                     (fn [a [k v]]
                       (assoc a k (selector-app-init k v)))
                     {}))})
+
+(defn selected-clean [app rbs-scheme]
+  (let [fields (rbs-scheme :fields)]
+    (update-in
+     app [:selectors]
+     (fn [selectors]
+       (->> selectors
+            keys
+            (reduce
+             (fn [selectors field]
+               (update-in selectors [field] selector-selected-clean (fields field)))
+             selectors))))))
 
 
 
@@ -72,14 +89,15 @@
   [app
    {:keys [on realtype selectors]}
    {:keys [fields] :as rbs-scheme}]
-  
+
   (-> app
+      (selected-clean rbs-scheme)
       (update-in [:on] toggle-button/set-value! on)
       (update-in [:rbtype] nav-tabs/set-active-tab-by :realtype realtype)
       (update-in [:selectors]
                  (fn [app]
                    (reduce
-                    (fn [app {:keys [field selected]}]                           
+                    (fn [app {:keys [field selected]}]
                       (update-in app [field] selector-selected-set (fields field) selected))
                     app selectors)))))
 
@@ -103,7 +121,7 @@
 
         (when show-mast-go-on?
           (om/transact! app :on #(toggle-button/set-value! % true)))
-        
+
         (go
           (while true
             (let [_ (<! chan-update-rb)]
@@ -137,7 +155,7 @@
                  (dom/div #js {:style #js {:backgroundColor "#eee"
                                            :padding         padding
                                            :borderRadius    (if on? "5px 5px 0px 0px" "5px")}}
-                          
+
                           (if show-mast-go-on?
                             (glyphicon/render "filter")
                             (om/build toggle-button/component (app :on)
@@ -158,12 +176,7 @@
                                             :type  :warning
                                             :on-click
                                             (fn []
-                                              (om/transact!
-                                               app (fn [app]
-                                                     (merge app
-                                                            (-> rbs-scheme
-                                                                make-app-init
-                                                                (dissoc :on :rbtype)))))
+                                              (om/transact! app #(selected-clean % rbs-scheme))
                                               (put! chan-update-rb 1)
                                               (put! chan-update 1))})))
 
@@ -219,11 +232,12 @@
 
 
 
-(defmulti selector-app-init     (fn [_ {{type :type} :search}] type))
-(defmulti selector-fill-rbs     (fn [_ {{type :type} :search} _] type))
-(defmulti selector              (fn [_ {{type :type} :search} _ opts] type))
-(defmulti selector-selected     (fn [_ {{type :type} :search}] type))
-(defmulti selector-selected-set (fn [_ {{type :type} :search} _] type))
+(defmulti selector-app-init       (fn [_ {{type :type} :search}] type))
+(defmulti selector-fill-rbs       (fn [_ {{type :type} :search} _] type))
+(defmulti selector                (fn [_ {{type :type} :search} _ opts] type))
+(defmulti selector-selected       (fn [_ {{type :type} :search}] type))
+(defmulti selector-selected-set   (fn [_ {{type :type} :search} _] type))
+(defmulti selector-selected-clean (fn [_ {{type :type} :search}] type))
 
 
 
@@ -252,12 +266,19 @@
   (println)
   app)
 
+(defmethod selector-selected-clean :default
+  [app meta]
+  (println "meta: " meta)
+  (println "app: " app)
+  (println)
+  (selector-app-init app meta))
+
 
 
 
 
 (defmethod selector-app-init :multi-buttons
-  [k {{:keys [buttons]} :search}]
+  [_ {{:keys [buttons]} :search}]
   (mapv
    (fn [row]
      (merge toggle-button/app-init row))
@@ -297,7 +318,7 @@
 
 
 (defmethod selector-app-init :band-integer-from
-  [k _]
+  [_ _]
   input/app-init)
 
 (defmethod selector :band-integer-from
@@ -326,7 +347,7 @@
 
 
 (defmethod selector-app-init :band-integer-to
-  [k _]
+  [_ _]
   input/app-init)
 
 (defmethod selector :band-integer-to
@@ -355,7 +376,7 @@
 
 
 (defmethod selector-app-init :band-integer-from-to
-  [k {{:keys [buttons]} :search}]
+  [_ {{:keys [buttons]} :search}]
   {:from input/app-init
    :to   input/app-init})
 
@@ -398,7 +419,7 @@
 
 
 (defmethod selector-app-init :boolean
-  [k _]
+  [_ _]
   toggle-button/app-init)
 
 (defmethod selector :boolean
@@ -452,12 +473,12 @@
 
 
 (defmethod selector-app-init :rbs-multi-select
-  [k _]
+  [_ _]
   multi-select/app-init)
 
 (defmethod selector-fill-rbs :rbs-multi-select
   [app _ data]
-  (assoc app :data (vec data)))
+  (multi-select/data-set app (vec data)))
 
 (defmethod selector :rbs-multi-select
   [app {:keys [text]} chan-update opts]
@@ -477,3 +498,8 @@
 (defmethod selector-selected-set :rbs-multi-select
   [app _ selected]
   (multi-select/selected-set-for app :id selected))
+
+
+(defmethod selector-selected-clean :rbs-multi-select
+  [app _]
+  (multi-select/selected-clean app))
