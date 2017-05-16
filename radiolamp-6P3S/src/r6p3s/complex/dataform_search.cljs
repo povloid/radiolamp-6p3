@@ -21,7 +21,7 @@
 
 (def ^:const padding 4)
 
-(declare selector-app-init selector-fill-rbs selector selector-selected)
+(declare selector-app-init selector-fill-rbs selector selector-selected selector-selected-set)
 
 
 (defn make-app-init
@@ -45,7 +45,10 @@
 
 
 
-(defn selected [{:keys [on rbtype selectors] :as app} {:keys [fields] :as rbs-scheme}]
+(defn selected
+  "Формирование выбранных значений"
+  [{:keys [on rbtype selectors] :as app}
+   {:keys [fields] :as rbs-scheme}]
   (let [on?           (toggle-button/value on)
         realtype      (-> rbtype nav-tabs/active-tab-row :realtype)
         common-fields (get-in rbs-scheme [:common :fields] #{})
@@ -64,6 +67,27 @@
 
 
 
+(defn selected-set
+  "Восстановление состояния из selected"
+  [app
+   {:keys [on realtype selectors]}
+   {:keys [fields] :as rbs-scheme}]
+  
+  (-> app
+      (update-in [:on] toggle-button/set-value! on)
+      (update-in [:rbtype] nav-tabs/set-active-tab-by :realtype realtype)
+      (update-in [:selectors]
+                 (fn [app]
+                   (reduce
+                    (fn [app {:keys [field selected]}]                           
+                      (update-in app [field] selector-selected-set (fields field) selected))
+                    app selectors)))))
+
+
+
+
+
+
 (defn component
   "Визуальный компонент для формирвоания окна поиска по форме"
   [app own {:keys [uri-rbs rbs-scheme chan-update cell-opts show-mast-go-on?]}]
@@ -76,6 +100,10 @@
     om/IWillMount
     (will-mount [this]
       (let [{:keys [chan-update chan-update-rb]} (om/get-state own)]
+
+        (when show-mast-go-on?
+          (om/transact! app :on #(toggle-button/set-value! % true)))
+        
         (go
           (while true
             (let [_ (<! chan-update-rb)]
@@ -83,7 +111,6 @@
                uri-rbs
                {}
                (fn [rbs-list]
-                 (println rbs-list)
                  (om/transact!
                   app :selectors
                   (fn [app]
@@ -103,6 +130,7 @@
             on?                     (or show-mast-go-on? (toggle-button/value on))
             common-fields           (get-in rbs-scheme [:common :fields] #{})
             {:keys [fields] :as rb} (nav-tabs/active-tab-row rbtype)]
+
         (dom/div #js {:className "col-xs-12 col-sm-12 col-md-12 col-lg-12"
                       :style     #js {:padding padding}}
 
@@ -152,7 +180,7 @@
                                                    :border       1
                                                    :borderStyle  "solid"}})
 
-                          (println '>>> cell-opts)
+
                           (->> rbs-scheme
                                :fields seq
                                (filter (fn [[k _]]
@@ -191,10 +219,13 @@
 
 
 
-(defmulti selector-app-init (fn [_ {{type :type} :search}] type))
-(defmulti selector-fill-rbs (fn [_ {{type :type} :search} _] type))
-(defmulti selector          (fn [_ {{type :type} :search} _ opts] type))
-(defmulti selector-selected (fn [_ {{type :type} :search}] type))
+(defmulti selector-app-init     (fn [_ {{type :type} :search}] type))
+(defmulti selector-fill-rbs     (fn [_ {{type :type} :search} _] type))
+(defmulti selector              (fn [_ {{type :type} :search} _ opts] type))
+(defmulti selector-selected     (fn [_ {{type :type} :search}] type))
+(defmulti selector-selected-set (fn [_ {{type :type} :search} _] type))
+
+
 
 
 
@@ -212,6 +243,14 @@
 (defmethod selector-selected :default
   [_ row]
   nil)
+
+(defmethod selector-selected-set :default
+  [app meta selected]
+  (println "meta: " meta)
+  (println "app: " app)
+  (println "selected: " selected)
+  (println)
+  app)
 
 
 
@@ -243,6 +282,14 @@
        (filter toggle-button/value)
        (map #(select-keys % [:cmp :val]))))
 
+(defmethod selector-selected-set :multi-buttons
+  [app _ selected]
+  (let [selected-vals (->> selected (map :val) set)]
+    (mapv
+     (fn [{:keys [val] :as row}]
+       (toggle-button/set-value! row (contains? selected-vals val)))
+     app)))
+
 
 
 
@@ -270,6 +317,11 @@
   [app _]
   (-> app input/value rc/parse-int-or-nil))
 
+(defmethod selector-selected-set :band-integer-from
+  [app _ selected]
+  (input/set-value! app selected))
+
+
 
 
 
@@ -294,7 +346,9 @@
   [app _]
   (-> app input/value rc/parse-int-or-nil))
 
-
+(defmethod selector-selected-set :band-integer-to
+  [app _ selected]
+  (input/set-value! app selected))
 
 
 
@@ -333,7 +387,11 @@
    :to   (-> to   input/value rc/parse-int-or-nil)})
 
 
-
+(defmethod selector-selected-set :band-integer-from-to
+  [app _ {:keys [from to]}]
+  (-> app
+      (update-in [:from] input/set-value! from)
+      (update-in [:to] input/set-value! to)))
 
 
 
@@ -355,7 +413,9 @@
   [app _]
   (toggle-button/value app))
 
-
+(defmethod selector-selected-set :boolean
+  [app _ selected]
+  (toggle-button/set-value! app selected))
 
 
 
@@ -384,6 +444,10 @@
   (toggle-buttons-selector/get-selected-one app))
 
 
+(defmethod selector-selected-set :boolean-nm
+  [app _ selected]
+  (toggle-buttons-selector/set-selected app [selected]))
+
 
 
 
@@ -409,3 +473,7 @@
   (->> app
        multi-select/selected
        (map :id)))
+
+(defmethod selector-selected-set :rbs-multi-select
+  [app _ selected]
+  (multi-select/selected-set-for app :id selected))

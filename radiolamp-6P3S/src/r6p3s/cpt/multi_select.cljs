@@ -24,6 +24,16 @@
 (defn selected [app]
   (filter (comp :selected :omut-row) (app :data)))
 
+(defn selected-set-for [app k vals]
+  (let [vals (set vals)]
+    (update-in
+     app [:data]
+     (fn [data]
+       (mapv
+        (fn [row]
+          (assoc-in row [:omut-row :selected] (contains? vals (k row))))
+        data)))))
+
 
 (defn component [app own {:keys [selected-row-render-fn title-field-key on-select-fn]
                           :or   {selected-row-render-fn :keyname title-field-key :keyname}}]
@@ -56,7 +66,7 @@
                      (->> data
                           (map (fn [row]
                                  (dom/span #js {:style #js {:whiteSpace "nowrap"}}
-                                           (glyphicon/render "check text-success") 
+                                           (glyphicon/render "check text-success")
                                            (selected-row-render-fn row))))
                           (interpose ", ")
                           (apply dom/div #js {:className "text-warning"}))))

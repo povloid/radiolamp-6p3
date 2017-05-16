@@ -18,6 +18,7 @@
             [image-resizer.format :as format]
             [image-resizer.pad :as pad]
 
+            [clojure.edn :as edn]
             [cheshire.core :as cheshire-c]
 
             [cemerick.friend :as friend]
@@ -657,6 +658,20 @@ SELECT * FROM r;
      (cheshire-c/parse-string (str v) keywordize?))
    row))
 
+
+;; ---------------------------------------
+;; EDN transformations
+
+(defn prepare-as-edn  [field row]
+  (if-empty?-row-or-nil?-val-then-row-else-do
+   field prn-str row))
+
+(defn transform-edn-as-clj [field row]
+  (if-empty?-row-or-nil?-val-then-row-else-do
+   field
+   (fn [v]
+     (edn/read-string (str v)))
+   row))
 
 ;; ---------------------------------------
 

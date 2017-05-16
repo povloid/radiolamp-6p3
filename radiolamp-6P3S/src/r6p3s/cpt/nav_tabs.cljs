@@ -1,7 +1,7 @@
 (ns r6p3s.cpt.nav-tabs
   (:require [cljs.core.async :refer [put! chan <!]]
             [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]            
+            [om.dom :as dom :include-macros true]
             [r6p3s.core :as c]
             [r6p3s.ui.glyphicon :as glyphicon]
             [r6p3s.ui.font-icon :as font-icon]))
@@ -35,6 +35,18 @@
 
 (defn set-active-tab [app i]
   (assoc app :active-tab i))
+
+(defn set-active-tab-by
+  [{:keys [tabs] :as app} k v]
+  (let [i (->> tabs
+             (map-indexed vector)
+             (reduce
+              (fn [_ [i row]]
+                (if (= (k row) v)
+                  (reduced i)
+                  nil))
+              nil))]
+    (assoc app :active-tab i)))
 
 (defn set-active-tab! [app i]
   (om/update! app :active-tab i))
@@ -102,8 +114,8 @@
                                                   :className   (str "glyphicon " glyphicon)
                                                   :aria-hidden "true"}))
                                  (when icon (font-icon/render icon))
-                                 (when icon " ")                                 
+                                 (when icon " ")
                                  text)))
 
-                
+
                 (:tabs @app) (range)) )))))
