@@ -48,7 +48,9 @@
                       (assoc a k (selector-app-init k v)))
                     {}))})
 
-(defn selected-clean [app rbs-scheme]
+(defn selected-clean
+  "Отчистка выбранных значений"
+  [app rbs-scheme]
   (let [fields (rbs-scheme :fields)]
     (update-in
      app [:selectors]
@@ -209,11 +211,12 @@
 
 
 
-(defn- cell [{:keys [class label-class input-class]
-              :or   {class       "col-xs-12 col-sm-6 col-md-4 col-lg-4"
-                     label-class "col-xs-12 col-sm-5 col-md-5 col-lg-5"
-                     input-class "col-xs-12 col-sm-7 col-md-7 col-lg-7"}}
-             t e]
+(defn- cell
+  [{:keys [class label-class input-class]
+    :or   {class       "col-xs-12 col-sm-6 col-md-4 col-lg-4"
+           label-class "col-xs-12 col-sm-5 col-md-5 col-lg-5"
+           input-class "col-xs-12 col-sm-7 col-md-7 col-lg-7"}}
+   t e]
   (dom/div #js {:className class
                 :style     #js {:padding 4 :marginLeft 0 :marginRight 0}}
            (dom/div #js {:className label-class
@@ -230,6 +233,13 @@
 
 
 
+;;;**************************************************************************************************
+;;;* BEGIN DataForm search input components
+;;;* tag: <dataform search input components>
+;;;*
+;;;* description: Компоненты выбора для датаформы поиска
+;;;*
+;;;**************************************************************************************************
 
 
 (defmulti selector-app-init       (fn [_ {{type :type} :search}] type))
@@ -241,15 +251,22 @@
 
 
 
+;;------------------------------------------------------------------------------
+;; BEGIN: default
+;; tag: <default dataform search component>
+;; description: Компонент и поведение по умолчанию
+;;------------------------------------------------------------------------------
 
 
 ;; Если селектор не реализован
 (defmethod selector-app-init :default
   [_ _]
   {})
+
 (defmethod selector-fill-rbs :default
   [app _ _]
   app)
+
 (defmethod selector :default
   [_ {:keys [text] :as v} _ opts]
   (cell opts text (dom/div #js {:className "text-danger"} "компонент не определен")))
@@ -273,8 +290,15 @@
   (println)
   (selector-app-init app meta))
 
+;; END default
+;;..............................................................................
 
 
+;;------------------------------------------------------------------------------
+;; BEGIN: multi-buttons
+;; tag: <multi-buttons dataform search component>
+;; description: Выбор кнопками нескольких возможных значений
+;;------------------------------------------------------------------------------
 
 
 (defmethod selector-app-init :multi-buttons
@@ -312,14 +336,21 @@
      app)))
 
 
+;; END multi-buttons
+;;..............................................................................
 
 
-
+;;------------------------------------------------------------------------------
+;; BEGIN: band-integer-from
+;; tag: <band-integer-from dataform search component>
+;; description: Диапазон выбора от
+;;------------------------------------------------------------------------------
 
 
 (defmethod selector-app-init :band-integer-from
   [_ _]
   input/app-init)
+
 
 (defmethod selector :band-integer-from
   [app {:keys [text]} chan-update opts]
@@ -334,21 +365,31 @@
                                    (fn []
                                      (put! chan-update 1))}}))))
 
+
 (defmethod selector-selected :band-integer-from
   [app _]
   (-> app input/value rc/parse-int-or-nil))
+
 
 (defmethod selector-selected-set :band-integer-from
   [app _ selected]
   (input/set-value! app selected))
 
 
+;; END band-integer-from
+;;..............................................................................
 
 
+;;------------------------------------------------------------------------------
+;; BEGIN: band-integer-to
+;; tag: <band-integer-to dataform search component>
+;; description: Диапазон выбора целых до
+;;------------------------------------------------------------------------------
 
 (defmethod selector-app-init :band-integer-to
   [_ _]
   input/app-init)
+
 
 (defmethod selector :band-integer-to
   [app {:keys [text]} chan-update opts]
@@ -363,22 +404,32 @@
                                    (fn []
                                      (put! chan-update 1))}}))))
 
+
 (defmethod selector-selected :band-integer-to
   [app _]
   (-> app input/value rc/parse-int-or-nil))
+
 
 (defmethod selector-selected-set :band-integer-to
   [app _ selected]
   (input/set-value! app selected))
 
 
+;; END band-integer-to
+;;..............................................................................
 
 
+;;------------------------------------------------------------------------------
+;; BEGIN: band-integer-from-to
+;; tag: <band-integer-from-to dataform search component>
+;; description: компонент диапазона выбора для целых от и до
+;;------------------------------------------------------------------------------
 
 (defmethod selector-app-init :band-integer-from-to
   [_ {{:keys [buttons]} :search}]
   {:from input/app-init
    :to   input/app-init})
+
 
 (defmethod selector :band-integer-from-to
   [app {:keys [text]} chan-update opts]
@@ -415,12 +466,19 @@
       (update-in [:to] input/set-value! to)))
 
 
+;; END band-integer-from-to
+;;..............................................................................
 
-
+;;------------------------------------------------------------------------------
+;; BEGIN: boolean
+;; tag: <boolean dataform search component>
+;; description: Выбор да или нет
+;;------------------------------------------------------------------------------
 
 (defmethod selector-app-init :boolean
   [_ _]
   toggle-button/app-init)
+
 
 (defmethod selector :boolean
   [app {:keys [text]} chan-update opts]
@@ -430,15 +488,26 @@
                           (fn []
                             (put! chan-update 1))}})))
 
+
 (defmethod selector-selected :boolean
   [app _]
   (toggle-button/value app))
+
 
 (defmethod selector-selected-set :boolean
   [app _ selected]
   (toggle-button/set-value! app selected))
 
 
+;; END boolean
+;;..............................................................................
+
+
+;;------------------------------------------------------------------------------
+;; BEGIN: boolean-nm
+;; tag: <boolean-nm dataform search component>
+;; description: Выбор да нет неважно
+;;------------------------------------------------------------------------------
 
 (defmethod selector-app-init :boolean-nm
   [k _]
@@ -451,6 +520,7 @@
     {:key  :n
      :text "нет"}]))
 
+
 (defmethod selector :boolean-nm
   [app {:keys [text]} chan-update opts]
   (cell opts text
@@ -459,6 +529,7 @@
                           :onClick-fn
                           (fn [_]
                             (put! chan-update 1))}})))
+
 
 (defmethod selector-selected :boolean-nm
   [app _]
@@ -469,8 +540,14 @@
   [app _ selected]
   (toggle-buttons-selector/set-selected app [selected]))
 
+;; END boolean-nm
+;;..............................................................................
 
-
+;;------------------------------------------------------------------------------
+;; BEGIN: rbs-multi-select
+;; tag: <rbs-multi-select dataform search component>
+;; description: компонент множественного выбора из справочника
+;;------------------------------------------------------------------------------
 
 (defmethod selector-app-init :rbs-multi-select
   [_ _]
@@ -479,6 +556,7 @@
 (defmethod selector-fill-rbs :rbs-multi-select
   [app _ data]
   (multi-select/data-set app (vec data)))
+
 
 (defmethod selector :rbs-multi-select
   [app {:keys [text]} chan-update opts]
@@ -495,6 +573,7 @@
        multi-select/selected
        (map :id)))
 
+
 (defmethod selector-selected-set :rbs-multi-select
   [app _ selected]
   (multi-select/selected-set-for app :id selected))
@@ -503,3 +582,11 @@
 (defmethod selector-selected-clean :rbs-multi-select
   [app _]
   (multi-select/selected-clean app))
+
+;; END rbs-multi-select
+;;..............................................................................
+
+
+
+;;; END DataForm search input components
+;;;..................................................................................................
