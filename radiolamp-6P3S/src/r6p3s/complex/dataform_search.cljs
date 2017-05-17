@@ -254,8 +254,8 @@
 (defn- cell-panel
   [opts class-name t e]
   (dom/span #js {:className class-name :style #js {:whiteSpace "nowrap"}}
-            (glyphicon/render "asterisk")
-            (dom/b nil t ": ")
+            (glyphicon/render "asterisk text-muted")
+            (dom/i nil t ": ")
             (dom/span #js {:className "text-success"} e)))
 
 
