@@ -112,18 +112,16 @@
    {:keys [fields] :as rbs-scheme}
    rbs-data
    opts]
-
   (let [{:keys [icon text]} (get-in rbs-scheme [:realtype realtype])]
     (dom/div nil
-             (dom/div nil "Фильтр: " (if on? "да" "нет")
-                      (when on? (dom/b #js {:className "text-primary"}
+             (dom/div nil (dom/b nil "Фильтр: ") (if on? "да" "нет")
+                      (when on? (dom/span #js {:className "text-primary"}
                                        " - " (font-icon/render icon) " " text)))
              (->> selectors
                   (map (fn [{:keys [field selected]}]
-                         (selector-selected-as-panel
-                          selected (fields field)
-                          rbs-data
-                          opts)))
+                         (let [{:keys [rbentity rbtype] :as meta} (fields field)]
+                           (selector-selected-as-panel
+                            selected meta (get-in rbs-data [rbentity rbtype] {}) opts))))
                   (filter (comp not nil?))
                   (interpose ", ")
                   (apply dom/div nil)))))
@@ -255,10 +253,10 @@
 
 (defn- cell-panel
   [opts class-name t e]
-  (dom/span #js {:className class-name}
+  (dom/span #js {:className class-name :style #js {:whiteSpace "nowrap"}}
             (glyphicon/render "asterisk")
-            (dom/span nil t ": ")
-            (dom/b #js {:className "text-success"} e)))
+            (dom/b nil t ": ")
+            (dom/span #js {:className "text-success"} e)))
 
 
 
@@ -373,7 +371,7 @@
 
 (defmethod selector-selected-as-panel :multi-buttons
   [selected {:keys [text]} _ opts]
-  (when-not (empty? selected) 
+  (when-not (empty? selected)
     (->> selected
          (map (fn [{:keys [val cmp]}]
                 (str val (if (= cmp :<=) "+" ""))))
@@ -422,7 +420,7 @@
 
 (defmethod selector-selected-as-panel :band-integer-from
   [selected {:keys [text]} _ opts]
-  (when-not (nil? selected) 
+  (when-not (nil? selected)
     (cell-panel opts "" text (str "oт " selected))))
 
 
@@ -466,7 +464,7 @@
 
 (defmethod selector-selected-as-panel :band-integer-to
   [selected {:keys [text]} _ opts]
-  (when-not (nil? selected) 
+  (when-not (nil? selected)
     (cell-panel opts "" text (str "до " selected))))
 
 
@@ -523,7 +521,7 @@
 
 (defmethod selector-selected-as-panel :band-integer-from-to
   [{:keys [from to]} {:keys [text]} _ opts]
-  (when (or (not (nil? from)) (not (nil? to))) 
+  (when (or (not (nil? from)) (not (nil? to)))
     (cell-panel opts "" text (str "от " (or from "...") " до " (or to "...")))))
 
 
@@ -562,7 +560,7 @@
 
 (defmethod selector-selected-as-panel :boolean
   [selected {:keys [text]} _ opts]
-  (when-not (nil? selected) 
+  (when-not (nil? selected)
     (cell-panel opts "" text (if selected "да" "нет"))))
 
 
@@ -609,10 +607,10 @@
 
 (defmethod selector-selected-as-panel :boolean-nm
   [selected {:keys [text]} _ opts]
-  (condp = selected 
-      :y (cell-panel opts "" text "да")
-      :n (cell-panel opts "" text "нет")
-      nil))
+  (condp = selected
+    :y (cell-panel opts "" text "да")
+    :n (cell-panel opts "" text "нет")
+    nil))
 
 ;; END boolean-nm
 ;;..............................................................................
@@ -658,11 +656,17 @@
   (multi-select/selected-clean app))
 
 
-
 (defmethod selector-selected-as-panel :rbs-multi-select
   [selected {:keys [text]} rbs-data opts]
   (when-not (empty? selected)
-    (cell-panel opts "" text (str selected))))
+    (let [selected (set selected)]
+      (cell-panel opts "" text
+                  (str "["
+                       (->> rbs-data
+                            (filter (comp selected :id))
+                            (map :keyname)
+                            (clojure.string/join ","))
+                       "]")))))
 
 ;; END rbs-multi-select
 ;;..............................................................................

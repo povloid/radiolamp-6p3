@@ -84,35 +84,35 @@
     (render-state [_ {:keys [chan-modal-act
                              chan-modal-add-id
                              chan-update]}]
-      
-      (letfn [(cut-buffer-clear []
-            (om/update! app :cut-buffer nil))
-          (cut-buffer-paste [parent_id]
-            (if-let [child_id (get-in @app [:cut-buffer :id])]
-              (rnet/get-data
-               (str uri "/areal/save")
-               {:row {:id child_id :parent_id parent_id}}
-               (fn [_]
-                 (om/update! app :cut-buffer nil)
-                 (put! chan-update 1)))
-              
-              ;; запомнить элемент
-              (->> @app
-                   search-view/selected-first
-                   (om/update! app :cut-buffer)))
 
-            (modal/hide (:modal-act app)))]
-        
+      (letfn [(cut-buffer-clear []
+                (om/update! app :cut-buffer nil))
+              (cut-buffer-paste [parent_id]
+                (if-let [child_id (get-in @app [:cut-buffer :id])]
+                  (rnet/get-data
+                   (str uri "/areal/save")
+                   {:row {:id child_id :parent_id parent_id}}
+                   (fn [_]
+                     (om/update! app :cut-buffer nil)
+                     (put! chan-update 1)))
+
+                  ;; запомнить элемент
+                  (->> @app
+                       search-view/selected-first
+                       (om/update! app :cut-buffer)))
+
+                (modal/hide (:modal-act app)))]
+
         (dom/div nil
                  (when-let [cut-buffer (@app :cut-buffer)]
                    (dom/div #js {:style #js {:padding 6}}
-                            (dom/div #js {:style #js {:float "right"}}                                     
+                            (dom/div #js {:style #js {:float "right"}}
                                      (button/render {:text     (dom/span nil (glyphicon/render "fast-backward") " в корень")
                                                      :type     :warning
-                                                     :class+   "btn-block"                                           
+                                                     :class+   "btn-block"
                                                      :on-click #(cut-buffer-paste nil)})
                                      (button/render {:text     (dom/span nil (glyphicon/render "remove") " отмена")
-                                                     :class+   "btn-block"                                            
+                                                     :class+   "btn-block"
                                                      :on-click cut-buffer-clear}))
                             (media/render
                              {:heading      (dom/b #js {:className "text-warning"} "Для перемещения выбран элемент")
