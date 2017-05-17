@@ -8,6 +8,7 @@
             [r6p3s.net :as rnet]
             [r6p3s.ui.panel-with-table :as panel-with-table]
             [r6p3s.ui.glyphicon :as glyphicon]
+            [r6p3s.ui.font-icon :as font-icon]
             [r6p3s.ui.button :as button]
             [r6p3s.cpt.input :as input]
             [r6p3s.cpt.toggle-button :as toggle-button]
@@ -15,8 +16,7 @@
             [r6p3s.cpt.nav-tabs :as nav-tabs]
             [r6p3s.cpt.select :as select]
             [r6p3s.cpt.textarea :as textarea]
-            [r6p3s.cpt.multi-select :as multi-select]
-            [r6p3s.cpt.toggle-button :as toggle-button]))
+            [r6p3s.cpt.multi-select :as multi-select]))
 
 
 (def ^:const padding 4)
@@ -26,7 +26,8 @@
          selector
          selector-selected
          selector-selected-set
-         selector-selected-clean)
+         selector-selected-clean
+         selector-selected-as-panel)
 
 
 (defn make-app-init
@@ -103,6 +104,29 @@
                       (update-in app [field] selector-selected-set (fields field) selected))
                     app selectors)))))
 
+
+
+(defn selected-render
+  "Панель отображения выбранных элементов"
+  [{:keys [on? realtype selectors]}
+   {:keys [fields] :as rbs-scheme}
+   rbs-data
+   opts]
+
+  (let [{:keys [icon text]} (get-in rbs-scheme [:realtype realtype])]
+    (dom/div nil
+             (dom/div nil "Фильтр: " (if on? "да" "нет")
+                      (when on? (dom/b #js {:className "text-primary"}
+                                       " - " (font-icon/render icon) " " text)))
+             (->> selectors
+                  (map (fn [{:keys [field selected]}]
+                         (selector-selected-as-panel
+                          selected (fields field)
+                          rbs-data
+                          opts)))
+                  (filter (comp not nil?))
+                  (interpose ", ")
+                  (apply dom/div nil)))))
 
 
 
@@ -229,7 +253,12 @@
                     e)))
 
 
-
+(defn- cell-panel
+  [opts class-name t e]
+  (dom/span #js {:className class-name}
+            (glyphicon/render "asterisk")
+            (dom/span nil t ": ")
+            (dom/b #js {:className "text-success"} e)))
 
 
 
@@ -242,13 +271,13 @@
 ;;;**************************************************************************************************
 
 
-(defmulti selector-app-init       (fn [_ {{type :type} :search}] type))
-(defmulti selector-fill-rbs       (fn [_ {{type :type} :search} _] type))
-(defmulti selector                (fn [_ {{type :type} :search} _ opts] type))
-(defmulti selector-selected       (fn [_ {{type :type} :search}] type))
-(defmulti selector-selected-set   (fn [_ {{type :type} :search} _] type))
-(defmulti selector-selected-clean (fn [_ {{type :type} :search}] type))
-
+(defmulti selector-app-init          (fn [_ {{type :type} :search}] type))
+(defmulti selector-fill-rbs          (fn [_ {{type :type} :search} _] type))
+(defmulti selector                   (fn [_ {{type :type} :search} _ opts] type))
+(defmulti selector-selected          (fn [_ {{type :type} :search}] type))
+(defmulti selector-selected-set      (fn [_ {{type :type} :search} _] type))
+(defmulti selector-selected-clean    (fn [_ {{type :type} :search}] type))
+(defmulti selector-selected-as-panel (fn [_ {{type :type} :search} _ opts] type))
 
 
 ;;------------------------------------------------------------------------------
@@ -289,6 +318,13 @@
   (println "app: " app)
   (println)
   (selector-app-init app meta))
+
+(defmethod selector-selected-as-panel :default
+  [selected {{type :type} :search :as meta} _ opts]
+  (println "type: " type)
+  (println "selected: " selected)
+  (println)
+  (cell-panel opts "text-danger" (str type) (str selected)))
 
 ;; END default
 ;;..............................................................................
@@ -335,6 +371,15 @@
        (toggle-button/set-value! row (contains? selected-vals val)))
      app)))
 
+(defmethod selector-selected-as-panel :multi-buttons
+  [selected {:keys [text]} _ opts]
+  (when-not (empty? selected) 
+    (->> selected
+         (map (fn [{:keys [val cmp]}]
+                (str val (if (= cmp :<=) "+" ""))))
+         (clojure.string/join ",")
+         (cell-panel opts "" text))))
+
 
 ;; END multi-buttons
 ;;..............................................................................
@@ -375,6 +420,11 @@
   [app _ selected]
   (input/set-value! app selected))
 
+(defmethod selector-selected-as-panel :band-integer-from
+  [selected {:keys [text]} _ opts]
+  (when-not (nil? selected) 
+    (cell-panel opts "" text (str "oт " selected))))
+
 
 ;; END band-integer-from
 ;;..............................................................................
@@ -413,6 +463,11 @@
 (defmethod selector-selected-set :band-integer-to
   [app _ selected]
   (input/set-value! app selected))
+
+(defmethod selector-selected-as-panel :band-integer-to
+  [selected {:keys [text]} _ opts]
+  (when-not (nil? selected) 
+    (cell-panel opts "" text (str "до " selected))))
 
 
 ;; END band-integer-to
@@ -466,6 +521,12 @@
       (update-in [:to] input/set-value! to)))
 
 
+(defmethod selector-selected-as-panel :band-integer-from-to
+  [{:keys [from to]} {:keys [text]} _ opts]
+  (when (or (not (nil? from)) (not (nil? to))) 
+    (cell-panel opts "" text (str "от " (or from "...") " до " (or to "...")))))
+
+
 ;; END band-integer-from-to
 ;;..............................................................................
 
@@ -497,6 +558,12 @@
 (defmethod selector-selected-set :boolean
   [app _ selected]
   (toggle-button/set-value! app selected))
+
+
+(defmethod selector-selected-as-panel :boolean
+  [selected {:keys [text]} _ opts]
+  (when-not (nil? selected) 
+    (cell-panel opts "" text (if selected "да" "нет"))))
 
 
 ;; END boolean
@@ -540,6 +607,13 @@
   [app _ selected]
   (toggle-buttons-selector/set-selected app [selected]))
 
+(defmethod selector-selected-as-panel :boolean-nm
+  [selected {:keys [text]} _ opts]
+  (condp = selected 
+      :y (cell-panel opts "" text "да")
+      :n (cell-panel opts "" text "нет")
+      nil))
+
 ;; END boolean-nm
 ;;..............................................................................
 
@@ -582,6 +656,13 @@
 (defmethod selector-selected-clean :rbs-multi-select
   [app _]
   (multi-select/selected-clean app))
+
+
+
+(defmethod selector-selected-as-panel :rbs-multi-select
+  [selected {:keys [text]} rbs-data opts]
+  (when-not (empty? selected)
+    (cell-panel opts "" text (str selected))))
 
 ;; END rbs-multi-select
 ;;..............................................................................
