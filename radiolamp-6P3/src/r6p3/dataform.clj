@@ -185,7 +185,6 @@
   (let [rbs (->> entitys
                  (reduce-kv
                   (fn [a k e]
-                    (println k e)
                     (->> (kc/select e)
                          (reduce #(assoc %1 (%2 :id) (dissoc %2 :id)) {})
                          (assoc a k)))
