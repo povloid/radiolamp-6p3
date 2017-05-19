@@ -697,7 +697,6 @@ SELECT * FROM r;
 ;; description: Состояние сущности в cljs-json
 ;;------------------------------------------------------------------------------
 
-
 (defn entity-state-to-json [row]
   (cheshire-c/generate-string row))
 
@@ -1224,102 +1223,102 @@ SELECT * FROM r;
 ;; select a.id, a.parent_id, a.tagname, cast (b.PATH ||'->'|| a.tagname as text) as PATH FROM tag a, temp1 b WHERE a.parent_id = b.id)
 ;; select * from temp1 order by PATH
 
-(kc/defentity tag
-  (kc/pk :id)
-  (kc/prepare (fn [row] (-> row
-                            ((partial prepare-as-string :constname)))))
-  (kc/transform (fn [row] (-> row
-                              ((partial transform-as-keyword :constname))
-                              (dissoc :fts)))))
+;; (kc/defentity tag
+;;   (kc/pk :id)
+;;   (kc/prepare (fn [row] (-> row
+;;                             ((partial prepare-as-string :constname)))))
+;;   (kc/transform (fn [row] (-> row
+;;                               ((partial transform-as-keyword :constname))
+;;                               (dissoc :fts)))))
 
-(defn tag-const? [{id :id}]
-  (-> (kc/select* tag)
-      (kc/where (and (= :id id) (= :const true)))
-      kc/exec
-      empty?
-      not))
+;; (defn tag-const? [{id :id}]
+;;   (-> (kc/select* tag)
+;;       (kc/where (and (= :id id) (= :const true)))
+;;       kc/exec
+;;       empty?
+;;       not))
 
-(defn tag-save-const [tag-row]
-  (-> tag-row
-      (assoc :const true)
-      (update-in [:constname] name)
-      ((partial com-save-for-field tag :constname))))
+;; (defn tag-save-const [tag-row]
+;;   (-> tag-row
+;;       (assoc :const true)
+;;       (update-in [:constname] name)
+;;       ((partial com-save-for-field tag :constname))))
 
-;; TODO: написать тесты
-(defn tag-save
-  "Сохранение tag"
-  [tag-row]
-  (kdb/transaction
-   (if (tag-const? tag-row) (throw (Exception. "Константная запись не может быть изменена!"))
-       (com-save-for-id tag (update-in tag-row [:constname] #(when % (name %)))))))
+;; ;; TODO: написать тесты
+;; (defn tag-save
+;;   "Сохранение tag"
+;;   [tag-row]
+;;   (kdb/transaction
+;;    (if (tag-const? tag-row) (throw (Exception. "Константная запись не может быть изменена!"))
+;;        (com-save-for-id tag (update-in tag-row [:constname] #(when % (name %)))))))
 
-(defn tag-delete [{id :id :as tag-row}]
-  (kdb/transaction
-   (if (tag-const? tag-row) (throw (Exception. "Константная запись не может быть удалена!"))
-       (com-delete-for-id tag id))))
+;; (defn tag-delete [{id :id :as tag-row}]
+;;   (kdb/transaction
+;;    (if (tag-const? tag-row) (throw (Exception. "Константная запись не может быть удалена!"))
+;;        (com-delete-for-id tag id))))
 
-;; TODO: написать тесты
-(defn tag-get-tree-path [row]
-  (kdb/transaction
-   (let [row (com-find tag (:id row))]
-     (if (nil? row) []
-         (loop [i 0, {p-id :parent_id}, row a [row]]
-           (cond (> i 10) (throw (Exception. "возможно обнаружена зацикленность графа либо глубина превышает 10"))
-                 (nil? p-id) a
-                 :else (let [next-row (com-find tag p-id)]
-                         (recur (inc i) next-row (conj a next-row)))))))))
+;; ;; TODO: написать тесты
+;; (defn tag-get-tree-path [row]
+;;   (kdb/transaction
+;;    (let [row (com-find tag (:id row))]
+;;      (if (nil? row) []
+;;          (loop [i 0, {p-id :parent_id}, row a [row]]
+;;            (cond (> i 10) (throw (Exception. "возможно обнаружена зацикленность графа либо глубина превышает 10"))
+;;                  (nil? p-id) a
+;;                  :else (let [next-row (com-find tag p-id)]
+;;                          (recur (inc i) next-row (conj a next-row)))))))))
 
-;; TODO: написать тесты
-(defn tag-get-tree-childs [{id :id}]
-  (kc/select tag (kc/where (= :parent_id id)) (kc/order :tagname :ASC)))
+;; ;; TODO: написать тесты
+;; (defn tag-get-tree-childs [{id :id}]
+;;   (kc/select tag (kc/where (= :parent_id id)) (kc/order :tagname :ASC)))
 
-;; TODO: написать тесты
-(defn tag-set-parent [row {id :id :as parent-row}]
-  (kdb/transaction
-   (doseq [{i-id :id} (tag-get-tree-path parent-row)
-           :when (= id i-id)]
-     (do
-       ;;(println i-id)
-       (throw (Exception. "Попытка оторвать и замкнуть ветвь дерева"))))
-   (-> row (assoc :parent_id id) tag-save)))
+;; ;; TODO: написать тесты
+;; (defn tag-set-parent [row {id :id :as parent-row}]
+;;   (kdb/transaction
+;;    (doseq [{i-id :id} (tag-get-tree-path parent-row)
+;;            :when (= id i-id)]
+;;      (do
+;;        ;;(println i-id)
+;;        (throw (Exception. "Попытка оторвать и замкнуть ветвь дерева"))))
+;;    (-> row (assoc :parent_id id) tag-save)))
 
-;; TODO: написать тесты
-(defn tag-get-tree-path-and-childs [row]
-  (kdb/transaction
-   [(tag-get-tree-path row) (tag-get-tree-childs row)]))
-
-
-(def tag-list* (kc/select* tag))
-
-;; TODO: написать тесты
-(defn tag-tree-as-flat-groups []
-  (sort-tree-as-flat-groups :id :parent_id (kc/select tag)))
-
-;; TODO: написать тесты
-(defn tag-tree-as-flat-groups-with-patches [store-on-key]
-  (sort-tree-as-flat-groups-with-patches :id :parent_id store-on-key (kc/select tag) :tagname))
-
-;; TODO: написать тесты
-(defn tag-tree-as-flat []
-  (sort-tree-as-flat :id :parent_id (kc/select tag)))
+;; ;; TODO: написать тесты
+;; (defn tag-get-tree-path-and-childs [row]
+;;   (kdb/transaction
+;;    [(tag-get-tree-path row) (tag-get-tree-childs row)]))
 
 
-(defn tag-select-all-sub-tree-ids [{id :id}]
-  (kdb/transaction
-   (letfn [(getch [id]
-             (let [cc (map :id
-                           (kc/select tag
-                                      (kc/fields :id)
-                                      (kc/where (= :parent_id id))))]
-               (reduce into cc (map getch cc))))]
+;; (def tag-list* (kc/select* tag))
 
-     (getch id))))
+;; ;; TODO: написать тесты
+;; (defn tag-tree-as-flat-groups []
+;;   (sort-tree-as-flat-groups :id :parent_id (kc/select tag)))
 
-(defn tag-select-all-sub-tree-ids-and-with-this-id [{id :id :as tag-row}]
-  (conj (tag-select-all-sub-tree-ids tag-row) id))
+;; ;; TODO: написать тесты
+;; (defn tag-tree-as-flat-groups-with-patches [store-on-key]
+;;   (sort-tree-as-flat-groups-with-patches :id :parent_id store-on-key (kc/select tag) :tagname))
 
-(defn tag-pred-search? [select*-1 fts-query]
-  (com-pred-full-text-search* select*-1 :fts fts-query))
+;; ;; TODO: написать тесты
+;; (defn tag-tree-as-flat []
+;;   (sort-tree-as-flat :id :parent_id (kc/select tag)))
+
+
+;; (defn tag-select-all-sub-tree-ids [{id :id}]
+;;   (kdb/transaction
+;;    (letfn [(getch [id]
+;;              (let [cc (map :id
+;;                            (kc/select tag
+;;                                       (kc/fields :id)
+;;                                       (kc/where (= :parent_id id))))]
+;;                (reduce into cc (map getch cc))))]
+
+;;      (getch id))))
+
+;; (defn tag-select-all-sub-tree-ids-and-with-this-id [{id :id :as tag-row}]
+;;   (conj (tag-select-all-sub-tree-ids tag-row) id))
+
+;; (defn tag-pred-search? [select*-1 fts-query]
+;;   (com-pred-full-text-search* select*-1 :fts fts-query))
 
 ;; END ctag entity
 ;;..................................................................................................
@@ -1332,200 +1331,200 @@ SELECT * FROM r;
 ;;*
 ;;**************************************************************************************************
 
-(kc/defentity webdoc
-  (kc/pk :id)
+;; (kc/defentity webdoc
+;;   (kc/pk :id)
 
-  (kc/many-to-many tag :webdoctag)
+;;   (kc/many-to-many tag :webdoctag)
 
-  (kc/prepare (fn [{:keys [id keyname web_description] :as row}]
-                (-> (if id row (assoc row :cdate (new java.util.Date)))
-                    ((partial prepare-date-to-sql-timestamp :cdate))
-                    (assoc :udate (new java.util.Date))
-                    ((partial prepare-date-to-sql-timestamp :udate))
+;;   (kc/prepare (fn [{:keys [id keyname web_description] :as row}]
+;;                 (-> (if id row (assoc row :cdate (new java.util.Date)))
+;;                     ((partial prepare-date-to-sql-timestamp :cdate))
+;;                     (assoc :udate (new java.util.Date))
+;;                     ((partial prepare-date-to-sql-timestamp :udate))
 
-                    (as-> row
-                        (if keyname
-                          (assoc row :ttitle (make-translit-ru-en (str keyname)))
-                          row))
+;;                     (as-> row
+;;                         (if keyname
+;;                           (assoc row :ttitle (make-translit-ru-en (str keyname)))
+;;                           row))
 
-                    (assoc :plan_text (html-clean-tags web_description))
-                    )))
+;;                     (assoc :plan_text (html-clean-tags web_description))
+;;                     )))
 
-  (kc/transform (fn [row]
-                  (-> row
-                      ((partial transform-sql-date-to-date :cdate))
-                      ((partial transform-sql-date-to-date :udate))
-                      (dissoc :fts)
-                      (as-> row
-                          (if (:tag row)
-                            (-> row
-                                ;;(assoc :tag-tagnames-set (->> row :tag (map :tagname) set))
-                                (assoc :tag-ids-set (->> row :tag (map :id) set)))
-                            row))
-                      )))
-  )
-
-
-(defn webdoc-row-contain-tag? [{tag-ids-set :tag-ids-set} {id :id}]
-  (if tag-ids-set (contains? tag-ids-set id)
-      (throw (Exception. "в записи нет поля :tag-ids-set либо оно пустое, сравнение невозможно!"))))
+;;   (kc/transform (fn [row]
+;;                   (-> row
+;;                       ((partial transform-sql-date-to-date :cdate))
+;;                       ((partial transform-sql-date-to-date :udate))
+;;                       (dissoc :fts)
+;;                       (as-> row
+;;                           (if (:tag row)
+;;                             (-> row
+;;                                 ;;(assoc :tag-tagnames-set (->> row :tag (map :tagname) set))
+;;                                 (assoc :tag-ids-set (->> row :tag (map :id) set)))
+;;                             row))
+;;                       )))
+;;   )
 
 
-(defn webdoc-row-get-tags-paths-to-root-parent [{:keys [tag] :as row} {id :id :as parent-tag}]
-  (if tag
-    (->> tag
-         (map (comp vec tag-get-tree-path))
-         (filter #(= (-> % last :id) id))
-         (sort-by count))
-    (throw (Exception. "в записи нет поля :tag либо оно пустое, выполнение невозможно!"))))
+;; (defn webdoc-row-contain-tag? [{tag-ids-set :tag-ids-set} {id :id}]
+;;   (if tag-ids-set (contains? tag-ids-set id)
+;;       (throw (Exception. "в записи нет поля :tag-ids-set либо оно пустое, сравнение невозможно!"))))
 
 
-
-
-(def webdoc-select* (kc/select* webdoc))
-
-(defn webdoc-save
-  "Сохранение webdoc"
-  ([webdoc-row]
-   (webdoc-save webdoc-row webdoc))
-  ([webdoc-row webdoc-entity]
-   (com-save-for-id webdoc-entity webdoc-row)))
-
-(declare webdoctag)
-
-(defn webdoc-delete
-  ([webdoc-row]
-   (webdoc-delete webdoc-row webdoc))
-  ([{id :id} webdoc-entity]
-   (kdb/transaction
-    (do
-      (kc/delete webdoctag (kc/where (= :webdoc_id id)))
-      (kc/delete files_rel (kc/where (= :webdoc_id id)))
-      (com-delete-for-id webdoc-entity id)))))
-
-(def webdoc-select*-for-urls
-  (-> webdoc-select*
-      (kc/fields :id :keyname :ttitle :web_title_image :web_top_description :cdate
-                 :web_color_0 :web_color_1 :web_color_2 :web_color_3 :web_color_4 :web_color_5)))
-
-(defn webdoc-get-url-path [{:keys [id ttitle]}]
-  (str "/" id "/" ttitle ))
-
-;; TODO: написать тесты
-(defn webdoc-has-a-tag? [webdoc-row tag-tagname]
-  ((com-defn-has-a-rel? tag :id :tagname webdoctag :webdoc_id :tag_id) webdoc-row tag-tagname))
-
-;; TODO: написать тесты
-(defn webdoc-get-tags-set [webdoc-row & [field-for-set]]
-  ((com-defn-get-rels-set tag :id (or field-for-set :tagname)
-                          webdoctag :webdoc_id :tag_id) webdoc-row))
-
-;; TODO: написать тесты
-(defn webdoc-pred-by-tag?
-  [select*-1 tag-row & [not?]]
-  ((com-defn-pred-rows-by-rel? :id :id webdoctag :webdoc_id :tag_id not?)
-   select*-1  tag-row))
-
-(defn webdoc-pred-by-tags?
-  [select*-1 tags-rows & [not?]]
-  ((com-defn-pred-rows-by-rels? :id :id webdoctag :webdoc_id :tag_id not?)
-   select*-1 tags-rows))
-
-(defn webdoc-pred-childs-tags-of-parent-tag? [query {id :id}]
-  (kc/where query
-            {:id [in
-                  (kc/subselect webdoctag
-                                (kc/fields :webdoc_id)
-                                (kc/where {:tag_id [in
-                                                    (kc/subselect tag
-                                                                  (kc/fields :id)
-                                                                  (kc/where (= :parent_id id)))]}))]}))
-
-(defn webdoc-pred-by-tags?-and-childs-tags-of-parent-tag?
-  [select*-1 tags-rows parent-tag-row]
-  (-> select*-1
-      (webdoc-pred-by-tags? tags-rows)
-      (webdoc-pred-childs-tags-of-parent-tag? parent-tag-row)))
-
-(defn webdoc-one-row-by-tags
-  ([tags-rows webdoc-entity]
-   (-> webdoc-entity
-       kc/select*
-       ((com-defn-pred-rows-by-rels? :id :id  webdoctag :webdoc_id :tag_id) tags-rows)
-       (kc/order :id :desc)
-       com-exec-1)))
-
-#_(defn webdoc-pred-by-tag--nil-other*-se?
-    "Выбор либо дочерних либо несвязанных по nil"
-    [select*-1 tag-row]
-    ((com-defn-pred-rows-by-rel--nil-other? :id :id webdoctag :webdoc_id :tag_id)
-     select*-1 tag-row))
-
-(defn webdoc-pred-search? [select*-1 fts-query]
-  (com-pred-full-text-search* select*-1 :fts fts-query))
-
-(defn webdoc-pred-search-for-the-child-tree-tags? [query tag-row]
-  (let [tags-ids (tag-select-all-sub-tree-ids-and-with-this-id tag-row)]
-    (kc/where query
-              (in :id (kc/subselect webdoctag
-                                    (kc/fields :webdoc_id)
-                                    (kc/where (in :tag_id tags-ids)))))))
+;; (defn webdoc-row-get-tags-paths-to-root-parent [{:keys [tag] :as row} {id :id :as parent-tag}]
+;;   (if tag
+;;     (->> tag
+;;          (map (comp vec tag-get-tree-path))
+;;          (filter #(= (-> % last :id) id))
+;;          (sort-by count))
+;;     (throw (Exception. "в записи нет поля :tag либо оно пустое, выполнение невозможно!"))))
 
 
 
 
-;; SPEC !!! ---------------------------------------------------------------
+;; (def webdoc-select* (kc/select* webdoc))
 
-(defn tag-get-tree-childs-and-join-webdoc-for-urls [tags-rows parent-tag-row]
-  (->> parent-tag-row
-       tag-get-tree-childs
-       (map (fn [tag-row]
-              [tag-row (-> webdoc-select*-for-urls
-                           (webdoc-pred-by-tags? (conj tags-rows tag-row))
-                           com-exec-1)]))
-       doall
-       kdb/transaction))
+;; (defn webdoc-save
+;;   "Сохранение webdoc"
+;;   ([webdoc-row]
+;;    (webdoc-save webdoc-row webdoc))
+;;   ([webdoc-row webdoc-entity]
+;;    (com-save-for-id webdoc-entity webdoc-row)))
+
+;; (declare webdoctag)
+
+;; (defn webdoc-delete
+;;   ([webdoc-row]
+;;    (webdoc-delete webdoc-row webdoc))
+;;   ([{id :id} webdoc-entity]
+;;    (kdb/transaction
+;;     (do
+;;       (kc/delete webdoctag (kc/where (= :webdoc_id id)))
+;;       (kc/delete files_rel (kc/where (= :webdoc_id id)))
+;;       (com-delete-for-id webdoc-entity id)))))
+
+;; (def webdoc-select*-for-urls
+;;   (-> webdoc-select*
+;;       (kc/fields :id :keyname :ttitle :web_title_image :web_top_description :cdate
+;;                  :web_color_0 :web_color_1 :web_color_2 :web_color_3 :web_color_4 :web_color_5)))
+
+;; (defn webdoc-get-url-path [{:keys [id ttitle]}]
+;;   (str "/" id "/" ttitle ))
+
+;; ;; TODO: написать тесты
+;; (defn webdoc-has-a-tag? [webdoc-row tag-tagname]
+;;   ((com-defn-has-a-rel? tag :id :tagname webdoctag :webdoc_id :tag_id) webdoc-row tag-tagname))
+
+;; ;; TODO: написать тесты
+;; (defn webdoc-get-tags-set [webdoc-row & [field-for-set]]
+;;   ((com-defn-get-rels-set tag :id (or field-for-set :tagname)
+;;                           webdoctag :webdoc_id :tag_id) webdoc-row))
+
+;; ;; TODO: написать тесты
+;; (defn webdoc-pred-by-tag?
+;;   [select*-1 tag-row & [not?]]
+;;   ((com-defn-pred-rows-by-rel? :id :id webdoctag :webdoc_id :tag_id not?)
+;;    select*-1  tag-row))
+
+;; (defn webdoc-pred-by-tags?
+;;   [select*-1 tags-rows & [not?]]
+;;   ((com-defn-pred-rows-by-rels? :id :id webdoctag :webdoc_id :tag_id not?)
+;;    select*-1 tags-rows))
+
+;; (defn webdoc-pred-childs-tags-of-parent-tag? [query {id :id}]
+;;   (kc/where query
+;;             {:id [in
+;;                   (kc/subselect webdoctag
+;;                                 (kc/fields :webdoc_id)
+;;                                 (kc/where {:tag_id [in
+;;                                                     (kc/subselect tag
+;;                                                                   (kc/fields :id)
+;;                                                                   (kc/where (= :parent_id id)))]}))]}))
+
+;; (defn webdoc-pred-by-tags?-and-childs-tags-of-parent-tag?
+;;   [select*-1 tags-rows parent-tag-row]
+;;   (-> select*-1
+;;       (webdoc-pred-by-tags? tags-rows)
+;;       (webdoc-pred-childs-tags-of-parent-tag? parent-tag-row)))
+
+;; (defn webdoc-one-row-by-tags
+;;   ([tags-rows webdoc-entity]
+;;    (-> webdoc-entity
+;;        kc/select*
+;;        ((com-defn-pred-rows-by-rels? :id :id  webdoctag :webdoc_id :tag_id) tags-rows)
+;;        (kc/order :id :desc)
+;;        com-exec-1)))
+
+;; #_(defn webdoc-pred-by-tag--nil-other*-se?
+;;     "Выбор либо дочерних либо несвязанных по nil"
+;;     [select*-1 tag-row]
+;;     ((com-defn-pred-rows-by-rel--nil-other? :id :id webdoctag :webdoc_id :tag_id)
+;;      select*-1 tag-row))
+
+;; (defn webdoc-pred-search? [select*-1 fts-query]
+;;   (com-pred-full-text-search* select*-1 :fts fts-query))
+
+;; (defn webdoc-pred-search-for-the-child-tree-tags? [query tag-row]
+;;   (let [tags-ids (tag-select-all-sub-tree-ids-and-with-this-id tag-row)]
+;;     (kc/where query
+;;               (in :id (kc/subselect webdoctag
+;;                                     (kc/fields :webdoc_id)
+;;                                     (kc/where (in :tag_id tags-ids)))))))
 
 
-(defn tag-get-path-and-join-webdoc-for-urls [tags-rows tag-row]
-  (->> tag-row
-       tag-get-tree-path
-       (map (fn [tag-row]
-              [tag-row (-> webdoc-select*-for-urls
-                           (webdoc-pred-by-tags? (conj tags-rows tag-row))
-                           com-exec-1)]))
-       doall
-       kdb/transaction))
+
+
+;; ;; SPEC !!! ---------------------------------------------------------------
+
+;; (defn tag-get-tree-childs-and-join-webdoc-for-urls [tags-rows parent-tag-row]
+;;   (->> parent-tag-row
+;;        tag-get-tree-childs
+;;        (map (fn [tag-row]
+;;               [tag-row (-> webdoc-select*-for-urls
+;;                            (webdoc-pred-by-tags? (conj tags-rows tag-row))
+;;                            com-exec-1)]))
+;;        doall
+;;        kdb/transaction))
+
+
+;; (defn tag-get-path-and-join-webdoc-for-urls [tags-rows tag-row]
+;;   (->> tag-row
+;;        tag-get-tree-path
+;;        (map (fn [tag-row]
+;;               [tag-row (-> webdoc-select*-for-urls
+;;                            (webdoc-pred-by-tags? (conj tags-rows tag-row))
+;;                            com-exec-1)]))
+;;        doall
+;;        kdb/transaction))
 
 
 
-(defn webdoc-row-get-tags-paths-to-root-parent-and-join-webdoc-for-urls [webdoc-row tags-rows root-tag-row]
-  (->> (webdoc-row-get-tags-paths-to-root-parent webdoc-row root-tag-row)
-       first
-       (map (fn [tag-row]
-              [tag-row (-> webdoc-select*-for-urls
-                           (webdoc-pred-by-tags? (conj tags-rows tag-row))
-                           com-exec-1)]))
-       doall
-       kdb/transaction))
+;; (defn webdoc-row-get-tags-paths-to-root-parent-and-join-webdoc-for-urls [webdoc-row tags-rows root-tag-row]
+;;   (->> (webdoc-row-get-tags-paths-to-root-parent webdoc-row root-tag-row)
+;;        first
+;;        (map (fn [tag-row]
+;;               [tag-row (-> webdoc-select*-for-urls
+;;                            (webdoc-pred-by-tags? (conj tags-rows tag-row))
+;;                            com-exec-1)]))
+;;        doall
+;;        kdb/transaction))
 
-;;---------------------------------------------------------------------------
+;; ;;---------------------------------------------------------------------------
 
-;; TODO: написать тесты
-(defn webdoctag-tag-tree-as-flat-groups [webdoc-row]
-  (let [webdoc-tags-ids-set (webdoc-get-tags-set webdoc-row :id)]
-    (map (fn [tree-as-flat]
-           (map #(assoc % :contain? (contains? webdoc-tags-ids-set (:id %)))
-                tree-as-flat))
-         (tag-tree-as-flat-groups))))
+;; ;; TODO: написать тесты
+;; (defn webdoctag-tag-tree-as-flat-groups [webdoc-row]
+;;   (let [webdoc-tags-ids-set (webdoc-get-tags-set webdoc-row :id)]
+;;     (map (fn [tree-as-flat]
+;;            (map #(assoc % :contain? (contains? webdoc-tags-ids-set (:id %)))
+;;                 tree-as-flat))
+;;          (tag-tree-as-flat-groups))))
 
-;; TODO: написать тесты
-(defn webdoctag-tag-tree-as-flat-groups-with-patches [webdoc-row store-on-key]
-  (let [webdoc-tags-ids-set (webdoc-get-tags-set webdoc-row :id)]
-    (map (fn [tree-as-flat]
-           (map #(assoc % :contain? (contains? webdoc-tags-ids-set (:id %)))
-                tree-as-flat))
-         (tag-tree-as-flat-groups-with-patches store-on-key))))
+;; ;; TODO: написать тесты
+;; (defn webdoctag-tag-tree-as-flat-groups-with-patches [webdoc-row store-on-key]
+;;   (let [webdoc-tags-ids-set (webdoc-get-tags-set webdoc-row :id)]
+;;     (map (fn [tree-as-flat]
+;;            (map #(assoc % :contain? (contains? webdoc-tags-ids-set (:id %)))
+;;                 tree-as-flat))
+;;          (tag-tree-as-flat-groups-with-patches store-on-key))))
 
 ;; END entity webdoc
 ;;..................................................................................................
@@ -1538,21 +1537,21 @@ SELECT * FROM r;
 ;;*
 ;;**************************************************************************************************
 
-(kc/defentity webdoctag
-  (kc/belongs-to webdoc)
-  (kc/belongs-to tag))
+;; (kc/defentity webdoctag
+;;   (kc/belongs-to webdoc)
+;;   (kc/belongs-to tag))
 
-;; TODO: написать тесты
-(defn webdoctag-add-tag [webdoc-row tag-row]
-  ((com-defn-add-rel-many-to-many :id :id webdoctag :webdoc_id :tag_id) webdoc-row tag-row))
+;; ;; TODO: написать тесты
+;; (defn webdoctag-add-tag [webdoc-row tag-row]
+;;   ((com-defn-add-rel-many-to-many :id :id webdoctag :webdoc_id :tag_id) webdoc-row tag-row))
 
-(defn webdoctag-update-tags [{webdoc-id :id :as webdoc-row} tags-rows]
-  (kdb/transaction
-   (kc/delete webdoctag (kc/where (= :webdoc_id webdoc-id)))
-   (->> tags-rows
-        (map (fn [tag-row]
-               (webdoctag-add-tag webdoc-row tag-row)))
-        doall)))
+;; (defn webdoctag-update-tags [{webdoc-id :id :as webdoc-row} tags-rows]
+;;   (kdb/transaction
+;;    (kc/delete webdoctag (kc/where (= :webdoc_id webdoc-id)))
+;;    (->> tags-rows
+;;         (map (fn [tag-row]
+;;                (webdoctag-add-tag webdoc-row tag-row)))
+;;         doall)))
 
 ;; END entity webdoctag
 ;;..................................................................................................
@@ -1565,28 +1564,28 @@ SELECT * FROM r;
 ;;*
 ;;**************************************************************************************************
 
-(kc/defentity stext
-  (kc/pk :id)
-  (kc/prepare (fn [row] (-> row
-                            ((partial prepare-as-string :keyname)))))
-  (kc/transform (fn [row] (-> row
-                              ((partial transform-as-keyword :keyname))
-                              (dissoc :fts)))))
+;; (kc/defentity stext
+;;   (kc/pk :id)
+;;   (kc/prepare (fn [row] (-> row
+;;                             ((partial prepare-as-string :keyname)))))
+;;   (kc/transform (fn [row] (-> row
+;;                               ((partial transform-as-keyword :keyname))
+;;                               (dissoc :fts)))))
 
-(defn stext-save [row]
-  (com-save-for-id stext row))
+;; (defn stext-save [row]
+;;   (com-save-for-id stext row))
 
-(def stext-select* (kc/select* stext))
+;; (def stext-select* (kc/select* stext))
 
-(defn stext-pred-search? [select*-1 fts-query]
-  (com-pred-full-text-search* select*-1 :fts fts-query))
+;; (defn stext-pred-search? [select*-1 fts-query]
+;;   (com-pred-full-text-search* select*-1 :fts fts-query))
 
-(defn stext-find [stext-keyname]
-  (first (kc/select stext (kc/where (= :keyname (name stext-keyname))))))
+;; (defn stext-find [stext-keyname]
+;;   (first (kc/select stext (kc/where (= :keyname (name stext-keyname))))))
 
-(defn stext-save-const [tag-row]
-  (println "stext-save-const >" tag-row)
-  (com-save-for-field stext :keyname (update-in tag-row [:keyname] name)))
+;; (defn stext-save-const [tag-row]
+;;   (println "stext-save-const >" tag-row)
+;;   (com-save-for-field stext :keyname (update-in tag-row [:keyname] name)))
 
 
 ;; END anytext entity

@@ -228,7 +228,7 @@
             (let [fts-query (clojure.string/trim fts-query)]
               (if (empty? fts-query)
                 query
-                (ix/webdoc-pred-search? query fts-query))))
+                (ix/webuser-pred-search? query fts-query))))
 
 
         (as-> query
@@ -380,11 +380,11 @@
 ;;* BEGIN Spec text reference book
 ;;* tag: <stext ref book>
 ;;*
-;;* description: Справочник управления пользователями
+;;* description: Специальный текст
 ;;*
 ;;**************************************************************************************************
 
-(defn routes-stext* [edit-roles-set]
+#_(defn routes-stext* [edit-roles-set]
   (routes
    (context "/tc/rb/stext" []
 
@@ -427,7 +427,7 @@
 
 
 
-(defn routes-tag* [edit-roles-set]
+#_(defn routes-tag* [edit-roles-set]
   (routes
    (context "/tag" []
 
@@ -479,7 +479,7 @@
 ;;*
 ;;**************************************************************************************************
 
-(defn routes-webdocs* [edit-roles-set
+#_(defn routes-webdocs* [edit-roles-set
                        {:keys [webdoc-entity
                                webdoc-select*
                                webdoc-save-fn
