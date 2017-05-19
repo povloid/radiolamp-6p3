@@ -1,10 +1,6 @@
 (ns r6p3.core
-
   (:use clojure.pprint)
-
-
   (:import [org.imgscalr Scalr])
-
   (:require [clojure.data :as clojure-data]
             [korma.db :as kdb]
             [korma.core :as kc]
@@ -23,9 +19,7 @@
 
             [cemerick.friend :as friend]
             (cemerick.friend [workflows :as workflows]
-                             [credentials :as creds])
-            )
-  )
+                             [credentials :as creds])))
 
 
 (declare print-debug->>>)
@@ -172,42 +166,50 @@
                           (.setOmitComments true)))
 
 
-(defn html-clean-tags [s]
+(defn html-clean-tags
+  "clean and replace string of html spec tags"
+  [s]
   (when s
-    (-> (org.htmlcleaner.HtmlCleaner. html-cleaner-props)
-        (.clean s)
-        .getText
-        str
-        (clojure.string/replace #"&nbsp;" " ")
-        (clojure.string/replace #"&pound;" "£")
-        (clojure.string/replace #"&euro;" "€")
-        (clojure.string/replace #"&para;" "¶")
-        (clojure.string/replace #"&sect;" "§")
-        (clojure.string/replace #"&copy;" "©")
-        (clojure.string/replace #"&reg;" "®")
-        (clojure.string/replace #"&trade;" "™")
-        (clojure.string/replace #"&deg;" "°")
-        (clojure.string/replace #"&plusmn;" "±")
-        (clojure.string/replace #"&times;" "×")
-        (clojure.string/replace #"&divide;" "÷")
-        (clojure.string/replace #"&fnof;" "ƒ")
-        (clojure.string/replace #"&quot;" "\"")
-        (clojure.string/replace #"&amp;" "&")
-        (clojure.string/replace #"&lt;" "<")
-        (clojure.string/replace #"&gt;" ">")
-        (clojure.string/replace #"&hellip;" "…")
-        (clojure.string/replace #"&prime;" "′")
-        (clojure.string/replace #"&Prime;" "″")
-        (clojure.string/replace #"&ndash;" "–")
-        (clojure.string/replace #"&mdash;" "—")
-        (clojure.string/replace #"&lsquo;" "‘")
-        (clojure.string/replace #"&rsquo;" "’")
-        (clojure.string/replace #"&sbquo;" "‚")
-        (clojure.string/replace #"&ldquo;" "“")
-        (clojure.string/replace #"&rdquo;" "”")
-        (clojure.string/replace #"&bdquo;" "„")
-        (clojure.string/replace #"&laquo;" "«")
-        (clojure.string/replace #"&raquo;" "»"))))
+    (reduce
+
+     (fn [s [m rs]]
+       (clojure.string/replace s m rs))
+     
+     (-> (org.htmlcleaner.HtmlCleaner. html-cleaner-props)
+         (.clean s)
+         .getText
+         str)
+
+     (list [#"&nbsp;", " "]
+           [#"&pound;", "£"]
+           [#"&euro;", "€"]
+           [#"&para;", "¶"]
+           [#"&sect;", "§"]
+           [#"&copy;", "©"]
+           [#"&reg;", "®"]
+           [#"&trade;", "™"]
+           [#"&deg;", "°"]
+           [#"&plusmn;", "±"]
+           [#"&times;", "×"]
+           [#"&divide;", "÷"]
+           [#"&fnof;", "ƒ"]
+           [#"&quot;", "\""]
+           [#"&amp;", "&"]
+           [#"&lt;", "<"]
+           [#"&gt;", ">"]
+           [#"&hellip;", "…"]
+           [#"&prime;", "′"]
+           [#"&Prime;", "″"]
+           [#"&ndash;", "–"]
+           [#"&mdash;", "—"]
+           [#"&lsquo;", "‘"]
+           [#"&rsquo;", "’"]
+           [#"&sbquo;", "‚"]
+           [#"&ldquo;", "“"]
+           [#"&rdquo;", "”"]
+           [#"&bdquo;", "„"]
+           [#"&laquo;", "«"]
+           [#"&raquo;", "»"]))))
 
 
 ;; END html to text tools
