@@ -47,16 +47,6 @@
 ;;;..................................................................................................
 
 
-
-
-
-
-
-
-
-
-
-
 ;;**************************************************************************************************
 ;;* BEGIN Translit
 ;;* tag: <translit>
@@ -627,6 +617,21 @@ SELECT * FROM r;
 (defn transform-sql-date-to-date [field row]
   (if-empty?-row-or-nil?-val-then-row-else-do
    field #(->> % .getTime (new java.util.Date)) row))
+
+;; ---------------------------------------
+;; cdate
+
+(defn prepare-cdate [{id :id :as row}]
+  (let [date (new java.util.Date)]
+    (-> (if id
+          row
+          (prepare-date-to-sql-timestamp :cdate (assoc row :cdate date))))))
+
+
+(defn transform-cdate [row]
+  (transform-sql-date-to-date :cdate row))
+
+
 
 ;; ---------------------------------------
 ;; cdate and udate - maker
