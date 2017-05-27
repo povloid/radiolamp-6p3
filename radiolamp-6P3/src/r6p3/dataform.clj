@@ -124,8 +124,8 @@
 ;;;*
 ;;;**************************************************************************************************
 
-(defn rbs-data [{{:keys [entitys]} :main-map
-                 {:keys [fields]}  :rbs-sheme}]
+(defn rbs-data [{{:keys [entitys]} :main-map ;;{:keys [fields]}  :rbs-scheme
+                 }]
 
   (if (empty? entitys) {} ;; если еще не проиниц. пропускаем
       (->> entitys seq
@@ -141,6 +141,32 @@
                     {})
                    (assoc a k)))
             {}))))
+
+
+(defn rbs-data-as-fields-ids-map
+  [{{:keys [entitys]} :main-map
+    {:keys [fields]}  :rbs-scheme}]
+  (let [rbtype-to-sql-field (reduce-kv
+                             (fn [a field {:keys [rbtype]}]
+                               (assoc a rbtype field))
+                             {} fields)]
+    (if (empty? entitys) {} ;; если еще не проиниц. пропускаем
+        (->> entitys seq
+             (reduce
+              (fn [a [k ent]]
+                (->> (kc/select ent
+                                (kc/fields :id :keyname :rbtype)
+                                (kc/where (not (= :rbtype nil))))
+                     (group-by :rbtype)
+                     (reduce-kv
+                      (fn [a k v]
+                        (assoc a (rbtype-to-sql-field k)
+                               (reduce
+                                (fn [a {:keys [id keyname]}]
+                                  (assoc a id keyname))
+                                {} v)))
+                      a)))
+              {})))))
 
 
 ;;; END Korma tools
@@ -208,19 +234,3 @@
 
 (defn fill-row-rb-values [dataform-scheme row]
   (first (fill-rows-rb-values dataform-scheme [row])))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
