@@ -234,3 +234,19 @@
 
 (defn fill-row-rb-values [dataform-scheme row]
   (first (fill-rows-rb-values dataform-scheme [row])))
+
+
+
+(defn clean-row-by-rbtype-fn
+  [{{{common-fields :fields} :common
+     realtype-map            :realtype} :rbs-scheme}
+   {:keys [realtype] :as row}]
+  (let [all-fields  (into common-fields (set (keys realtype-map)))
+        real-fields (get-in realtype-map [realtype :fields] #{})]
+    (reduce-kv
+     (fn [a k v]
+       (if (or (not (all-fields k))
+               (or  (common-fields k) (real-fields k)))
+         (assoc a k v)
+         a))
+     {} row)))
