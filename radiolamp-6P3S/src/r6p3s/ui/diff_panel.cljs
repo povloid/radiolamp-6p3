@@ -18,31 +18,33 @@
                       filter-pred-fn
                       fields-map]
                :or   {filter-pred-fn (fn [_] true)
-                      fields-map     {}
-                      rbs-data       {}}}]
+                      fields-map     {}}}]
   (when-not (empty? diff-state)
     (let [[b a _] diff-state]
       (->> (set (into (keys a) (keys b)))
            (filter filter-pred-fn)
            (map (fn [k]
-                  (let [{:keys [text] :as meta} (fields-map k)
-                        icon                    (cond (and a b) "arrow-right text-warning"
-                                                      b         "plus text-danger"
-                                                      a         "minus text-primary"
-                                                      :else     "asterisk")]
+                  (let [a? (not (empty? a))
+                        b? (not (empty? b))
+
+                        {:keys [text] :as meta} (fields-map k)
+                        icon                    (cond (and a? b?) "arrow-right text-warning"
+                                                      a?          "minus text-primary"
+                                                      b?          "plus text-danger"
+                                                      :else       "asterisk")]
                     (dom/tr
                      #js {}
                      (dom/td #js {:style #js {:textAlign "right"}}
                              (dom/b nil
                                     (or text (str k))))
                      
-                     (when a
+                     (when a?
                        (dom/td nil
                                (show-value meta (get a k))))
                      
                      (dom/td nil
                              (glyphicon/render icon))
-                     (when b
+                     (when b?
                        (dom/td nil
                                (show-value meta (get b k))))))))
            (apply dom/tbody nil)
@@ -59,8 +61,14 @@
   (cond
     (nil? value)   "ничего"
     (true? value)  "да"
-    (false? value) "нет"    
-    :else (str value)))
+    (false? value) "нет"
+    (map? value)   (if-let [text (:text value)]
+                     text
+                     (if-let [content-type (:content_type value)]
+                       (condp = content-type
+                         "image/jpeg" (dom/img #js {:src (str (:path value) "_as_60.png")})
+                         (str value))))
+    :else          (str value)))
 
 
 

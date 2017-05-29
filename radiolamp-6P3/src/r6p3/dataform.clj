@@ -237,7 +237,7 @@
 
 
 
-(defn clean-row-by-rbtype-fn
+#_(defn clean-row-by-rbtype-fn
   [{{{common-fields :fields} :common
      realtype-map            :realtype} :rbs-scheme}
    {:keys [realtype] :as row}]
