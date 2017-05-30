@@ -23,6 +23,7 @@
     (let [[b a _] diff-state]
       (->> (set (into (keys a) (keys b)))
            (filter filter-pred-fn)
+           sort
            (map (fn [k]
                   (let [a? (not (empty? a))
                         b? (not (empty? b))
@@ -44,6 +45,7 @@
                      
                      (dom/td nil
                              (glyphicon/render icon))
+                     
                      (when b?
                        (dom/td nil
                                (show-value meta (get b k))))))))
