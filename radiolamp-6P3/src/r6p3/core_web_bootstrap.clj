@@ -25,7 +25,7 @@
            [:meta {:charset "UTF-8"}]
            [:meta {:http-equiv "X-UA-Compatible" :content "IE=edge"}]
            [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-           
+
            [:title (:title opts "Page Title")]
 
            "<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->"
@@ -34,21 +34,21 @@
            "<script src=\"https://oss.maxcdn.com/libs/html5shiv/3.7.2/html5shiv.js\"></script>"
            "<script src=\"https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js\"></script>"
            "<![endif]-->"
-           
+
            (include-css (get opts :bootstrap.min.css "/bootstrap/css/bootstrap.min.css"))
            (include-css (get opts :bootstrap.sonis "/bootstrap/css/sonis.css"))
            (include-js "/js/jquery.min.js")
 
 
            (:header-additions opts nil)
-           
+
            ]
           [:body {:data-spy "scroll" :data-target "#body-scroll-spy"}
-           body           
+           body
            (include-js (get opts :bootstrap.min.js "/bootstrap/js/bootstrap.min.js"))
-           
+
            ;;(include-js "/bootstrap/js/bootswatch.js")
-           
+
            ;;(reduce conj [:div {:id "root"}] body)
            ;;(include-js "/js/tarsonis.js")
            ;;(javascript-tag "hello.hello('main.core');")
@@ -216,5 +216,97 @@
 ;;..................................................................................................
 
 
+;;;**************************************************************************************************
+;;;* BEGIN Carusel
+;;;* tag: <carusel>
+;;;*
+;;;* description: Карусель для изображений
+;;;*
+;;;**************************************************************************************************
+
+;; Пример заполнения
 
 
+(defn make-carousel
+  " Формирование карусели для показа изображений
+  пример вызова:
+  (def carousel-list
+  (list {:title       \"Заголовок 1\"
+         :description \"описание заголовка 1\"
+         :src         \"/images/p1.jpg\"
+         :href        \"/partners\"}
+        {:title       \"Заголовок 2\"
+         :description \"описание заголовка 2\"
+         :src         \"/images/p2.jpg\"
+         :href        \"/partners\"}
+        {:title       \"Заголовок 3\"
+         :description \"описание заголовка 3\"
+         :src         \"/images/p3.jpg\"
+         :href        \"/partners\"}
+        {:title       \"Заголовок 4\"
+         :description \"описание заголовка 4\"
+         :src         \"/images/p4.jpg\"
+         :href        \"/partners\"}
+        {:title       \"Заголовок 5\"
+         :description \"описание заголовка 5\"
+         :src         \"/images/p5.jpg\"
+         :href        \"/partners\"}))"
+  [carusel-list]
+  [:div#myCarousel.carousel.slide.carousel-slideFullOutLeft
+   {:data-ride "carousel"}
+   [:ol.carousel-indicators
+    (map-indexed
+     (fn [idx {:keys []}]
+       [:li {:class (if (= 0 idx) "active" "") :data-slide-to (str idx), :data-target "#myCarousel"}])
+     carusel-list)
+    ]
+   [:div.carousel-inner
+    (map-indexed
+     (fn [idx {:keys [title description src href]}]
+       [:div.item {:class (if (= 0 idx) "active" "")}
+        [:img
+         {:alt title,
+          :src src}]
+        [:div.container
+           [:div.carousel-caption
+            [:h2 {:style "color:#fff;"} title]
+            [:p {:style "color:#fff;"} description]
+            #_[:p
+             [:a.btn.btn-lg.btn-opacity
+              {:role "button", :href href}
+              "Узнать что там"]]]]])
+     carusel-list)
+
+    [:a.left.carousel-control
+     {:data-slide "prev", :href "#myCarousel"}
+     [:span.glyphicon.glyphicon-chevron-left]]
+    [:a.right.carousel-control
+     {:data-slide "next", :href "#myCarousel"}
+     [:span.glyphicon.glyphicon-chevron-right]]]])
+
+
+;; <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+
+;;; END Carusel
+;;;..................................................................................................
+
+
+;;;**************************************************************************************************
+;;;* BEGIN Icons
+;;;* tag: <icons>
+;;;*
+;;;* description: формирование иконок
+;;;*
+;;;**************************************************************************************************
+
+(defn font-icon [css]
+  [:span {:class       css
+          :aria-hidden "true"}])
+
+
+(defn glyphicon [iname]
+  (font-icon
+   (str "glyphicon glyphicon-" iname)))
+
+;;; END Icons
+;;;..................................................................................................
