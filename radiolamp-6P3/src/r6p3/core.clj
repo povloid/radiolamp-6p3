@@ -684,7 +684,6 @@ SELECT * FROM r;
 ;; Translit
 
 (defn prepare-field-to-translit-field [field to-field row]
-  (println (row field) (make-translit-ru-en (row field)))
   (if-let [v (row field)]
     (assoc row to-field (make-translit-ru-en v))
     row))

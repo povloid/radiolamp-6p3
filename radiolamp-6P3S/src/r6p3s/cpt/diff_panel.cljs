@@ -16,18 +16,30 @@
 
 
 
+
+
 (def app-init
   {})
 
 
-(defn component [app own
-                 {:keys [] :as opts}]
+(defn component [app own {:keys [] :as opts}]
   (reify
     om/IRender
     (render[_]
-      (dom/div
-       #js {:className ""}
-       "OM: component"))))
+      (let [[a b _] @app]
+        (dom/div
+         nil
+         
+         (dom/div nil (str a))
+         (dom/div nil (str b)))))))
+
+
+
+
+
+
+
+
 
 
 
