@@ -109,7 +109,7 @@
   
   (if (= (count (.trim v)) 0)
     (do
-      (om/transact! app #(assoc % :has-warning? true :text-warning "Пустое поле"))
+      (om/transact! app #(assoc % :has-error? true :text-danger "Пустое поле"))
       false)
     (do
       (om/transact! app #(assoc % :has-success? true))
@@ -122,7 +122,7 @@
   
   (if (or (= (count (.trim v)) 0) (= (.valueOf (new js/Number v)) 0))
     (do
-      (om/transact! app #(assoc % :has-warning? true :text-warning "Показание пустое либо равно нулю"))
+      (om/transact! app #(assoc % :has-error? true :text-danger "Показание пустое либо равно нулю"))
       false)    
     (do
       (om/transact! app #(assoc % :has-success? true))
@@ -135,11 +135,55 @@
   
   (if (c/str-to-date v)
     (do
-      (om/transact! app #(assoc % :has-success? true))
+      (om/transact! app #(assoc % :has-error? true))
       true)
     (do
-      (om/transact! app #(assoc % :has-warning? true :text-warning "Неправильная дата"))
+      (om/transact! app #(assoc % :has-danger? true :text-danger "Неправильная дата"))
       false)))
+
+
+;;------------------------------------------------------------------------------
+;; BEGIN: for some-> validations
+;; tag: <some validations>
+;; description: Валидация для some->
+;;------------------------------------------------------------------------------
+
+
+
+(defn validate-field-and-value-to-row-fn!
+  ([get-cursor-keyword get-value-fn vld-fn]
+   (validate-field-and-value-to-row-fn! get-cursor-keyword get-value-fn vld-fn get-cursor-keyword))
+  ([get-cursor-fn get-value-fn vld-fn as-keyword]
+   (fn [app]
+     (let [app (get-cursor-fn app)
+           v   (get-value-fn @app)]
+       {:valid? (vld-fn app v)
+        :key    as-keyword
+        :value  v}))))
+
+(defn value-to-row-fn!
+  ([get-cursor-keyword get-value-fn]
+   (value-to-row-fn! get-cursor-keyword get-value-fn get-cursor-keyword))
+  ([get-cursor-fn get-value-fn as-keyword]
+   (validate-field-and-value-to-row-fn! get-cursor-fn get-value-fn (fn [_ _] true) as-keyword)))
+
+(defn validate-fields!
+  [app & validate-fields]
+  (doall (map #(% app) validate-fields)))
+
+(defn every-valid?-then-row [validate-form-result]
+  (when (every? :valid? validate-form-result)
+    (reduce
+     (fn [a {:keys [key value]}]
+       (assoc a key value))
+     {} validate-form-result)))
+
+;; END for some-> validations
+;;..............................................................................
+
+
+
+
 
 
 ;; END input

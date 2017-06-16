@@ -8,8 +8,12 @@
 
 (def app-init modal/app-init)
 
-(defn component [app owner {:keys [act-yes-fn]
-                            :or   {act-yes-fn #(js/alert "Действие еще не реализовано")}
+(defn component [app owner {:keys [act-yes-fn
+                                   button-yes-text
+                                   button-no-text]
+                            :or   {act-yes-fn      #(js/alert "Действие еще не реализовано")
+                                   button-yes-text "Да"
+                                   button-no-text  "Нет"}
                             :as   opts}]
   (reify
     om/IRender
@@ -19,13 +23,16 @@
                               (dom/div nil
 
                                        (button/render {:type     :primary
-                                                       :on-click (fn [_]
+                                                       :on-click (fn [_]                               
+                                                                   (modal/hide app)
                                                                    (act-yes-fn)
-                                                                   (modal/hide app) 1)
-                                                       :text     "Да"})
+                                                                   1)
+                                                       :text     button-yes-text})
 
-                                       (button/render {:on-click (fn [_] (modal/hide app) 1)
-                                                       :text     "Нет"})
+                                       (button/render {:on-click (fn [_]
+                                                                   (modal/hide app)
+                                                                   1)
+                                                       :text     button-no-text})
 
                                        ))
                  } ))))
