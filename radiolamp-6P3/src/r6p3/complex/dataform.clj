@@ -1,4 +1,4 @@
-(ns r6p3.dataform
+(ns r6p3.complex.dataform
   (:use clojure.pprint)
   (:require [korma.db :as kdb]
             [korma.core :as kc]))

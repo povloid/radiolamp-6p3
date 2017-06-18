@@ -1,7 +1,5 @@
 (ns r6p3.core-handler
-
   (:use compojure.core)
-
   (:require [clojure.java.io :as io]
             [ring.middleware.reload :refer (wrap-reload)] ;; reload temlates
             [ring.middleware.json :as json]
@@ -19,10 +17,7 @@
 
             [cemerick.friend :as friend]
             (cemerick.friend [workflows :as workflows]
-                             [credentials :as creds])
-
-            )
-  )
+                             [credentials :as creds])))
 
 
 (defn parseLong [v] (Long/parseLong v))
@@ -48,7 +43,7 @@
                    :or {page-ixcms-main-params {}
                         }
                    :as spec}]
-  
+
   (println "routes-ix* - spec>" spec)
 
   (routes
@@ -64,7 +59,6 @@
 ;; tag: <file upload routes>
 ;; description: Маршруты для файлового аплоадера
 ;;------------------------------------------------------------------------------
-
 
 (defn rest-files-list [{{:keys [page page-size fts-query]
                          :or {page 1 page-size 10 fts-query ""}} :params}]
@@ -211,8 +205,6 @@
 ;;* description: Справочник управления пользователями
 ;;*
 ;;**************************************************************************************************
-
-
 
 (defn rest-webusers-list [{{:keys [page page-size fts-query]
                             :or {page 1 page-size 10 fts-query ""}} :params
@@ -374,275 +366,4 @@
             )))
 
 ;; END Users reference book
-;;..................................................................................................
-
-;;**************************************************************************************************
-;;* BEGIN Spec text reference book
-;;* tag: <stext ref book>
-;;*
-;;* description: Специальный текст
-;;*
-;;**************************************************************************************************
-
-#_(defn routes-stext* [edit-roles-set]
-  (routes
-   (context "/tc/rb/stext" []
-
-            (POST "/list" {{:keys [page page-size fts-query]
-                            :or {page 1 page-size 10 fts-query ""}} :params}
-                  (-> ix/stext-select*
-                      (ix/com-pred-page* (dec page) page-size)
-
-                      (as-> query
-                          (let [fts-query (clojure.string/trim fts-query)]
-                            (if (empty? fts-query)
-                              query
-                              (ix/webdoc-pred-search? query fts-query))))
-
-                      (korma.core/order :id :desc)
-                      ix/com-exec
-                      ((partial map #(dissoc % :password)))
-                      ring.util.response/response
-                      cw/error-response-json))
-
-            (POST "/find" {{id :id} :params}
-                  (-> id
-                      ((partial ix/com-find ix/stext))
-                      ring.util.response/response
-                      cw/error-response-json))
-
-            (POST "/save" request
-                  (friend/authorize
-                   edit-roles-set
-                   (-> request
-                       :params
-                       :row
-                       ((partial ix/com-save-for-id ix/stext))
-                       ring.util.response/response
-                       cw/error-response-json))
-
-                  ))))
-;; END Spec text reference book
-;;..................................................................................................
-
-
-
-#_(defn routes-tag* [edit-roles-set]
-  (routes
-   (context "/tag" []
-
-            (POST "/path-and-chailds" request
-                  (do
-                    ;;(Thread/sleep 100000)
-                    (-> request
-                        :params
-                        (update-in [:id] #(if (= % 0) nil %))
-                        ix/tag-get-tree-path-and-childs
-                        ring.util.response/response
-                        cw/error-response-json)))
-
-            #_(GET "/tree-as-flat-groups" []
-                   (ring.util.response/response
-                    (ix/tag-tree-as-flat-groups)))
-
-            ;; TAGS WORK ------------------------------------------------------
-
-
-            (POST "/save" request
-                  (friend/authorize
-                   edit-roles-set
-                   (-> request
-                       :params
-                       ix/tag-save
-                       ring.util.response/response
-                       cw/error-response-json)))
-
-            (POST "/delete" request
-                  (friend/authorize
-                   edit-roles-set
-                   (-> request
-                       :params
-                       ix/tag-delete
-                       ((fn [_] {:result "OK"}))
-                       ring.util.response/response
-                       cw/error-response-json)))
-
-            ;; TAGS WORK ------------------------------------------------------
-            ))
-  )
-
-;;**************************************************************************************************
-;;* BEGIN Products reference book
-;;* tag: <webdocs ref book>
-;;*
-;;* description: Справочник документов
-;;*
-;;**************************************************************************************************
-
-#_(defn routes-webdocs* [edit-roles-set
-                       {:keys [webdoc-entity
-                               webdoc-select*
-                               webdoc-save-fn
-                               webdoc-delete-fn
-                               context-path
-                               spec-edit-fn
-                               spec-save-fn
-                               rb
-                               covertors-fn
-                               save-file-fn-options]
-                        :or {webdoc-entity ix/webdoc
-                             webdoc-select* ix/webdoc-select*
-                             covertors-fn (fn [webdoc-row] webdoc-row)
-                             spec-edit-fn (fn [webdoc-row] webdoc-row)
-                             spec-save-fn (fn [_ _] nil)
-                             rb {}
-                             context-path "/tc/rb/webdocs"
-                             webdoc-save-fn ix/webdoc-save
-                             webdoc-delete-fn ix/webdoc-delete
-                             save-file-fn-options {}}
-                        :as init-row}]
-  (routes
-   (context context-path []
-
-            (POST "/bytag" {{:keys [tag-id page page-size fts-query]
-                             :or {page 1 page-size 10 fts-query ""}} :params}
-                  (do
-                    (-> webdoc-select* ;;; SRC
-                        (ix/webdoc-pred-search-for-the-child-tree-tags?
-                         {:id (if (= tag-id 0) nil tag-id)})
-
-                        (ix/com-pred-page* (dec page) page-size)
-
-                        (as-> query
-                            (let [fts-query (clojure.string/trim fts-query)]
-                              (if (empty? fts-query)
-                                query
-                                (ix/webdoc-pred-search? query fts-query))))
-
-                        (korma.core/order :id :desc)
-                        ix/com-exec
-                        korma.db/transaction
-                        ring.util.response/response
-                        cw/error-response-json)))
-
-            (POST "/edit" {{id :id} :params}
-                  (-> {:webdoc-row (if id (ix/com-find webdoc-entity id) {})}
-                      spec-edit-fn
-                      (assoc :rb rb)
-                      ring.util.response/response
-                      cw/error-response-json))
-
-            (POST "/webdoctags-edit-table" request
-                  (-> request
-                      :params
-                      (ix/webdoctag-tag-tree-as-flat-groups-with-patches :path)
-                      ring.util.response/response
-                      cw/error-response-json))
-
-            (POST "/save" {{:keys [webdoc-row webdoctag-ids-for-updating swops] :as row} :params}
-                  (friend/authorize
-                   edit-roles-set
-                   (cw/error-response-json
-                    (let [new-webdoc-row (when webdoc-row
-                                           (-> webdoc-row
-                                             ;;; SPEC HANDLER
-                                               ;;(update-in-if-not-nil? [:price] bigdec)
-                                               ;;(update-in-if-not-nil? [:orderindex] parseLong)
-                                               ;;(update-in-if-not-nil? [:showbdate] #(new java.util.Date %))
-                                               ;;(update-in-if-not-nil? [:showedate] #(new java.util.Date %))
-                                               covertors-fn
-                                               webdoc-save-fn
-                                               ))]
-
-                      (ring.util.response/response {:result-code 0
-                                                    :spec-save-fn-result (spec-save-fn row new-webdoc-row)
-                                                    :webdoc-row new-webdoc-row
-                                                    :webdoctag-rows (when (and new-webdoc-row
-                                                                               webdoctag-ids-for-updating)
-                                                                      (->> webdoctag-ids-for-updating
-                                                                           (map (partial assoc {} :id))
-                                                                           ((partial ix/webdoctag-update-tags new-webdoc-row))
-                                                                           doall))
-                                                    })))))
-
-            (POST "/delete" request
-                  (friend/authorize
-                   edit-roles-set
-                   (-> request
-                       :params
-                       webdoc-delete-fn
-                       ((fn [_] {:result "OK"}))
-                       ring.util.response/response
-                       cw/error-response-json)))
-
-            (POST "/images-list" request
-                  (-> request
-                      :params
-                      (ix/files_rel-select-files-by-* :webdoc_id)
-                      ix/file-pred-images*
-                      ix/com-exec
-                      ring.util.response/response
-                      cw/error-response-json))
-
-            (POST "/files-list" request
-                  (-> request
-                      :params
-                      (ix/files_rel-select-files-by-* :webdoc_id)
-                      (ix/file-pred-images* :not-image)
-                      ix/com-exec
-                      ring.util.response/response
-                      cw/error-response-json))
-
-            (context "/upload/:id" [id]
-                     (multipart/wrap-multipart-params
-                      (POST "/image/avatar" request
-                            (friend/authorize
-                             edit-roles-set
-                             (ring.util.response/response
-                              (let [id (parseLong id)
-                                    [{path :path} _]
-                                    (ix/web-file-upload
-                                     (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id id}
-                                              (merge {:path-prefix "/image/"} save-file-fn-options))
-                                     (-> request :params :file-uploader))]
-                                (ix/webdoc-save {:id id :web_title_image path})
-                                "OK")))))
-
-                     (multipart/wrap-multipart-params
-                      (POST "/image" request
-                            (friend/authorize
-                             edit-roles-set
-                             (ring.util.response/response
-                              (do (ix/web-file-upload
-                                   (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id (parseLong id)}
-                                            (merge {:path-prefix "/image/"} save-file-fn-options))
-                                   (-> request :params :image-uploader))
-                                  "OK")))))
-
-                     (multipart/wrap-multipart-params
-                      (POST "/file" request
-                            (friend/authorize
-                             edit-roles-set
-                             (ring.util.response/response
-                              (do
-                                (ix/web-file-upload
-                                 (partial ix/file-upload-rel-on-o webdoc-entity :webdoc_id {:id (parseLong id)}
-                                          (merge {:path-prefix "/file/"} save-file-fn-options))
-                                 (-> request :params :file-uploader))
-                                "OK")))))
-
-                     )
-
-            (POST "/files_rel/delete" {{:keys [webdoc-id file-id]} :params}
-                  (friend/authorize
-                   edit-roles-set
-                   (-> (do
-                         (ix/files_rel-delete :webdoc_id {:id file-id} {:id webdoc-id})
-                         (ring.util.response/response {:result "OK"}))
-                       cw/error-response-json))
-                  ))
-   )
-  )
-
-;; END Products reference book
 ;;..................................................................................................
