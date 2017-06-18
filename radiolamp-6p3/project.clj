@@ -1,8 +1,8 @@
-(defproject radiolamp-6P3 "0.4.0"
+(defproject radiolamp-6p3 "0.5.0"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+            :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/core.async "0.3.441"]
 
@@ -27,10 +27,7 @@
                  [net.sourceforge.htmlcleaner/htmlcleaner "2.19"]
 
                  [com.draines/postal "2.0.2"]
-                 [image-resizer "0.1.9"]
-                 ]
+                 [image-resizer "0.1.9"]]
 
   :aot :all
-  :omit-source true
-
-  )
+  :omit-source true)

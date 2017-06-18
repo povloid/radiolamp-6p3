@@ -1,4 +1,4 @@
-(defproject radiolamp-6P3S "0.4.0"
+(defproject radiolamp-6p3s "0.5.0"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"

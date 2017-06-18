@@ -1,8 +1,7 @@
-(defproject radiolamp-6P3S-d3js "0.1.0"
-  :description "6p3s components and tools based on D3JS"
+(defproject radiolamp-6p3s-yandex "0.1.0"
+  :description "Components and tools for Yandex services"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojurescript "1.9.494"]
-                 [radiolamp-6P3S "0.5.0"]
-                 [cljsjs/d3 "3.5.16-0"]])
+                 [radiolamp-6p3s "0.5.0"]])
