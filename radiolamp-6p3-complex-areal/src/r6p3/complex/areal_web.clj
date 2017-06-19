@@ -8,7 +8,8 @@
 
 (ns r6p3.complex.areal-web
   (:require [clojure.java.io :as io]
-            [r6p3.core :as rc]
+            [r6p3.core :as c]
+            [r6p3.complex.areal-core :as cc]
             [r6p3.transit :as transit]
             [r6p3.core :as c]))
 
@@ -16,38 +17,35 @@
 (defn rest-areal-list [{{:keys [page page-size fts-query all]
                          :or {page 1 page-size 10 fts-query ""}} :params}
                        _]
-  (-> c/areal-select*
+  (-> cc/areal-select*
 
       (as-> query
           (if all
             query
-            (rc/com-pred-page* query (dec page) page-size)))
+            (c/com-pred-page* query (dec page) page-size)))
 
       (as-> query
           (let [fts-query (clojure.string/trim fts-query)]
             (if (empty? fts-query)
               query
-              (c/areal-pred-search? query fts-query))))
+              (cc/areal-pred-search? query fts-query))))
 
       (korma.core/order :path_keynames)
-      rc/com-exec))
+      c/com-exec))
 
 (defn rest-areal-find [{{id :id} :params} _]
   (-> (if id
-        (rc/com-find c/areal id)
+        (c/com-find cc/areal id)
         {})))
 
 (defn rest-areal-save [request {:keys [edit-role]}]
-  (println request edit-role)
-  (rc/throw-when-no-role-from-request request edit-role)
   (let [{:keys [row]} (request :params)
-        row (c/areal-save row)]
+        row (cc/areal-save row)]
     row))
 
 (defn rest-areal-delete [request {:keys [edit-role]}]
-  (rc/throw-when-no-role-from-request request edit-role)
   (->> request
        :params
        :id
-       (rc/com-delete-for-id c/areal)
+       (c/com-delete-for-id cc/areal)
        ((fn [_] {:result "OK"}))))

@@ -7,25 +7,12 @@
   (:use hiccup.util)
 
   (:require
-
-   ;; !!!!!!!
-   ;; [hiccup-bridge.core :as hicv]
-
-   ;;; [postal.core :as postal]
-
-   ;;[cemerick.friend :as friend]
-   ;;(cemerick.friend [workflows :as workflows]
-   ;;                 [credentials :as creds])
-
    [clj-time.core :as tco]
    [clj-time.format :as tf]
    [clj-time.coerce :as tc]
    [clj-time.local :as tl]
-
    [ring.util.response :as response]
-
-   [clojure.stacktrace] ;; Нужно для error-response-json
-
+   [clojure.stacktrace] ;; Нужно для error-response-js
    ))
 
 ;;**************************************************************************************************
@@ -59,26 +46,6 @@
 ;;* description: полезные инструменты
 ;;*
 ;;**************************************************************************************************
-
-;; (defn html->hiccup [& html]
-;;   (->> html
-;;        (reduce str)
-;;        str
-;;        rest
-;;        reverse
-;;        rest
-;;        reverse
-;;        (reduce str)
-;;        (#(clojure.string/replace % #" >" ">"))
-;;        (#(clojure.string/replace % #"> <" "><"))
-;;        hiccup-bridge.core/html->hiccup
-;;        first
-;;        ((fn [x]
-;;           (println)
-;;           (clojure.pprint/pprint x)
-;;           (println)
-;;           x))
-;;        doall))
 
 ;; END Tools
 ;;..................................................................................................
@@ -270,31 +237,6 @@
 ;;..................................................................................................
 
 
-;;**************************************************************************************************
-;;* BEGIN ajax
-;;* tag: <ajax>
-;;*
-;;* description: AJAX
-;;*
-;;**************************************************************************************************
-
-
-;; END ajax
-;;..................................................................................................
-
-
-
-
-
-
-;;**************************************************************************************************
-;;* BEGIN handler tools
-;;* tag: <handler tools>
-;;*
-;;* description: Инструменты для хэндлера
-;;*
-;;**************************************************************************************************
-
 ;;***********************************************************************
 ;;* BEGIN json errors
 ;;* tag: <json errors>
@@ -311,7 +253,6 @@
          (clojure.stacktrace/print-stack-trace ex#)
          (-> ex#
              .getMessage
-             (ix/print-debug->>> "error-response-json")
              response/response
              (response/status 500)
              (response/content-type "text/javascript ; charset=utf-8"))))))

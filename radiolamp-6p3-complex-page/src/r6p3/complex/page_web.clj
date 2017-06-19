@@ -10,43 +10,44 @@
   (:require [clojure.java.io :as io]
             [r6p3.transit :as transit]
             [korma.core :as kc]
-            [r6p3.core :as c]))
+            [r6p3.core :as c]
+            [r6p3.complex.page-core :as cc]))
 
 
 (defn rest-page-list [{{:keys [page page-size fts-query]
                         :or {page 1 page-size 10 fts-query ""}} :params}]
-  (-> c/page-select*
+  (-> cc/page-select*
       (c/com-pred-page* (dec page) page-size)
-      (kc/with c/content_type)
+      (kc/with cc/content_type)
 
       (as-> query
           (let [fts-query (clojure.string/trim fts-query)]
             (if (empty? fts-query)
               query
-              (c/page-pred-search? query fts-query))))
+              (cc/page-pred-search? query fts-query))))
 
       (korma.core/order :id :desc)
       c/com-exec))
 
 (defn rest-page-find [{{id :id} :params}]
   (-> (if id
-        (-> c/page
+        (-> cc/page
             kc/select*
             (kc/where (= :id id))
-            (kc/with c/content_type)
+            (kc/with cc/content_type)
             c/com-exec-1)
         {})))
 
 (defn rest-page-save [request]
   (let [{:keys [row]} (request :params)
-        row (c/page-save row)]
+        row (cc/page-save row)]
     row))
 
 (defn rest-page-delete [request]
   (->> request
        :params
        :id
-       (c/com-delete-for-id c/page)
+       (c/com-delete-for-id cc/page)
        ((fn [_] {:result "OK"}))))
 
 
@@ -77,7 +78,7 @@
 (defn rest-page-upload-image [request id]
   (c/web-file-upload
    (partial
-    c/file-upload-rel-on-o c/page :page_id
+    c/file-upload-rel-on-o cc/page :page_id
     {:id (Long/parseLong id)}
     {:path-prefix "/image/" :ws [60 150 300]})
    (-> request :params :uploader))
@@ -88,7 +89,7 @@
 (defn rest-page-upload-file [request id]
   (c/web-file-upload
    (partial
-    c/file-upload-rel-on-o c/page :page_id
+    c/file-upload-rel-on-o cc/page :page_id
     {:id (Long/parseLong id)}
     {:path-prefix "/file/"})
    (-> request :params :uploader))
