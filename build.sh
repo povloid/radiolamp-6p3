@@ -6,11 +6,6 @@ lein clean
 lein install
 cd -
 
-cd radiolamp-6p3-complex-webusers
-lein clean
-lein install
-cd -
-
 cd radiolamp-6p3-complex-dataform
 lein clean
 lein install

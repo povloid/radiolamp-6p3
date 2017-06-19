@@ -1,4 +1,4 @@
-(defproject radiolamp-6p3s-complex-webuser "0.1.0"
+(defproject radiolamp-6p3s-complex-webusers "0.1.0"
   :description "Web components and functional for webusers management"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"

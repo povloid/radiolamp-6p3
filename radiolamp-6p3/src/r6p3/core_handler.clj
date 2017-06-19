@@ -191,3 +191,350 @@
           (throw (Exception. "Значение пути в переменной files-root-directory еще не задано"))))
 
    ))
+
+
+
+
+
+;;**************************************************************************************************
+;;* BEGIN Users reference book
+;;* tag: <webusers ref book>
+;;*
+;;* description: Справочник управления пользователями
+;;*
+;;**************************************************************************************************
+
+
+
+(defn rest-webusers-list [{{:keys [page page-size fts-query]
+                            :or {page 1 page-size 10 fts-query ""}} :params
+                           :as request}
+
+                          {:keys [webusers-list-pred-fn view-role edit-role]}]
+
+  (if (c/is-allow-from-request request #{edit-role view-role})
+    (-> c/webuser-select*
+        (c/com-pred-page* (dec page) page-size)
+
+        (as-> query
+            (let [fts-query (clojure.string/trim fts-query)]
+              (if (empty? fts-query)
+                query
+                (c/webuser-pred-search? query fts-query))))
+
+
+        (as-> query
+            (if webusers-list-pred-fn
+              (webusers-list-pred-fn query request)
+              query))
+
+        (korma.core/order :id :desc)
+        c/com-exec)
+    []))
+
+(defn rest-webusers-find [{{id :id} :params :as request} {:keys [view-role]}]
+
+  (c/throw-when-no-role-from-request request view-role)
+
+  (let [webroles (c/webrole-list true)]
+    (-> (if id
+          (-> id
+              ((partial c/com-find c/webuser))
+              (dissoc :password)
+              (as-> row
+                  (assoc row :troles-set
+                         [webroles (c/webuserwebrole-own-get-rels-set row)])))
+          (-> {} ;; new
+              (assoc :troles-set
+                     [webroles #{}]))))))
+
+(defn rest-webusers-save [request {:keys [edit-role]}]
+
+  (c/throw-when-no-role-from-request request edit-role)
+
+  (let [{:keys [row user-roles-keys-set]} (request :params)
+        row (-> row
+                (as-> row
+                    (if (empty? (:password row)) (dissoc row :password)
+                        (update-in row [:password] creds/hash-bcrypt)))
+                ((partial c/com-save-for-id c/webuser)))]
+
+    (when user-roles-keys-set
+      (println (map keyword user-roles-keys-set))
+      (c/webuserwebrole-add-rels-for-keynames row (map keyword user-roles-keys-set)))
+    row))
+
+(defn rest-webusers-delete [request {:keys [edit-role]}]
+
+  (c/throw-when-no-role-from-request request edit-role)
+
+  (-> request
+      :params
+      :id
+      ((partial c/com-delete-for-id c/webuser))
+      ((fn [_] {:result "OK"}))))
+
+(defn rest-webusers-change-password [request]
+  (-> request
+      :params
+      (update-in [:password] creds/hash-bcrypt)
+      (assoc :username (-> request :session :cemerick.friend/identity :current))
+      c/webuser-save-for-username))
+
+
+(defn routes-webusers* [{:keys [view-role
+                                edit-role]
+                         :as opts}]
+  (routes
+   (context "/tc/rb/webusers" []
+
+
+            ;; JSON
+            (POST "/list" request
+                  (-> request
+                      (rest-webusers-list opts)
+                      ring.util.response/response
+                      cw/error-response-json))
+
+            ;; TRANSIT
+            (POST "/list/transit" request
+                  (-> request
+                      (rest-webusers-list opts)
+                      transit/response-transit))
+
+
+
+            ;; JSON
+            (POST "/find" request
+                  (-> request
+                      (rest-webusers-find opts)
+                      ring.util.response/response
+                      cw/error-response-json))
+
+            ;; TRANSIT
+            (POST "/find/transit" request
+                  (-> request
+                      (rest-webusers-find opts)
+                      transit/response-transit))
+
+
+
+            ;; JSON
+            (POST "/save" request
+                  (-> request
+                      (rest-webusers-save opts)
+                      ring.util.response/response
+                      cw/error-response-json))
+
+            ;; TRANSIT
+            (POST "/save/transit" request
+                  (-> request
+                      (rest-webusers-save opts)
+                      transit/response-transit))
+
+
+
+            ;; JSON
+            (POST "/delete" request
+                  (-> request
+                      (rest-webusers-delete opts)
+                      ring.util.response/response
+                      cw/error-response-json))
+
+            ;; TRANSIT
+            (POST "/delete/transit" request
+                  (-> request
+                      (rest-webusers-delete opts)
+                      transit/response-transit))
+
+
+
+            ;; JSON
+            (POST "/change-password" request
+                  (-> request
+                      rest-webusers-change-password
+                      ring.util.response/response
+                      cw/error-response-json))
+
+            ;; TRANSIT
+            (POST "/change-password/transit" request
+                  (-> request
+                      rest-webusers-change-password
+                      transit/response-transit))
+
+
+            )))
+
+;; END Users reference book
+;;..................................................................................................
+;;**************************************************************************************************
+;;* BEGIN Users reference book
+;;* tag: <webusers ref book>
+;;*
+;;* description: Справочник управления пользователями
+;;*
+;;**************************************************************************************************
+
+
+
+(defn rest-webusers-list [{{:keys [page page-size fts-query]
+                            :or {page 1 page-size 10 fts-query ""}} :params
+                           :as request}
+
+                          {:keys [webusers-list-pred-fn view-role edit-role]}]
+
+  (if (c/is-allow-from-request request #{edit-role view-role})
+    (-> c/webuser-select*
+        (c/com-pred-page* (dec page) page-size)
+
+        (as-> query
+            (let [fts-query (clojure.string/trim fts-query)]
+              (if (empty? fts-query)
+                query
+                (c/webuser-pred-search? query fts-query))))
+
+
+        (as-> query
+            (if webusers-list-pred-fn
+              (webusers-list-pred-fn query request)
+              query))
+
+        (korma.core/order :id :desc)
+        c/com-exec)
+    []))
+
+(defn rest-webusers-find [{{id :id} :params :as request} {:keys [view-role]}]
+
+  (c/throw-when-no-role-from-request request view-role)
+
+  (let [webroles (c/webrole-list true)]
+    (-> (if id
+          (-> id
+              ((partial c/com-find c/webuser))
+              (dissoc :password)
+              (as-> row
+                  (assoc row :troles-set
+                         [webroles (c/webuserwebrole-own-get-rels-set row)])))
+          (-> {} ;; new
+              (assoc :troles-set
+                     [webroles #{}]))))))
+
+(defn rest-webusers-save [request {:keys [edit-role]}]
+
+  (c/throw-when-no-role-from-request request edit-role)
+
+  (let [{:keys [row user-roles-keys-set]} (request :params)
+        row (-> row
+                (as-> row
+                    (if (empty? (:password row)) (dissoc row :password)
+                        (update-in row [:password] creds/hash-bcrypt)))
+                ((partial c/com-save-for-id c/webuser)))]
+
+    (when user-roles-keys-set
+      (println (map keyword user-roles-keys-set))
+      (c/webuserwebrole-add-rels-for-keynames row (map keyword user-roles-keys-set)))
+    row))
+
+(defn rest-webusers-delete [request {:keys [edit-role]}]
+
+  (c/throw-when-no-role-from-request request edit-role)
+
+  (-> request
+      :params
+      :id
+      ((partial c/com-delete-for-id c/webuser))
+      ((fn [_] {:result "OK"}))))
+
+(defn rest-webusers-change-password [request]
+  (-> request
+      :params
+      (update-in [:password] creds/hash-bcrypt)
+      (assoc :username (-> request :session :cemerick.friend/identity :current))
+      c/webuser-save-for-username))
+
+
+(defn routes-webusers* [{:keys [view-role
+                                edit-role]
+                         :as opts}]
+  (routes
+   (context "/tc/rb/webusers" []
+
+
+            ;; JSON
+            (POST "/list" request
+                  (-> request
+                      (rest-webusers-list opts)
+                      ring.util.response/response
+                      cw/error-response-json))
+
+            ;; TRANSIT
+            (POST "/list/transit" request
+                  (-> request
+                      (rest-webusers-list opts)
+                      transit/response-transit))
+
+
+
+            ;; JSON
+            (POST "/find" request
+                  (-> request
+                      (rest-webusers-find opts)
+                      ring.util.response/response
+                      cw/error-response-json))
+
+            ;; TRANSIT
+            (POST "/find/transit" request
+                  (-> request
+                      (rest-webusers-find opts)
+                      transit/response-transit))
+
+
+
+            ;; JSON
+            (POST "/save" request
+                  (-> request
+                      (rest-webusers-save opts)
+                      ring.util.response/response
+                      cw/error-response-json))
+
+            ;; TRANSIT
+            (POST "/save/transit" request
+                  (-> request
+                      (rest-webusers-save opts)
+                      transit/response-transit))
+
+
+
+            ;; JSON
+            (POST "/delete" request
+                  (-> request
+                      (rest-webusers-delete opts)
+                      ring.util.response/response
+                      cw/error-response-json))
+
+            ;; TRANSIT
+            (POST "/delete/transit" request
+                  (-> request
+                      (rest-webusers-delete opts)
+                      transit/response-transit))
+
+
+
+            ;; JSON
+            (POST "/change-password" request
+                  (-> request
+                      rest-webusers-change-password
+                      ring.util.response/response
+                      cw/error-response-json))
+
+            ;; TRANSIT
+            (POST "/change-password/transit" request
+                  (-> request
+                      rest-webusers-change-password
+                      transit/response-transit))
+
+
+            )))
+
+;; END Users reference book
+;;..................................................................................................
