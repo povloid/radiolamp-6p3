@@ -11,7 +11,7 @@
 
                  ;;[ring-transit "0.1.3"]
                  [prismatic/plumbing "0.5.3"] ;; Просит транзит
-                 [com.cognitect/transit-clj "0.8.297"]
+                 [com.cognitect/transit-clj "0.8.300"]
 
                  [compojure "1.5.2"]
                  [hiccup "1.0.5"]

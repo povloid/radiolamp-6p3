@@ -36,8 +36,8 @@
            "<![endif]-->"
 
            (include-css (get opts :bootstrap.min.css "/bootstrap/css/bootstrap.min.css"))
-           (include-css (get opts :bootstrap.sonis "/bootstrap/css/sonis.css"))
-           (include-js "/js/jquery.min.js")
+           (include-css (get opts :bootstrap.sonis   "/bootstrap/css/sonis.css"))
+           (include-js  (get opts :jquery.min.js     "/js/jquery.min.js"))
 
 
            (:header-additions opts nil)

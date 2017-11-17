@@ -13,11 +13,12 @@
 (def selected-set input-search-selector/selected-set)
 
 
-(def init-opts 
+(defn init-opts [{:keys [path-prefix]
+                  :or   {path-prefix "/tc/rb"}}]
   {:search-data-fn
    (fn [chan-ret-data text]
      (rnet/get-data
-      "/tc/rb/webusers/list/transit"
+      (str path-prefix "/webusers/list/transit")
       {:fts-query text
        :page-size 10}
       (fn [response]
@@ -29,8 +30,6 @@
      [(dom/td nil username)])})
 
 
-
-
 (def component
   (fn [app own opts]
     (input-search-selector/component
@@ -38,6 +37,6 @@
 
 
 (def component-form-group
-  (fn [app own opts]
+  (fn [app own {:keys [i-opts] :as opts}]
     (input-search-selector/component-form-group
-     app own (update-in opts [:spec-input] #(merge init-opts %)))))
+     app own (update-in opts [:spec-input] #(merge (init-opts i-opts) %)))))

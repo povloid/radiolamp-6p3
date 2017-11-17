@@ -43,17 +43,18 @@
           :password    input-change-password/app-init
           :description textarea/app-init
           :troles      []
-          :tabs        nav-tabs/app-state
-          }))
+          :tabs        nav-tabs/app-state}))
 
 
 
 (defn webusers-edit-form [app _ {{:keys [app->row-fn row->app-fn
                                          nav-tabs-items-map
-                                         abody-fn]
+                                         abody-fn
+                                         path-prefix]
                                   :or   {nav-tabs-items-map {0 {:text "Логин"}
-                                                             1 {:text "Роли"}}}} :specific
-                                 :as                                             opts}]
+                                                             1 {:text "Роли"}}
+                                         path-prefix        "/tc/rb"}} :specific
+                                 :as                                   opts}]
 
   (reify
     om/IWillMount
@@ -66,7 +67,7 @@
        edit-form-for-id/component app
        {:opts
         (merge opts
-               {:uri "/tc/rb/webusers/find/transit"
+               {:uri (str path-prefix "/webusers/find/transit")
                 :fill-app-fn
                 (fn [row]
                   (om/transact!
@@ -103,7 +104,7 @@
                          ))))
 
 
-                :uri-save "/tc/rb/webusers/save/transit"
+                :uri-save (str path-prefix "/webusers/save/transit")
                 :app-to-row-fn
                 (fn []
 
@@ -232,8 +233,10 @@
                                             header app-to-tds-seq-fn
                                             editable?
                                             show-add-button-fn?
-                                            get-spec-query-params-fn]
-                                     :or   {selection-type :one}}]
+                                            get-spec-query-params-fn
+                                            path-prefix]
+                                     :or   {selection-type :one
+                                            path-prefix "/tc/rb"}}]
   (reify
     om/IInitState
     (init-state [_]
@@ -250,7 +253,7 @@
                           {:chan-update chan-update
                            :data-update-fn
                            (fn [app]
-                             (rnet/get-data "/tc/rb/webusers/list/transit"
+                             (rnet/get-data (str path-prefix "/webusers/list/transit")
                                             (let [q {:fts-query (get-in @app [:fts-query :value])
                                                      :page      (get-in @app [:page])}]
                                               (if get-spec-query-params-fn
@@ -327,7 +330,7 @@
                                    :act-yes-fn
                                    (fn []
                                      (rnet/get-data
-                                      "/tc/rb/webusers/delete/transit"
+                                      (str path-prefix "/webusers/delete/transit")
                                       {:id (get-in @app [:modal-yes-no :row :id])}
                                       (fn [_]
                                         (when chan-update
@@ -354,7 +357,8 @@
          {:password input-change-password/app-init}))
 
 
-(defn webusers-change-password-form [app _ _]
+(defn webusers-change-password-form [app _ {:keys [path-prefix]
+                                            :or   {path-prefix "/tc/rb"}}]
   (reify
     om/IInitState
     (init-state [_]
@@ -364,7 +368,7 @@
       (om/build
        edit-form-for-id/component app
        {:opts
-        {:uri-save  "/tc/rb/webusers/change-password/transit"
+        {:uri-save  (str path-prefix "/webusers/change-password/transit")
          :chan-save chan-save
          :app-to-row-fn
          (fn []
