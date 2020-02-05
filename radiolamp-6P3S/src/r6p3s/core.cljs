@@ -91,6 +91,7 @@
 
 
 
+
 (defn on-click-com-fn [f]
   (fn [e]
     (.preventDefault e)
@@ -352,7 +353,3 @@
 
 (defn calc-percent-as-str [objects-all objects & [precision]]
   (str (calc-percent objects-all objects precision) '%))
-
-
-
-
